@@ -15,11 +15,7 @@ import eu.rekawek.coffeegb.memory.Ram;
 
 import static eu.rekawek.coffeegb.gpu.GpuRegister.*;
 
-public class Gpu implements AddressSpace {
-
-    public enum Mode {
-        HBlank, VBlank, OamSearch, PixelTransfer
-    }
+public class Gpu: AddressSpace {
 
     private final AddressSpace videoRam0;
 
