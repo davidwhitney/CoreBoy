@@ -1,15 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using eu.rekawek.coffeegb.cpu.opcode;
 
 namespace eu.rekawek.coffeegb.cpu
 {
-    public static class Opcodes
+    public class Opcodes
     {
-        public static readonly Dictionary<int, Opcode> COMMANDS;
-        public static readonly Dictionary<int, Opcode> EXT_COMMANDS;
+        public readonly Dictionary<int, Opcode> COMMANDS;
+        public readonly Dictionary<int, Opcode> EXT_COMMANDS;
 
-        static Opcodes()
+        public Opcodes()
         {
             var opcodes = new OpcodeBuilder[0x100];
             var extOpcodes = new OpcodeBuilder[0x100];
@@ -212,12 +213,12 @@ namespace eu.rekawek.coffeegb.cpu
             var commands = new Dictionary<int, Opcode>(0x100);
             var extCommands = new Dictionary<int, Opcode>(0x100);
 
-            foreach (var b in opcodes)
+            foreach (var b in opcodes.Where(x => x != null))
             {
                 commands.Add(b.getOpcode(), b.build());
             }
 
-            foreach (var b in extOpcodes)
+            foreach (var b in extOpcodes.Where(x => x != null))
             {
                 extCommands.Add(b.getOpcode(), b.build());
             }

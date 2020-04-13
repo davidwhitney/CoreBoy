@@ -21,7 +21,7 @@ namespace eu.rekawek.coffeegb.cpu.opcode
             this.opcode = builder.getOpcode();
             this.label = builder.getLabel();
             this.ops = new List<Op>(builder.getOps());
-            this.length = ops.Max(o => o.operandLength());
+            this.length = ops.Count <= 0 ? 0 : ops.Max(o => o.operandLength());
         }
 
         public int getOperandLength()

@@ -81,6 +81,7 @@ namespace eu.rekawek.coffeegb
             stream.WriteLine("  -db --disable-battery-saves    Disable battery saves");
             stream.WriteLine("      --debug                    Enable debug console");
             stream.WriteLine("      --headless                 Start in the headless mode");
+            stream.Flush();
         }
 
     }

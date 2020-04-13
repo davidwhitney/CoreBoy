@@ -14,15 +14,16 @@ namespace eu.rekawek.coffeegb
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            // Application.Run(new Form1());
 
-            var emulator = new Emulator(args, LoadProperties());
+            var properties = LoadProperties();
+            var emulator = new Emulator(args, properties);
             emulator.run();
         }
 
         private static string LoadProperties()
         {
-            var fileName = Path.Combine(Environment.GetEnvironmentVariable("user.home"), ".coffeegb.properties");
+            var fileName = Path.Combine(Environment.GetEnvironmentVariable("user.home") ?? "", ".coffeegb.properties");
             var propFile = new FileInfo(fileName);
             return propFile.Exists ? File.ReadAllText(propFile.FullName) : "";
         }

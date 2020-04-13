@@ -33,12 +33,12 @@ namespace eu.rekawek.coffeegb.sound
             return channelEnabled && dacEnabled;
         }
 
-        public bool accepts(int address)
+        public virtual bool accepts(int address)
         {
             return address >= offset && address < offset + 5;
         }
 
-        public void setByte(int address, int value)
+        public virtual void setByte(int address, int value)
         {
             switch (address - offset)
             {
@@ -64,7 +64,7 @@ namespace eu.rekawek.coffeegb.sound
             }
         }
 
-        public int getByte(int address)
+        public virtual int getByte(int address)
         {
             switch (address - offset)
             {
@@ -88,27 +88,27 @@ namespace eu.rekawek.coffeegb.sound
             }
         }
 
-        protected void setNr0(int value)
+        protected virtual void setNr0(int value)
         {
             nr0 = value;
         }
 
-        protected void setNr1(int value)
+        protected virtual void setNr1(int value)
         {
             nr1 = value;
         }
 
-        protected void setNr2(int value)
+        protected virtual void setNr2(int value)
         {
             nr2 = value;
         }
 
-        protected void setNr3(int value)
+        protected virtual void setNr3(int value)
         {
             nr3 = value;
         }
 
-        protected void setNr4(int value)
+        protected virtual void setNr4(int value)
         {
             nr4 = value;
             length.setNr4(value);
@@ -119,32 +119,32 @@ namespace eu.rekawek.coffeegb.sound
             }
         }
 
-        protected int getNr0()
+        protected virtual int getNr0()
         {
             return nr0;
         }
 
-        protected int getNr1()
+        protected virtual int getNr1()
         {
             return nr1;
         }
 
-        protected int getNr2()
+        protected virtual int getNr2()
         {
             return nr2;
         }
 
-        protected int getNr3()
+        protected virtual int getNr3()
         {
             return nr3;
         }
 
-        protected int getNr4()
+        protected virtual int getNr4()
         {
             return nr4;
         }
 
-        protected int getFrequency()
+        protected virtual int getFrequency()
         {
             return 2048 - (getNr3() | ((getNr4() & 0b111) << 8));
         }

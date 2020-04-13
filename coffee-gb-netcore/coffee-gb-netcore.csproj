@@ -15,6 +15,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="tetris.gb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="tetris.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="debugging\Console.cs" />
   </ItemGroup>
 

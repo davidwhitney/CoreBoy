@@ -321,7 +321,7 @@ namespace eu.rekawek.coffeegb.cpu
 
             private DataType type1;
 
-            private DataType? type2;
+            private DataType type2;
 
             public FunctionKey(string name, DataType type1, DataType type2)
             {
@@ -334,7 +334,7 @@ namespace eu.rekawek.coffeegb.cpu
             {
                 this.name = name;
                 this.type1 = type;
-                this.type2 = null;
+                this.type2 = DataType.Unset;
             }
 
             protected bool Equals(FunctionKey other)

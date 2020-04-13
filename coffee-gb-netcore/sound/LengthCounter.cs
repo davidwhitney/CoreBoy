@@ -113,7 +113,7 @@ namespace eu.rekawek.coffeegb.sound
                 enabled ? "enabled" : "disabled");
         }
 
-        void reset()
+        public void reset()
         {
             this.enabled = true;
             this.i = 0;

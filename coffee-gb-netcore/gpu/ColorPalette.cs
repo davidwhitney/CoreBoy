@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace eu.rekawek.coffeegb.gpu
@@ -17,6 +18,8 @@ namespace eu.rekawek.coffeegb.gpu
 
         public ColorPalette(int offset)
         {
+            palettes = Enumerable.Repeat(Enumerable.Repeat(0, 4).ToList(), 8).ToList();
+
             this.indexAddr = offset;
             this.dataAddr = offset + 1;
         }

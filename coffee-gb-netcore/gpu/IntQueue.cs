@@ -5,7 +5,7 @@ namespace eu.rekawek.coffeegb.gpu
 {
     public class IntQueue
     {
-        private readonly Queue<int> _inner;
+        private Queue<int> _inner;
 
         public IntQueue(int capacity)
         {
@@ -34,7 +34,12 @@ namespace eu.rekawek.coffeegb.gpu
 
         public void set(int index, int value)
         {
-            throw new NotImplementedException("Implement lock and set of queue");
+            lock (_inner)
+            {
+                var asArray = _inner.ToArray();
+                asArray[index] = value;
+                _inner = new Queue<int>(asArray);
+            }
             /*
             if (index >= size) {
                 throw new IndexOutOfBoundsException();

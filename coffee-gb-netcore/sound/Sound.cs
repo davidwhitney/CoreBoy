@@ -32,11 +32,10 @@ namespace eu.rekawek.coffeegb.sound
 
         public Sound(SoundOutput output, bool gbc)
         {
-            // TODO: Port sound modes
-            /*allModes[0] = new SoundMode1(gbc);
+            allModes[0] = new SoundMode1(gbc);
             allModes[1] = new SoundMode2(gbc);
             allModes[2] = new SoundMode3(gbc);
-            allModes[3] = new SoundMode4(gbc);*/
+            allModes[3] = new SoundMode4(gbc);
             this.output = output;
         }
 
@@ -86,7 +85,7 @@ namespace eu.rekawek.coffeegb.sound
 
         private AddressSpace getAddressSpace(int address)
         {
-            foreach (AbstractSoundMode m in allModes)
+            foreach (var m in allModes)
             {
                 if (m.accepts(address))
                 {
@@ -134,12 +133,9 @@ namespace eu.rekawek.coffeegb.sound
             }
 
             AddressSpace s = getAddressSpace(address);
-            if (s == null)
-            {
-                throw new ArgumentException();
-            }
+            s?.setByte(address, value);
+            // throw new ArgumentException();
 
-            s.setByte(address, value);
         }
 
 
@@ -166,7 +162,7 @@ namespace eu.rekawek.coffeegb.sound
 
         private int getUnmaskedByte(int address)
         {
-            AddressSpace s = getAddressSpace(address);
+            var s = getAddressSpace(address);
             if (s == null)
             {
                 throw new ArgumentException();

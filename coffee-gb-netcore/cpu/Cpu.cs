@@ -60,10 +60,12 @@ namespace eu.rekawek.coffeegb.cpu
         private int clockCycle = 0;
 
         private bool haltBugMode;
+        private Opcodes _opcodes;
 
         public Cpu(AddressSpace addressSpace, InterruptManager interruptManager, Gpu gpu, Display display,
             SpeedMode speedMode)
         {
+            this._opcodes = new Opcodes();
             this.registers = new Registers();
             this.addressSpace = addressSpace;
             this.interruptManager = interruptManager;
@@ -129,13 +131,13 @@ namespace eu.rekawek.coffeegb.cpu
                         }
                         else if (opcode1 == 0x10)
                         {
-                            currentOpcode = Opcodes.COMMANDS[opcode1];
+                            currentOpcode = _opcodes.COMMANDS[opcode1];
                             state = State.EXT_OPCODE;
                         }
                         else
                         {
                             state = State.OPERAND;
-                            currentOpcode = Opcodes.COMMANDS[opcode1];
+                            currentOpcode = _opcodes.COMMANDS[opcode1];
                             if (currentOpcode == null)
                             {
                                 throw new InvalidOperationException(String.Format("No command for 0x%02x", opcode1));
@@ -163,7 +165,7 @@ namespace eu.rekawek.coffeegb.cpu
                         opcode2 = addressSpace.getByte(pc);
                         if (currentOpcode == null)
                         {
-                            currentOpcode = Opcodes.EXT_COMMANDS[opcode2];
+                            currentOpcode = _opcodes.EXT_COMMANDS[opcode2];
                         }
 
                         if (currentOpcode == null)
