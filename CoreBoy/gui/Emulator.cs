@@ -27,10 +27,10 @@ namespace CoreBoy.gui
             var rom = new Cartridge(Options);
 
             SerialEndpoint serialEndpoint = new NullSerialEndpoint();
-            var console = Options.isDebug() ? Console.Out : null;
+            var console = Options.Debug ? Console.Out : null;
 
 
-            if (Options.isHeadless())
+            if (Options.Headless)
             {
                 Gameboy = new Gameboy(Options, rom, new NullDisplay(), new NullController(), new NullSoundOutput(), serialEndpoint, console);
             }
@@ -52,7 +52,7 @@ namespace CoreBoy.gui
         {
             if (args.Length == 0)
             {
-                GameboyOptions.printUsage(Console.Out);
+                GameboyOptions.PrintUsage(Console.Out);
                 Environment.Exit(0);
                 return null;
             }
@@ -65,7 +65,7 @@ namespace CoreBoy.gui
             {
                 Console.Error.WriteLine(e.Message);
                 Console.Error.WriteLine();
-                GameboyOptions.printUsage(Console.Error);
+                GameboyOptions.PrintUsage(Console.Error);
                 Environment.Exit(1);
                 return null;
             }
@@ -109,7 +109,7 @@ namespace CoreBoy.gui
 
         public void Run()
         {
-            if (Options.isHeadless())
+            if (Options.Headless)
             {
                 Gameboy.Run();
                 return;

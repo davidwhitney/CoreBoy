@@ -49,7 +49,7 @@ namespace CoreBoy.memory.cart
 
         public Cartridge(GameboyOptions options)
         {
-            var file = options.getRomFile();
+            var file = options.RomFile;
             int[] rom = loadFile(file);
             CartridgeType type = CartridgeTypeExtensions.getById(rom[0x0147]);
             title = getTitle(rom);
@@ -65,7 +65,7 @@ namespace CoreBoy.memory.cart
             // LOG.debug("ROM banks: {}, RAM banks: {}", romBanks, ramBanks);
 
             Battery battery = new NullBattery();
-            if (type.isBattery() && options.isSupportBatterySaves())
+            if (type.isBattery() && options.IsSupportBatterySaves())
             {
                 throw new NotImplementedException("Implement battery loading");
                 // battery = new FileBattery(file.getParentFile(), FilenameUtils.removeExtension(file.getName()));
@@ -92,8 +92,8 @@ namespace CoreBoy.memory.cart
                 addressSpace = new Rom(rom, type, romBanks, ramBanks);
             }
 
-            dmgBoostrap = options.isUsingBootstrap() ? 0 : 1;
-            if (options.isForceCgb())
+            dmgBoostrap = options.UseBootstrap ? 0 : 1;
+            if (options.ForceCgb)
             {
                 gbc = true;
             }
@@ -108,7 +108,7 @@ namespace CoreBoy.memory.cart
             else
             {
                 // UNIVERSAL
-                gbc = !options.isForceDmg();
+                gbc = !options.ForceDmg;
             }
         }
 

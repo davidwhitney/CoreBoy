@@ -6,70 +6,37 @@ namespace CoreBoy
 {
     public class GameboyOptions
     {
-        private readonly FileInfo romFile;
-        private readonly bool forceDmg;
-        private readonly bool forceCgb;
-        private readonly bool useBootstrap;
-        private readonly bool disableBatterySaves;
-        private readonly bool debug;
-        private readonly bool headless;
+        public FileInfo RomFile { get; }
+        public bool ForceDmg { get; }
+        public bool ForceCgb { get; }
+        public bool UseBootstrap { get; }
+        public bool DisableBatterySaves { get; }
+        public bool Debug { get; }
+        public bool Headless { get; }
+        public bool IsSupportBatterySaves() => !DisableBatterySaves;
 
         public GameboyOptions(FileInfo romFile) : this(romFile, new string[0], new string[0])
         {
         }
 
-        public GameboyOptions(FileInfo romFile, ICollection<string> paramz, ICollection<string> shortParams)
+        public GameboyOptions(FileInfo romFile, ICollection<string> longParameters, ICollection<string> shortParams)
         {
-            this.romFile = romFile;
-            this.forceDmg = paramz.Contains("force-dmg") || shortParams.Contains("d");
-            this.forceCgb = paramz.Contains("force-cgb") || shortParams.Contains("c");
-            if (forceDmg && forceCgb)
+            RomFile = romFile;
+            ForceDmg = longParameters.Contains("force-dmg") || shortParams.Contains("d");
+            ForceCgb = longParameters.Contains("force-cgb") || shortParams.Contains("c");
+
+            if (ForceDmg && ForceCgb)
             {
                 throw new ArgumentException("force-dmg and force-cgb options are can't be used together");
             }
 
-            this.useBootstrap = paramz.Contains("use-bootstrap") || shortParams.Contains("b");
-            this.disableBatterySaves = paramz.Contains("disable-battery-saves") || shortParams.Contains("db");
-            this.debug = paramz.Contains("debug");
-            this.headless = paramz.Contains("headless");
+            UseBootstrap = longParameters.Contains("use-bootstrap") || shortParams.Contains("b");
+            DisableBatterySaves = longParameters.Contains("disable-battery-saves") || shortParams.Contains("db");
+            Debug = longParameters.Contains("debug");
+            Headless = longParameters.Contains("headless");
         }
-
-        public FileInfo getRomFile()
-        {
-            return romFile;
-        }
-
-        public bool isForceDmg()
-        {
-            return forceDmg;
-        }
-
-        public bool isForceCgb()
-        {
-            return forceCgb;
-        }
-
-        public bool isUsingBootstrap()
-        {
-            return useBootstrap;
-        }
-
-        public bool isSupportBatterySaves()
-        {
-            return !disableBatterySaves;
-        }
-
-        public bool isDebug()
-        {
-            return debug;
-        }
-
-        public bool isHeadless()
-        {
-            return headless;
-        }
-
-        public static void printUsage(TextWriter stream)
+        
+        public static void PrintUsage(TextWriter stream)
         {
             stream.WriteLine("Usage:");
             stream.WriteLine("java -jar coffee-gb.jar [OPTIONS] ROM_FILE");
@@ -83,7 +50,6 @@ namespace CoreBoy
             stream.WriteLine("      --headless                 Start in the headless mode");
             stream.Flush();
         }
-
     }
 }
     

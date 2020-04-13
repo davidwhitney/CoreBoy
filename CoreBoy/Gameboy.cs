@@ -98,7 +98,7 @@ namespace CoreBoy
             cpu = new Cpu(mmu, interruptManager, gpu, display, speedMode);
 
             interruptManager.disableInterrupts(false);
-            if (!options.isUsingBootstrap())
+            if (!options.UseBootstrap)
             {
                 initRegs();
             }
