@@ -1,5 +1,5 @@
-using System;
 using eu.rekawek.coffeegb.gpu;
+
 
 namespace eu.rekawek.coffeegb.cpu.op
 {
@@ -42,6 +42,11 @@ namespace eu.rekawek.coffeegb.cpu.op
         public virtual SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
         {
             return null;
+        }
+
+        protected static bool inOamArea(int address)
+        {
+            return address >= 0xfe00 && address <= 0xfeff;
         }
     }
 }

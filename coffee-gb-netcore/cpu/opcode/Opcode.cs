@@ -16,11 +16,11 @@ namespace eu.rekawek.coffeegb.cpu.opcode
 
         private readonly int length;
 
-        Opcode(OpcodeBuilder builder)
+        public Opcode(OpcodeBuilder builder)
         {
             this.opcode = builder.getOpcode();
             this.label = builder.getLabel();
-            this.ops = new List<Op>(builder.getOps()));
+            this.ops = new List<Op>(builder.getOps());
             this.length = ops.Max(o => o.operandLength());
         }
 
