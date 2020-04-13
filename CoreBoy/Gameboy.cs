@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using CoreBoy.controller;
 using CoreBoy.cpu;
@@ -15,213 +14,158 @@ namespace CoreBoy
 {
     public class Gameboy : IRunnable
     {
+        public static readonly int TicksPerSec = 4_194_304;
 
-        public static readonly int TICKS_PER_SEC = 4_194_304;
+        private readonly InterruptManager _interruptManager;
 
-        private readonly InterruptManager interruptManager;
+        private readonly Gpu _gpu;
+        private readonly Mmu _mmu;
+        private readonly Cpu _cpu;
+        private readonly Timer _timer;
+        private readonly Dma _dma;
+        private readonly Hdma _hdma;
+        private readonly IDisplay _display;
+        private readonly Sound _sound;
+        private readonly SerialPort _serialPort;
 
-        private readonly Gpu gpu;
+        private readonly bool _gbc;
+        private readonly SpeedMode _speedMode;
 
-        private readonly Mmu mmu;
+        private volatile bool _doStop;
 
-        private readonly Cpu cpu;
+        private readonly List<Thread> _tickListeners = new List<Thread>();
 
-        private readonly Timer timer;
-
-        private readonly Dma dma;
-
-        private readonly Hdma hdma;
-
-        private readonly Display display;
-
-        private readonly Sound sound;
-
-        private readonly SerialPort serialPort;
-
-        private readonly bool gbc;
-
-        private readonly SpeedMode speedMode;
-
-        private readonly TextWriter console;
-
-        private volatile bool doStop;
-
-        private readonly List<Thread> tickListeners = new List<Thread>();
-
-        public Gameboy(GameboyOptions options, Cartridge rom, Display display, Controller controller,
+        public Gameboy(GameboyOptions options, Cartridge rom, IDisplay display, Controller controller,
             SoundOutput soundOutput, SerialEndpoint serialEndpoint)
-            : this(options, rom, display, controller, soundOutput, serialEndpoint, null)
         {
-        }
+            _display = display;
+            _gbc = rom.isGbc();
+            _speedMode = new SpeedMode();
+            _interruptManager = new InterruptManager(_gbc);
+            _timer = new Timer(_interruptManager, _speedMode);
+            _mmu = new Mmu();
 
-        public Gameboy(GameboyOptions options, Cartridge rom, Display display, Controller controller,
-            SoundOutput soundOutput, SerialEndpoint serialEndpoint, TextWriter console)
-        {
-            this.display = display;
-            gbc = rom.isGbc();
-            speedMode = new SpeedMode();
-            interruptManager = new InterruptManager(gbc);
-            timer = new Timer(interruptManager, speedMode);
-            mmu = new Mmu();
+            var oamRam = new Ram(0xfe00, 0x00a0);
 
-            Ram oamRam = new Ram(0xfe00, 0x00a0);
-            dma = new Dma(mmu, oamRam, speedMode);
-            gpu = new Gpu(display, interruptManager, dma, oamRam, gbc);
-            hdma = new Hdma(mmu);
-            sound = new Sound(soundOutput, gbc);
-            serialPort = new SerialPort(interruptManager, serialEndpoint, speedMode);
-            mmu.addAddressSpace(rom);
-            mmu.addAddressSpace(gpu);
-            mmu.addAddressSpace(new Joypad(interruptManager, controller));
-            mmu.addAddressSpace(interruptManager);
-            mmu.addAddressSpace(serialPort);
-            mmu.addAddressSpace(timer);
-            mmu.addAddressSpace(dma);
-            mmu.addAddressSpace(sound);
+            _dma = new Dma(_mmu, oamRam, _speedMode);
+            _gpu = new Gpu(display, _interruptManager, _dma, oamRam, _gbc);
+            _hdma = new Hdma(_mmu);
+            _sound = new Sound(soundOutput, _gbc);
+            _serialPort = new SerialPort(_interruptManager, serialEndpoint, _speedMode);
+            _mmu.addAddressSpace(rom);
+            _mmu.addAddressSpace(_gpu);
+            _mmu.addAddressSpace(new Joypad(_interruptManager, controller));
+            _mmu.addAddressSpace(_interruptManager);
+            _mmu.addAddressSpace(_serialPort);
+            _mmu.addAddressSpace(_timer);
+            _mmu.addAddressSpace(_dma);
+            _mmu.addAddressSpace(_sound);
 
-            mmu.addAddressSpace(new Ram(0xc000, 0x1000));
-            if (gbc)
+            _mmu.addAddressSpace(new Ram(0xc000, 0x1000));
+            if (_gbc)
             {
-                mmu.addAddressSpace(speedMode);
-                mmu.addAddressSpace(hdma);
-                mmu.addAddressSpace(new GbcRam());
-                mmu.addAddressSpace(new UndocumentedGbcRegisters());
+                _mmu.addAddressSpace(_speedMode);
+                _mmu.addAddressSpace(_hdma);
+                _mmu.addAddressSpace(new GbcRam());
+                _mmu.addAddressSpace(new UndocumentedGbcRegisters());
             }
             else
             {
-                mmu.addAddressSpace(new Ram(0xd000, 0x1000));
+                _mmu.addAddressSpace(new Ram(0xd000, 0x1000));
             }
 
-            mmu.addAddressSpace(new Ram(0xff80, 0x7f));
-            mmu.addAddressSpace(new ShadowAddressSpace(mmu, 0xe000, 0xc000, 0x1e00));
+            _mmu.addAddressSpace(new Ram(0xff80, 0x7f));
+            _mmu.addAddressSpace(new ShadowAddressSpace(_mmu, 0xe000, 0xc000, 0x1e00));
 
-            cpu = new Cpu(mmu, interruptManager, gpu, display, speedMode);
+            _cpu = new Cpu(_mmu, _interruptManager, _gpu, display, _speedMode);
 
-            interruptManager.disableInterrupts(false);
+            _interruptManager.disableInterrupts(false);
+            
             if (!options.UseBootstrap)
             {
-                initRegs();
+                InitiliseRegisters();
             }
-
-            this.console = console;
         }
 
-        private void initRegs()
+        private void InitiliseRegisters()
         {
-            Registers r = cpu.getRegisters();
+            var registers = _cpu.getRegisters();
 
-            r.setAF(0x01b0);
-            if (gbc)
+            registers.setAF(0x01b0);
+            if (_gbc)
             {
-                r.setA(0x11);
+                registers.setA(0x11);
             }
 
-            r.setBC(0x0013);
-            r.setDE(0x00d8);
-            r.setHL(0x014d);
-            r.setSP(0xfffe);
-            r.setPC(0x0100);
+            registers.setBC(0x0013);
+            registers.setDE(0x00d8);
+            registers.setHL(0x014d);
+            registers.setSP(0xfffe);
+            registers.setPC(0x0100);
         }
 
         public void Run()
         {
             var requestedScreenRefresh = false;
             var lcdDisabled = false;
-            doStop = false;
-            while (!doStop)
+            _doStop = false;
+            while (!_doStop)
             {
-                var newMode = tick();
+                var newMode = Tick();
                 if (newMode.HasValue)
                 {
-                    hdma.onGpuUpdate(newMode.Value);
+                    _hdma.onGpuUpdate(newMode.Value);
                 }
 
-                if (!lcdDisabled && !gpu.isLcdEnabled())
+                if (!lcdDisabled && !_gpu.IsLcdEnabled())
                 {
                     lcdDisabled = true;
-                    display.requestRefresh();
-                    hdma.onLcdSwitch(false);
+                    _display.RequestRefresh();
+                    _hdma.onLcdSwitch(false);
                 }
                 else if (newMode == Gpu.Mode.VBlank)
                 {
                     requestedScreenRefresh = true;
-                    display.requestRefresh();
+                    _display.RequestRefresh();
                 }
 
-                if (lcdDisabled && gpu.isLcdEnabled())
+                if (lcdDisabled && _gpu.IsLcdEnabled())
                 {
                     lcdDisabled = false;
-                    display.waitForRefresh();
-                    hdma.onLcdSwitch(true);
+                    _display.WaitForRefresh();
+                    _hdma.onLcdSwitch(true);
                 }
                 else if (requestedScreenRefresh && newMode == Gpu.Mode.OamSearch)
                 {
                     requestedScreenRefresh = false;
-                    display.waitForRefresh();
+                    _display.WaitForRefresh();
                 }
 
-                // TODO: Port console stuff
-                // console.ifPresent(Console::tick);
-                tickListeners.ForEach(thread => thread.Start());
+                _tickListeners.ForEach(thread => thread.Start());
             }
         }
 
         public void Stop()
         {
-            doStop = true;
+            _doStop = true;
         }
 
-        public Gpu.Mode? tick()
+        public Gpu.Mode? Tick()
         {
-            timer.tick();
-            if (hdma.isTransferInProgress())
+            _timer.tick();
+            if (_hdma.isTransferInProgress())
             {
-                hdma.tick();
+                _hdma.tick();
             }
             else
             {
-                cpu.tick();
+                _cpu.tick();
             }
 
-            dma.tick();
-            sound.tick();
-            serialPort.tick();
-            return gpu.tick();
-        }
-
-        public AddressSpace getAddressSpace()
-        {
-            return mmu;
-        }
-
-        public Cpu getCpu()
-        {
-            return cpu;
-        }
-
-        public SpeedMode getSpeedMode()
-        {
-            return speedMode;
-        }
-
-        public Gpu getGpu()
-        {
-            return gpu;
-        }
-
-        public void registerTickListener(Thread tickListener)
-        {
-            tickListeners.Add(tickListener);
-        }
-
-        public void unregisterTickListener(Thread tickListener)
-        {
-            tickListeners.Remove(tickListener);
-        }
-
-        public Sound getSound()
-        {
-            return sound;
+            _dma.tick();
+            _sound.tick();
+            _serialPort.tick();
+            return _gpu.Tick();
         }
     }
 }

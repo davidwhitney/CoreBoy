@@ -6,11 +6,11 @@ namespace CoreBoy.gpu
         private readonly IntQueue palettes = new IntQueue(16);
         private readonly IntQueue priorities = new IntQueue(16);
         private readonly Lcdc lcdc;
-        private readonly Display display;
+        private readonly IDisplay display;
         private readonly ColorPalette bgPalette;
         private readonly ColorPalette oamPalette;
 
-        public ColorPixelFifo(Lcdc lcdc, Display display, ColorPalette bgPalette, ColorPalette oamPalette)
+        public ColorPixelFifo(Lcdc lcdc, IDisplay display, ColorPalette bgPalette, ColorPalette oamPalette)
         {
             this.lcdc = lcdc;
             this.display = display;
@@ -25,7 +25,7 @@ namespace CoreBoy.gpu
 
         public void putPixelToScreen()
         {
-            display.putColorPixel(dequeuePixel());
+            display.PutColorPixel(dequeuePixel());
         }
 
         private int dequeuePixel()

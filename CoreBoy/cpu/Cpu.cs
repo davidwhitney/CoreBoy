@@ -31,7 +31,7 @@ namespace CoreBoy.cpu
 
         private readonly Gpu gpu;
 
-        private readonly Display display;
+        private readonly IDisplay display;
 
         private readonly SpeedMode speedMode;
 
@@ -62,7 +62,7 @@ namespace CoreBoy.cpu
         private bool haltBugMode;
         private Opcodes _opcodes;
 
-        public Cpu(AddressSpace addressSpace, InterruptManager interruptManager, Gpu gpu, Display display,
+        public Cpu(AddressSpace addressSpace, InterruptManager interruptManager, Gpu gpu, IDisplay display,
             SpeedMode speedMode)
         {
             this._opcodes = new Opcodes();
@@ -91,7 +91,7 @@ namespace CoreBoy.cpu
                 {
                     if (state == State.STOPPED)
                     {
-                        display.enableLcd();
+                        display.EnableLcd();
                     }
 
                     state = State.IRQ_READ_IF;
@@ -204,7 +204,7 @@ namespace CoreBoy.cpu
                             else
                             {
                                 state = State.STOPPED;
-                                display.disableLcd();
+                                display.DisableLcd();
                             }
 
                             return;
@@ -335,15 +335,15 @@ namespace CoreBoy.cpu
 
         private void handleSpriteBug(SpriteBug.CorruptionType type)
         {
-            if (!gpu.getLcdc().isLcdEnabled())
+            if (!gpu.GetLcdc().isLcdEnabled())
             {
                 return;
             }
 
             int stat = addressSpace.getByte(GpuRegister.STAT.getAddress());
-            if ((stat & 0b11) == (int) Gpu.Mode.OamSearch && gpu.getTicksInLine() < 79)
+            if ((stat & 0b11) == (int) Gpu.Mode.OamSearch && gpu.GetTicksInLine() < 79)
             {
-                SpriteBug.corruptOam(addressSpace, type, gpu.getTicksInLine());
+                SpriteBug.corruptOam(addressSpace, type, gpu.GetTicksInLine());
             }
         }
 

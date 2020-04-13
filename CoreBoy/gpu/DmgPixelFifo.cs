@@ -11,13 +11,13 @@ namespace CoreBoy.gpu
 
         private readonly IntQueue pixelType = new IntQueue(16); // 0 - bg, 1 - sprite
 
-        private readonly Display display;
+        private readonly IDisplay display;
 
         private readonly Lcdc lcdc;
 
         private readonly MemoryRegisters registers;
 
-        public DmgPixelFifo(Display display, Lcdc lcdc, MemoryRegisters registers)
+        public DmgPixelFifo(IDisplay display, Lcdc lcdc, MemoryRegisters registers)
         {
             this.lcdc = lcdc;
             this.display = display;
@@ -31,7 +31,7 @@ namespace CoreBoy.gpu
 
         public void putPixelToScreen()
         {
-            display.putDmgPixel(dequeuePixel());
+            display.PutDmgPixel(dequeuePixel());
         }
 
         public void dropPixel()

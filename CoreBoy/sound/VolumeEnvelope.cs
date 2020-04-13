@@ -53,7 +53,7 @@ namespace CoreBoy.sound
                 return;
             }
 
-            if (++i == sweep * Gameboy.TICKS_PER_SEC / 64)
+            if (++i == sweep * Gameboy.TicksPerSec / 64)
             {
                 i = 0;
                 volume += envelopeDirection;

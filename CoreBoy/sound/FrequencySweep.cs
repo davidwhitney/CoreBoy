@@ -5,7 +5,7 @@ namespace CoreBoy.sound
     public class FrequencySweep
     {
 
-        private static readonly int DIVIDER = Gameboy.TICKS_PER_SEC / 128;
+        private static readonly int DIVIDER = Gameboy.TicksPerSec / 128;
 
         // sweep parameters
         private int period;

@@ -9,7 +9,7 @@ namespace CoreBoy.gpu.phase
 
         private readonly Fetcher fetcher;
 
-        private readonly Display display;
+        private readonly IDisplay display;
 
         private readonly MemoryRegisters r;
 
@@ -25,7 +25,7 @@ namespace CoreBoy.gpu.phase
 
         private bool window;
 
-        public PixelTransfer(AddressSpace videoRam0, AddressSpace videoRam1, AddressSpace oemRam, Display display,
+        public PixelTransfer(AddressSpace videoRam0, AddressSpace videoRam1, AddressSpace oemRam, IDisplay display,
             Lcdc lcdc, MemoryRegisters r, bool gbc, ColorPalette bgPalette, ColorPalette oamPalette)
         {
             this.r = r;

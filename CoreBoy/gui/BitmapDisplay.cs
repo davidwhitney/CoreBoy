@@ -6,7 +6,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace CoreBoy.gui
 {
-    public class BitmapDisplay : Display, IRunnable
+    public class BitmapDisplay : IDisplay, IRunnable
     {
         public static readonly int DisplayWidth = 160;
         public static readonly int DisplayHeight = 144;
@@ -14,7 +14,7 @@ namespace CoreBoy.gui
         public static readonly int[] Colors = { 0xe6f8da, 0x99c886, 0x437969, 0x051f2a };
 
         private readonly int[] _rgb;
-        private bool _enabled;
+        public bool _enabled { get; set; }
         private int _scale;
         private bool _doStop;
         private bool _doRefresh;
@@ -42,14 +42,14 @@ namespace CoreBoy.gui
         }
 
 
-        public void putDmgPixel(int color)
+        public void PutDmgPixel(int color)
         {
             _rgb[_i++] = Colors[color];
             _i = _i % _rgb.Length;
         }
 
 
-        public void putColorPixel(int gbcRgb)
+        public void PutColorPixel(int gbcRgb)
         {
             _rgb[_i++] = TranslateGbcRgb(gbcRgb);
         }
@@ -65,7 +65,7 @@ namespace CoreBoy.gui
             return result;
         }
 
-        public void requestRefresh()
+        public void RequestRefresh()
         {
             lock (_lockObject)
             {
@@ -73,7 +73,7 @@ namespace CoreBoy.gui
             }
         }
 
-        public void waitForRefresh()
+        public void WaitForRefresh()
         {
             while (_doRefresh)
             {
@@ -84,14 +84,12 @@ namespace CoreBoy.gui
             }
         }
 
-
-        public void enableLcd()
+        public void EnableLcd()
         {
             _enabled = true;
         }
 
-
-        public void disableLcd()
+        public void DisableLcd()
         {
             _enabled = false;
         }
@@ -101,15 +99,16 @@ namespace CoreBoy.gui
             _doStop = false;
             _doRefresh = false;
             _enabled = true;
-
-
+            
             while (!_doStop)
             {
                 if (!_doRefresh) continue;
 
                 var pixels = new Image<Rgba32>(DisplayWidth, DisplayHeight);
+
                 var x = 0;
                 var y = 0;
+
                 foreach(var pixel in _rgb)
                 {
                     if (x == DisplayWidth)
@@ -136,13 +135,10 @@ namespace CoreBoy.gui
 
                     lock (_currentScreenBytes)
                     {
-
                         _currentScreenBytes = new byte[bytes.Length];
                         bytes.CopyTo(_currentScreenBytes, 0);
                         // Ha, crap copy.
                     }
-
-                    // File.WriteAllBytes("image.bmp", bytes);
 
                     _i = 0;
                     _doRefresh = false;

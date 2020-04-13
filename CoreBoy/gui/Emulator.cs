@@ -15,7 +15,7 @@ namespace CoreBoy.gui
         private const int Scale = 2;
 
         public Gameboy Gameboy { get; }
-        public Display Display { get; }
+        public IDisplay Display { get; }
         public GameboyOptions Options { get; }
 
         private readonly List<Thread> _runnables;
@@ -32,7 +32,7 @@ namespace CoreBoy.gui
 
             if (Options.Headless)
             {
-                Gameboy = new Gameboy(Options, rom, new NullDisplay(), new NullController(), new NullSoundOutput(), serialEndpoint, console);
+                Gameboy = new Gameboy(Options, rom, (IDisplay) new NullDisplay(), (Controller) new NullController(), (SoundOutput) new NullSoundOutput(), serialEndpoint);
             }
             else
             {
@@ -44,7 +44,7 @@ namespace CoreBoy.gui
                 //gameboy = new Gameboy(options, rom, display, controller, sound, serialEndpoint, console);
                 
                 Display = new BitmapDisplay(Scale);
-                Gameboy = new Gameboy(Options, rom, Display, new NullController(), new NullSoundOutput(), serialEndpoint, console);
+                Gameboy = new Gameboy(Options, rom, Display, (Controller) new NullController(), (SoundOutput) new NullSoundOutput(), serialEndpoint);
             }
         }
 
