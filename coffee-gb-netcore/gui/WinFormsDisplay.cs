@@ -1,6 +1,9 @@
+using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using eu.rekawek.coffeegb.gpu;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.ColorSpaces;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -11,7 +14,7 @@ namespace eu.rekawek.coffeegb.gui
         public static readonly int DISPLAY_WIDTH = 160;
         public static readonly int DISPLAY_HEIGHT = 144;
 
-        public static readonly int[] COLORS = new int[] {0xe6f8da, 0x99c886, 0x437969, 0x051f2a};
+        public static readonly int[] COLORS = { 0xe6f8da, 0x99c886, 0x437969, 0x051f2a };
 
         private readonly int[] rgb;
         private bool enabled;
@@ -57,18 +60,16 @@ namespace eu.rekawek.coffeegb.gui
             lock (_lockObject)
             {
                 doRefresh = true;
-                // notifyAll();
             }
         }
 
         public void waitForRefresh()
         {
-            lock (_lockObject)
+            while (doRefresh)
             {
-                while (doRefresh)
+                lock (_lockObject)
                 {
                     Thread.Sleep(1);
-
                 }
             }
         }
@@ -84,27 +85,7 @@ namespace eu.rekawek.coffeegb.gui
         {
             enabled = false;
         }
-
-
-        /*protected void paintComponent(Graphics g)
-        {
-            base.paintComponent(g);
-
-            Graphics2D g2d = (Graphics2D) g.create();
-            if (enabled)
-            {
-                g2d.drawImage(img, 0, 0, DISPLAY_WIDTH * scale, DISPLAY_HEIGHT * scale, null);
-            }
-            else
-            {
-                g2d.setColor(new Color(COLORS[0]));
-                g2d.drawRect(0, 0, DISPLAY_WIDTH * scale, DISPLAY_HEIGHT * scale);
-            }
-
-            g2d.dispose();
-        }*/
-
-
+        
         public void run()
         {
             doStop = false;
@@ -126,8 +107,9 @@ namespace eu.rekawek.coffeegb.gui
                 if (doRefresh)
                 {
 
-                    var pixels = new Rgba32[DISPLAY_WIDTH, DISPLAY_HEIGHT];
-
+                    //var pixels = new Rgba32[DISPLAY_WIDTH, DISPLAY_HEIGHT];
+                    var pixels = new Image<Rgba32>(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+                    //var aaaa = 0xE6F8DA;
                     var x = 0;
                     var y = 0;
                     foreach(var pixel in rgb)
@@ -138,11 +120,13 @@ namespace eu.rekawek.coffeegb.gui
                             y++;
                         }
 
-                        pixels[x, y] = new Rgba32();
+                        var hex = "#" + pixel.ToString("X6");
+                        pixels[x, y] = Rgba32.FromHex(hex);
 
                         x++;
                     }
 
+                        
 
                     //img.setRGB(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, rgb, 0, DISPLAY_WIDTH);
                     // validate();
@@ -150,6 +134,12 @@ namespace eu.rekawek.coffeegb.gui
 
                     lock (_lockObject)
                     {
+                        var memoryStream = new MemoryStream();
+                        pixels.SaveAsJpeg(memoryStream);
+                        var bytes = memoryStream.ToArray();
+
+                        File.WriteAllBytes("image.jpg", bytes);
+
                         i = 0;
                         doRefresh = false;
                         //notifyAll();
