@@ -1,66 +1,62 @@
-package eu.rekawek.coffeegb.cpu;
+using System;
+using System.Collections.Generic;
+using eu.rekawek.coffeegb.cpu.opcode;
 
-import eu.rekawek.coffeegb.cpu.opcode.Opcode;
-import eu.rekawek.coffeegb.cpu.opcode.OpcodeBuilder;
+namespace eu.rekawek.coffeegb.cpu { 
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
-public final class Opcodes {
+public sealed class Opcodes {
 
-    public static final List<Opcode> COMMANDS;
+    public static readonly List<Opcode> COMMANDS;
 
-    public static final List<Opcode> EXT_COMMANDS;
+    public static readonly List<Opcode> EXT_COMMANDS;
 
-    static {
+    static Opcodes() 
+    {
         OpcodeBuilder[] opcodes = new OpcodeBuilder[0x100];
         OpcodeBuilder[] extOpcodes = new OpcodeBuilder[0x100];
 
         regCmd(opcodes, 0x00, "NOP");
 
-        for (Entry<Integer, String> t : indexedList(0x01, 0x10, "BC", "DE", "HL", "SP")) {
+        foreach (var t in indexedList(0x01, 0x10, "BC", "DE", "HL", "SP")) {
             regLoad(opcodes, t.getKey(), t.getValue(), "d16");
         }
 
-        for (Entry<Integer, String> t : indexedList(0x02, 0x10, "(BC)", "(DE)")) {
+        foreach (var t in indexedList(0x02, 0x10, "(BC)", "(DE)")) {
             regLoad(opcodes, t.getKey(), t.getValue(), "A");
         }
 
-        for (Entry<Integer, String> t : indexedList(0x03, 0x10, "BC", "DE", "HL", "SP")) {
+        foreach (var t in indexedList(0x03, 0x10, "BC", "DE", "HL", "SP")) {
             regCmd(opcodes, t, "INC {}").load(t.getValue()).alu("INC").store(t.getValue());
         }
 
-        for (Entry<Integer, String> t : indexedList(0x04, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
+        foreach (var t in indexedList(0x04, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
             regCmd(opcodes, t, "INC {}").load(t.getValue()).alu("INC").store(t.getValue());
         }
 
-        for (Entry<Integer, String> t : indexedList(0x05, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
+        foreach (var t in indexedList(0x05, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
             regCmd(opcodes, t, "DEC {}").load(t.getValue()).alu("DEC").store(t.getValue());
         }
 
-        for (Entry<Integer, String> t : indexedList(0x06, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
+        foreach (var t in indexedList(0x06, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
             regLoad(opcodes, t.getKey(), t.getValue(), "d8");
         }
 
-        for (Entry<Integer, String> o : indexedList(0x07, 0x08, "RLC", "RRC", "RL", "RR")) {
+        foreach (var o in indexedList(0x07, 0x08, "RLC", "RRC", "RL", "RR")) {
             regCmd(opcodes, o, o.getValue() + "A").load("A").alu(o.getValue()).clearZ().store("A");
         }
 
         regLoad(opcodes, 0x08, "(a16)", "SP");
 
-        for (Entry<Integer, String> t : indexedList(0x09, 0x10, "BC", "DE", "HL", "SP")) {
+        foreach (var t in indexedList(0x09, 0x10, "BC", "DE", "HL", "SP")) {
             regCmd(opcodes, t, "ADD HL,{}").load("HL").alu("ADD", t.getValue()).store("HL");
         }
 
-        for (Entry<Integer, String> t : indexedList(0x0a, 0x10, "(BC)", "(DE)")) {
+        foreach (var t in indexedList(0x0a, 0x10, "(BC)", "(DE)")) {
             regLoad(opcodes, t.getKey(), "A", t.getValue());
         }
 
-        for (Entry<Integer, String> t : indexedList(0x0b, 0x10, "BC", "DE", "HL", "SP")) {
+        foreach (var t in indexedList(0x0b, 0x10, "BC", "DE", "HL", "SP")) {
             regCmd(opcodes, t, "DEC {}").load(t.getValue()).alu("DEC").store(t.getValue());
         }
 
@@ -68,7 +64,7 @@ public final class Opcodes {
 
         regCmd(opcodes, 0x18, "JR r8").load("PC").alu("ADD", "r8").store("PC");
 
-        for (Entry<Integer, String> c : indexedList(0x20, 0x08, "NZ", "Z", "NC", "C")) {
+        foreach (var c in indexedList(0x20, 0x08, "NZ", "Z", "NC", "C")) {
             regCmd(opcodes, c, "JR {},r8").load("PC").proceedIf(c.getValue()).alu("ADD", "r8").store("PC");
         }
 
@@ -84,8 +80,8 @@ public final class Opcodes {
         regCmd(opcodes, 0x37, "SCF").load("A").alu("SCF").store("A");
         regCmd(opcodes, 0x3f, "CCF").load("A").alu("CCF").store("A");
 
-        for (Entry<Integer, String> t : indexedList(0x40, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
-            for (Entry<Integer, String> s : indexedList(t.getKey(), 0x01, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
+        foreach (var t in indexedList(0x40, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
+            foreach (var s in indexedList(t.getKey(), 0x01, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
                 if (s.getKey() == 0x76) {
                     continue;
                 }
@@ -95,35 +91,35 @@ public final class Opcodes {
 
         regCmd(opcodes, 0x76, "HALT");
 
-        for (Entry<Integer, String> o : indexedList(0x80, 0x08, "ADD", "ADC", "SUB", "SBC", "AND", "XOR", "OR", "CP")) {
-            for (Entry<Integer, String> t : indexedList(o.getKey(), 0x01, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
+        foreach (var o in indexedList(0x80, 0x08, "ADD", "ADC", "SUB", "SBC", "AND", "XOR", "OR", "CP")) {
+            foreach (var t in indexedList(o.getKey(), 0x01, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
                 regCmd(opcodes, t, o.getValue() + " {}").load("A").alu(o.getValue(), t.getValue()).store("A");
             }
         } 
 
-        for (Entry<Integer, String> c : indexedList(0xc0, 0x08, "NZ", "Z", "NC", "C")) {
+        foreach (var c in indexedList(0xc0, 0x08, "NZ", "Z", "NC", "C")) {
             regCmd(opcodes, c, "RET {}").extraCycle().proceedIf(c.getValue()).pop().forceFinish().store("PC");
         }
 
-        for (Entry<Integer, String> t : indexedList(0xc1, 0x10, "BC", "DE", "HL", "AF")) {
+        foreach (var t in indexedList(0xc1, 0x10, "BC", "DE", "HL", "AF")) {
             regCmd(opcodes, t, "POP {}").pop().store(t.getValue());
         }
 
-        for (Entry<Integer, String> c : indexedList(0xc2, 0x08, "NZ", "Z", "NC", "C")) {
+        foreach (var c in indexedList(0xc2, 0x08, "NZ", "Z", "NC", "C")) {
             regCmd(opcodes, c, "JP {},a16").load("a16").proceedIf(c.getValue()).store("PC").extraCycle();
         }
 
         regCmd(opcodes, 0xc3, "JP a16").load("a16").store("PC").extraCycle();
 
-        for (Entry<Integer, String> c : indexedList(0xc4, 0x08, "NZ", "Z", "NC", "C")) {
+        foreach (var c in indexedList(0xc4, 0x08, "NZ", "Z", "NC", "C")) {
             regCmd(opcodes, c, "CALL {},a16").proceedIf(c.getValue()).extraCycle().load("PC").push().load("a16").store("PC");
         }
 
-        for (Entry<Integer, String> t : indexedList(0xc5, 0x10, "BC", "DE", "HL", "AF")) {
+        foreach (var t in indexedList(0xc5, 0x10, "BC", "DE", "HL", "AF")) {
             regCmd(opcodes, t, "PUSH {}").extraCycle().load(t.getValue()).push();
         }
 
-        for (Entry<Integer, String> o : indexedList(0xc6, 0x08, "ADD", "ADC", "SUB", "SBC", "AND", "XOR", "OR", "CP")) {
+        foreach (var o in indexedList(0xc6, 0x08, "ADD", "ADC", "SUB", "SBC", "AND", "XOR", "OR", "CP")) {
             regCmd(opcodes, o, o.getValue() + " d8").load("A").alu(o.getValue(), "d8").store("A");
         }
 
@@ -160,15 +156,15 @@ public final class Opcodes {
 
         regLoad(opcodes, 0xf9, "SP", "HL").extraCycle();
 
-        for (Entry<Integer, String> o : indexedList(0x00, 0x08, "RLC", "RRC", "RL", "RR", "SLA", "SRA", "SWAP", "SRL")) {
-            for (Entry<Integer, String> t : indexedList(o.getKey(), 0x01, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
+        foreach (var o in indexedList(0x00, 0x08, "RLC", "RRC", "RL", "RR", "SLA", "SRA", "SWAP", "SRL")) {
+            foreach (var t in indexedList(o.getKey(), 0x01, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
                 regCmd(extOpcodes, t, o.getValue() + " {}").load(t.getValue()).alu(o.getValue()).store(t.getValue());
             }
         }
 
-        for (Entry<Integer, String> o : indexedList(0x40, 0x40, "BIT", "RES", "SET")) {
+        foreach (var o in indexedList(0x40, 0x40, "BIT", "RES", "SET")) {
             for (int b = 0; b < 0x08; b++) {
-                for (Entry<Integer, String> t : indexedList(o.getKey() + b * 0x08, 0x01, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
+                foreach (var t in indexedList(o.getKey() + b * 0x08, 0x01, "B", "C", "D", "E", "H", "L", "(HL)", "A")) {
                     if ("BIT".equals(o.getValue()) && "(HL)".equals(t.getValue())) {
                         regCmd(extOpcodes, t, String.format("BIT %d,(HL)", b)).bitHL(b);
                     } else {
@@ -230,4 +226,5 @@ public final class Opcodes {
         }
         return map.entrySet();
     }
+}
 }

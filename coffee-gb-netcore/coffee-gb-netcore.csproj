@@ -2,10 +2,12 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    <LangVersion>8.0</LangVersion>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>eu.rekawek.coffeegb</RootNamespace>
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>coffee-gb-netcore</AssemblyName>
+    <StartupObject>eu.rekawek.coffeegb.Program</StartupObject>
   </PropertyGroup>
 
 </Project>
