@@ -84,7 +84,7 @@ namespace CoreBoy.sound
                     return getNr4();
 
                 default:
-                    throw new ArgumentException("Illegal address for sound mode: " + Integer.toHexString(address));
+                    throw new ArgumentException("Illegal address for sound mode: " + Integer.ToHexString(address));
             }
         }
 

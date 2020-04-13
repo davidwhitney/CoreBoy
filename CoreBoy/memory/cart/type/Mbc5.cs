@@ -113,7 +113,7 @@ namespace CoreBoy.memory.cart.type
         }
         else
         {
-            throw new ArgumentException(Integer.toHexString(address));
+            throw new ArgumentException(Integer.ToHexString(address));
         }
     }
 

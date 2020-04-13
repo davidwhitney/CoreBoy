@@ -58,7 +58,7 @@ namespace CoreBoy.memory
         {
             if (address < 0 || address > 0xffff)
             {
-                throw new ArgumentException("Invalid address: " + Integer.toHexString(address));
+                throw new ArgumentException("Invalid address: " + Integer.ToHexString(address));
             }
 
             //LOG.debug("Writing value {} to void address {}", Integer.toHexString(value), int.ToHexString(address));
@@ -68,7 +68,7 @@ namespace CoreBoy.memory
         {
             if (address < 0 || address > 0xffff)
             {
-                throw new ArgumentException("Invalid address: " + Integer.toHexString(address));
+                throw new ArgumentException("Invalid address: " + Integer.ToHexString(address));
             }
 
             //LOG.debug("Reading value from void address {}", Integer.toHexString(address));

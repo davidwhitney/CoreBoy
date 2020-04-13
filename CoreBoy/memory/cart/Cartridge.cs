@@ -257,7 +257,7 @@ namespace CoreBoy.memory.cart
                     return 96;
 
                 default:
-                    throw new ArgumentException("Unsupported ROM size: " + Integer.toHexString(id));
+                    throw new ArgumentException("Unsupported ROM size: " + Integer.ToHexString(id));
             }
         }
 
@@ -281,7 +281,7 @@ namespace CoreBoy.memory.cart
                     return 16;
 
                 default:
-                    throw new ArgumentException("Unsupported RAM size: " + Integer.toHexString(id));
+                    throw new ArgumentException("Unsupported RAM size: " + Integer.ToHexString(id));
             }
         }
     }
