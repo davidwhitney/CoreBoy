@@ -1,40 +1,35 @@
-package eu.rekawek.coffeegb.debug;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
 
-import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
+namespace eu.rekawek.coffeegb.debug { 
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-
-import static com.google.common.collect.ImmutableSet.copyOf;
-import static com.google.common.collect.Maps.newLinkedHashMap;
 
 public class CommandPattern {
 
-    private final List<String> commandNames;
+    private readonly List<String> commandNames;
 
-    private final List<CommandArgument> arguments;
+    private readonly List<CommandArgument> arguments;
 
-    private final Optional<String> description;
+    private readonly string description;
 
     private CommandPattern(Builder builder) {
         this.commandNames = builder.commandNames;
         this.arguments = builder.arguments;
-        this.description = Optional.ofNullable(builder.description);
+        this.description = builder.description;
     }
 
-    public boolean matches(String commandLine) {
-        return commandNames
+    public bool matches(String commandLine) {
+        throw new NotImplementedException();
+        /*
+        return commandNames.Where(commandLine.StartsWith)
                 .stream()
                 .filter(commandLine::startsWith)
                 .map(String::length)
                 .map(commandLine::substring)
-                .anyMatch(s -> s.isEmpty() || s.charAt(0) == ' ');
+                .anyMatch(s -> s.isEmpty() || s.charAt(0) == ' ');*/
     }
 
     public List<String> getCommandNames() {
@@ -45,18 +40,20 @@ public class CommandPattern {
         return arguments;
     }
 
-    public Optional<String> getDescription() {
+    public String getDescription() {
         return description;
     }
 
     public ParsedCommandLine parse(String commandLine) {
+        throw new NotImplementedException();
+        /*
         String commandName = commandNames
                 .stream()
                 .filter(commandLine::startsWith)
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Command line [" + commandLine + "] doesn't match command [" + commandNames + "]"));
-        List<String> split = split(commandLine.substring(commandName.length()));
+        List<String> split = split(commandLine.substring(commandName.Length()));
         Map<String, String> map = newLinkedHashMap();
         List<String> remaining = Collections.emptyList();
         int i;
@@ -80,16 +77,18 @@ public class CommandPattern {
         if (i < split.size()) {
             remaining = split.subList(i, split.size());
         }
-        return new ParsedCommandLine(map, remaining);
+        return new ParsedCommandLine(map, remaining);*/
     }
 
     private static List<String> split(String str) {
-        List<String> split = new ArrayList<>();
-        boolean isEscaped = false;
+        throw new NotImplementedException();
+        /*
+        List<String> split = new List<>();
+        bool isEscaped = false;
         StringBuilder currentArg = new StringBuilder();
-        for (int i = 0; i <= str.length(); i++) {
+        for (int i = 0; i <= str.Length(); i++) {
             char c;
-            if (i < str.length()) {
+            if (i < str.Length()) {
                 c = str.charAt(i);
             } else {
                 c = 0;
@@ -117,7 +116,7 @@ public class CommandPattern {
 
                     case ' ':
                     case 0:
-                        if (currentArg.length() > 0) {
+                        if (currentArg.Length() > 0) {
                             split.add(currentArg.toString());
                             currentArg.setLength(0);
                         }
@@ -129,27 +128,26 @@ public class CommandPattern {
                 }
             }
         }
-        return split;
+        return split;*/
     }
 
-    @Override
-    public String toString() {
-        return String.format("CommandPattern[%s]", commandNames.toString());
+    public String ToString() {
+        return String.Format("CommandPattern[%s]", commandNames.ToString());
     }
 
-    public static class ParsedCommandLine {
+    public class ParsedCommandLine {
 
-        private Map<String, String> argumentMap;
+        private Dictionary<String, String> argumentMap;
 
         private List<String> remainingArguments;
 
-        private ParsedCommandLine(Map<String, String> argumentMap, List<String> remainingArguments) {
+        private ParsedCommandLine(Dictionary<String, String> argumentMap, List<String> remainingArguments) {
             this.argumentMap = argumentMap;
             this.remainingArguments = remainingArguments;
         }
 
         public String getArgument(String name) {
-            return argumentMap.get(name);
+            return argumentMap[name];
         }
 
         public List<String> getRemainingArguments() {
@@ -157,17 +155,17 @@ public class CommandPattern {
         }
     }
 
-    public static class Builder {
+    public class Builder {
+        internal readonly List<String> commandNames;
 
-        private final List<String> commandNames;
+        internal readonly List<CommandArgument> arguments;
 
-        private final List<CommandArgument> arguments;
+        internal String description;
 
-        private String description;
-
-        private Builder(String[] commandNames) {
-            this.commandNames = ImmutableList.copyOf(commandNames);
-            this.arguments = new ArrayList<>();
+        private Builder(String[] commandNames)
+        {
+            this.commandNames = new List<string>(commandNames);
+            this.arguments = new List<CommandArgument>();
         }
 
         public static Builder create(String longName) {
@@ -180,25 +178,25 @@ public class CommandPattern {
 
         public Builder withOptionalArgument(String name) {
             assertNoOptionalLastArgument();
-            arguments.add(new CommandArgument(name, false));
+            arguments.Add(new CommandArgument(name, false));
             return this;
         }
 
         public Builder withRequiredArgument(String name) {
             assertNoOptionalLastArgument();
-            arguments.add(new CommandArgument(name, true));
+            arguments.Add(new CommandArgument(name, true));
             return this;
         }
 
-        public Builder withOptionalValue(String name, String... values) {
+        public Builder withOptionalValue(String name, String[] values) {
             assertNoOptionalLastArgument();
-            arguments.add(new CommandArgument(name, false, copyOf(values)));
+            arguments.Add(new CommandArgument(name, false, new List<string>(values)));
             return this;
         }
 
-        public Builder withRequiredValue(String name, String... values) {
+        public Builder withRequiredValue(String name, String[] values) {
             assertNoOptionalLastArgument();
-            arguments.add(new CommandArgument(name, true, copyOf(values)));
+            arguments.Add(new CommandArgument(name, true, new List<string>(values)));
             return this;
         }
 
@@ -208,8 +206,8 @@ public class CommandPattern {
         }
 
         private void assertNoOptionalLastArgument() {
-            if (!arguments.isEmpty() && !arguments.get(arguments.size() - 1).isRequired()) {
-                throw new UnsupportedOperationException("Can't add argument after the optional one");
+            if (arguments.Count > 0 && !arguments[^1].isRequired()) {
+                throw new InvalidOperationException("Can't add argument after the optional one");
             }
         }
 
@@ -219,3 +217,4 @@ public class CommandPattern {
     }
 
 }
+    }

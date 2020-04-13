@@ -11,11 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Gameboy.cs" />
+    <Compile Remove="debugging\Console.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Gameboy.cs" />
+    <None Include="debugging\Console.cs" />
   </ItemGroup>
 
 </Project>
