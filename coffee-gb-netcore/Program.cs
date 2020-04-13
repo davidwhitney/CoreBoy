@@ -1,7 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Windows.Forms;
-using coffee_gb_netcore;
 using eu.rekawek.coffeegb.gui;
 
 namespace eu.rekawek.coffeegb
@@ -11,14 +11,25 @@ namespace eu.rekawek.coffeegb
         [STAThread]
         static void Main(string[] args)
         {
+            Application.SetCompatibleTextRenderingDefault(false);
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new Form1());
 
             var properties = LoadProperties();
             var emulator = new Emulator(args, properties);
-            emulator.Run();
+
+            var ui = new WinFormsEmulatorSurface(() =>
+            {
+                emulator.Stop();
+            });
+
+            if (emulator.Display is BitmapDisplay display)
+            {
+                ui.GameboyDisplay = display;
+            }
+            
+            new Thread(emulator.Run).Start();
+            Application.Run(ui);
         }
 
         private static string LoadProperties()

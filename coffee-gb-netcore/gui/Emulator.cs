@@ -10,30 +10,29 @@ using eu.rekawek.coffeegb.sound;
 
 namespace eu.rekawek.coffeegb.gui
 {
-    public class Emulator
+    public class Emulator: IRunnable
     {
         private const int Scale = 2;
 
-        private readonly GameboyOptions _options;
-        private readonly Display _display;
-        private readonly Gameboy _gameboy;
+        public Gameboy Gameboy { get; }
+        public Display Display { get; }
+        public GameboyOptions Options { get; }
+
+        private readonly List<Thread> _runnables;
 
         public Emulator(string[] args, string properties)
         {
-            _options = ParseArgs(args);
-            var rom = new Cartridge(_options);
+            _runnables = new List<Thread>();
+            Options = ParseArgs(args);
+            var rom = new Cartridge(Options);
 
             SerialEndpoint serialEndpoint = new NullSerialEndpoint();
-            
-            var console = _options.isDebug() ? Console.Out : null;
+            var console = Options.isDebug() ? Console.Out : null;
 
-            // BUG: What?
-            // console.map(Thread::new).ifPresent(Thread::start);
 
-            if (_options.isHeadless())
+            if (Options.isHeadless())
             {
-                _display = null;
-                _gameboy = new Gameboy(_options, rom, new NullDisplay(), new NullController(), new NullSoundOutput(), serialEndpoint, console);
+                Gameboy = new Gameboy(Options, rom, new NullDisplay(), new NullController(), new NullSoundOutput(), serialEndpoint, console);
             }
             else
             {
@@ -44,12 +43,9 @@ namespace eu.rekawek.coffeegb.gui
                 //controller = new SwingController(properties);
                 //gameboy = new Gameboy(options, rom, display, controller, sound, serialEndpoint, console);
                 
-                _display = new WinFormsDisplay(Scale);
-                _gameboy = new Gameboy(_options, rom, _display, new NullController(), new NullSoundOutput(), serialEndpoint, console);
+                Display = new BitmapDisplay(Scale);
+                Gameboy = new Gameboy(Options, rom, Display, new NullController(), new NullSoundOutput(), serialEndpoint, console);
             }
-
-            // TODO: Do I even want to port this?
-            //console.ifPresent(c -> c.init(gameboy));
         }
 
         private static GameboyOptions ParseArgs(string[] args)
@@ -113,21 +109,24 @@ namespace eu.rekawek.coffeegb.gui
 
         public void Run()
         {
-            if (_options.isHeadless())
+            if (Options.isHeadless())
             {
-                _gameboy.Run();
+                Gameboy.Run();
                 return;
             }
-
-            var threads = new List<Thread>();
-
-            if (_display is IRunnable runnableDisplay)
+            
+            if (Display is IRunnable runnableDisplay)
             {
-                threads.Add(new Thread(() => runnableDisplay.Run()));
+                _runnables.Add(new Thread(() => runnableDisplay.Run()));
             }
 
-            threads.Add(new Thread(() => _gameboy.Run()));
-            threads.ForEach(t => t.Start());
+            _runnables.Add(new Thread(() => Gameboy.Run()));
+            _runnables.ForEach(t => t.Start());
+        }
+
+        public void Stop()
+        {
+            //_runnables.ForEach(t => t.Abort());
         }
 
         /*
