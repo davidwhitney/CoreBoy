@@ -1,10 +1,7 @@
-using System;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using eu.rekawek.coffeegb.gpu;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.ColorSpaces;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace eu.rekawek.coffeegb.gui
@@ -86,69 +83,47 @@ namespace eu.rekawek.coffeegb.gui
             enabled = false;
         }
         
-        public void run()
+        public void Run()
         {
             doStop = false;
             doRefresh = false;
             enabled = true;
             while (!doStop)
             {
-                /*synchronized(this) {
-                    try
-                    {
-                        wait(1);
-                    }
-                    catch (InterruptedException e)
-                    {
-                        break;
-                    }
-                }*/
+                if (!doRefresh) continue;
 
-                if (doRefresh)
+                var pixels = new Image<Rgba32>(DISPLAY_WIDTH, DISPLAY_HEIGHT);
+                var x = 0;
+                var y = 0;
+                foreach(var pixel in rgb)
                 {
-
-                    //var pixels = new Rgba32[DISPLAY_WIDTH, DISPLAY_HEIGHT];
-                    var pixels = new Image<Rgba32>(DISPLAY_WIDTH, DISPLAY_HEIGHT);
-                    //var aaaa = 0xE6F8DA;
-                    var x = 0;
-                    var y = 0;
-                    foreach(var pixel in rgb)
+                    if (x == DISPLAY_WIDTH)
                     {
-                        if (x == DISPLAY_WIDTH)
-                        {
-                            x = 0;
-                            y++;
-                        }
-
-                        var hex = "#" + pixel.ToString("X6");
-                        pixels[x, y] = Rgba32.FromHex(hex);
-
-                        x++;
+                        x = 0;
+                        y++;
                     }
 
-                        
+                    var hex = "#" + pixel.ToString("X6");
+                    pixels[x, y] = Rgba32.FromHex(hex);
 
-                    //img.setRGB(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT, rgb, 0, DISPLAY_WIDTH);
-                    // validate();
-                    // repaint();
+                    x++;
+                }
 
-                    lock (_lockObject)
-                    {
-                        var memoryStream = new MemoryStream();
-                        pixels.SaveAsJpeg(memoryStream);
-                        var bytes = memoryStream.ToArray();
+                lock (_lockObject)
+                {
+                    var memoryStream = new MemoryStream();
+                    pixels.SaveAsJpeg(memoryStream);
+                    var bytes = memoryStream.ToArray();
 
-                        File.WriteAllBytes("image.jpg", bytes);
+                    File.WriteAllBytes("image.jpg", bytes);
 
-                        i = 0;
-                        doRefresh = false;
-                        //notifyAll();
-                    }
+                    i = 0;
+                    doRefresh = false;
                 }
             }
         }
 
-        public void stop()
+        public void Stop()
         {
             doStop = true;
         }

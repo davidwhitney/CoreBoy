@@ -5,6 +5,7 @@ using System.Threading;
 using eu.rekawek.coffeegb.controller;
 using eu.rekawek.coffeegb.cpu;
 using eu.rekawek.coffeegb.gpu;
+using eu.rekawek.coffeegb.gui;
 using eu.rekawek.coffeegb.memory;
 using eu.rekawek.coffeegb.memory.cart;
 using eu.rekawek.coffeegb.serial;
@@ -13,7 +14,7 @@ using Timer = eu.rekawek.coffeegb.timer.Timer;
 
 namespace eu.rekawek.coffeegb
 {
-    public class Gameboy
+    public class Gameboy : IRunnable
     {
 
         public static readonly int TICKS_PER_SEC = 4_194_304;
@@ -123,7 +124,7 @@ namespace eu.rekawek.coffeegb
             r.setPC(0x0100);
         }
 
-        public void run()
+        public void Run()
         {
             var requestedScreenRefresh = false;
             var lcdDisabled = false;
@@ -166,7 +167,7 @@ namespace eu.rekawek.coffeegb
             }
         }
 
-        public void stop()
+        public void Stop()
         {
             doStop = true;
         }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using eu.rekawek.coffeegb.controller;
-using eu.rekawek.coffeegb.cpu;
 using eu.rekawek.coffeegb.gpu;
 using eu.rekawek.coffeegb.memory.cart;
 using eu.rekawek.coffeegb.serial;
@@ -11,41 +10,30 @@ using eu.rekawek.coffeegb.sound;
 
 namespace eu.rekawek.coffeegb.gui
 {
-    public interface IRunnable
-    {
-        void run();
-    }
-
     public class Emulator
     {
-        private static readonly int SCALE = 2;
-        private readonly GameboyOptions options;
-        private readonly Cartridge rom;
-        private readonly SoundOutput sound;
-        private readonly Display display;
-        private readonly Controller controller;
-        private readonly SerialEndpoint serialEndpoint;
-        private readonly SpeedMode speedMode;
-        private readonly Gameboy gameboy;
-        private readonly TextWriter console;
+        private const int Scale = 2;
 
-        public Emulator(String[] args, string properties)
+        private readonly GameboyOptions _options;
+        private readonly Display _display;
+        private readonly Gameboy _gameboy;
+
+        public Emulator(string[] args, string properties)
         {
-            options = parseArgs(args);
-            rom = new Cartridge(options);
-            speedMode = new SpeedMode();
-            serialEndpoint = new NullSerialEndpoint();
-            console = options.isDebug() ? Console.Out : null;
+            _options = ParseArgs(args);
+            var rom = new Cartridge(_options);
+
+            SerialEndpoint serialEndpoint = new NullSerialEndpoint();
+            
+            var console = _options.isDebug() ? Console.Out : null;
 
             // BUG: What?
             // console.map(Thread::new).ifPresent(Thread::start);
 
-            if (options.isHeadless())
+            if (_options.isHeadless())
             {
-                sound = null;
-                display = null;
-                controller = null;
-                gameboy = new Gameboy(options, rom, new NullDisplay(), new NullController(), new NullSoundOutput(), serialEndpoint, console);
+                _display = null;
+                _gameboy = new Gameboy(_options, rom, new NullDisplay(), new NullController(), new NullSoundOutput(), serialEndpoint, console);
             }
             else
             {
@@ -55,19 +43,16 @@ namespace eu.rekawek.coffeegb.gui
                 //display = new SwingDisplay(SCALE);
                 //controller = new SwingController(properties);
                 //gameboy = new Gameboy(options, rom, display, controller, sound, serialEndpoint, console);
-
-               
-                sound = new NullSoundOutput();
-                display = new WinFormsDisplay(SCALE);
-                controller = new NullController();
-                gameboy = new Gameboy(options, rom, display, controller, sound, serialEndpoint, console);
+                
+                _display = new WinFormsDisplay(Scale);
+                _gameboy = new Gameboy(_options, rom, _display, new NullController(), new NullSoundOutput(), serialEndpoint, console);
             }
 
             // TODO: Do I even want to port this?
             //console.ifPresent(c -> c.init(gameboy));
         }
 
-        private static GameboyOptions parseArgs(String[] args)
+        private static GameboyOptions ParseArgs(string[] args)
         {
             if (args.Length == 0)
             {
@@ -78,7 +63,7 @@ namespace eu.rekawek.coffeegb.gui
 
             try
             {
-                return createGameboyOptions(args);
+                return CreateGameboyOptions(args);
             }
             catch (ArgumentException e)
             {
@@ -90,21 +75,21 @@ namespace eu.rekawek.coffeegb.gui
             }
         }
 
-        private static GameboyOptions createGameboyOptions(string[] args)
+        private static GameboyOptions CreateGameboyOptions(string[] args)
         {
-            var paramz = new HashSet<string>();
-            var shortparamz = new HashSet<string>();
+            var longParams = new HashSet<string>();
+            var shortParams = new HashSet<string>();
 
             string romPath = null;
             foreach (var a in args)
             {
                 if (a.StartsWith("--"))
                 {
-                    paramz.Add(a.Substring(2));
+                    longParams.Add(a.Substring(2));
                 }
                 else if (a.StartsWith("-"))
                 {
-                    shortparamz.Add(a.Substring(1));
+                    shortParams.Add(a.Substring(1));
                 }
                 else
                 {
@@ -123,32 +108,26 @@ namespace eu.rekawek.coffeegb.gui
                 throw new ArgumentException("The ROM path doesn't exist: " + romPath);
             }
 
-            return new GameboyOptions(romFile, paramz, shortparamz);
+            return new GameboyOptions(romFile, longParams, shortParams);
         }
 
-        public void run()
+        public void Run()
         {
-            if (options.isHeadless())
+            if (_options.isHeadless())
             {
-                gameboy.run();
+                _gameboy.Run();
+                return;
             }
-            else
+
+            var threads = new List<Thread>();
+
+            if (_display is IRunnable runnableDisplay)
             {
-                // TODO: Implement
-                // throw new NotImplementedException();
-                //System.setProperty("sun.java2d.opengl", "true");
-
-                //UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                //SwingUtilities.invokeLater(() -> startGui());
-
-                if (display is IRunnable runnableDisplay)
-                {
-                    var thread = new Thread(() => runnableDisplay.run());
-                    thread.Start();
-                }
-
-                gameboy.run();
+                threads.Add(new Thread(() => runnableDisplay.Run()));
             }
+
+            threads.Add(new Thread(() => _gameboy.Run()));
+            threads.ForEach(t => t.Start());
         }
 
         /*

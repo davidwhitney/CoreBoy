@@ -14,11 +14,11 @@ namespace eu.rekawek.coffeegb
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            // Application.Run(new Form1());
+            //Application.Run(new Form1());
 
             var properties = LoadProperties();
             var emulator = new Emulator(args, properties);
-            emulator.run();
+            emulator.Run();
         }
 
         private static string LoadProperties()
