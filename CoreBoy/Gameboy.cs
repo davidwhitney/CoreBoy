@@ -162,7 +162,7 @@ namespace CoreBoy
                 _cpu.tick();
             }
 
-            _dma.tick();
+            _dma.Tick();
             _sound.tick();
             _serialPort.tick();
             return _gpu.Tick();

@@ -50,7 +50,7 @@ namespace CoreBoy.gpu
 
             _bgPalette = new ColorPalette(0xff68);
             _oamPalette = new ColorPalette(0xff6a);
-            _oamPalette.fillWithFF();
+            _oamPalette.FillWithFf();
 
             _oamSearchPhase = new OamSearch(oamRam, _lcdc, _r);
             _pixelTransferPhase = new PixelTransfer(_videoRam0, _videoRam1, oamRam, display, _lcdc, _r, gbc, _bgPalette,
@@ -72,7 +72,7 @@ namespace CoreBoy.gpu
             }
 
             if (_oamRam.accepts(address) &&
-                !_dma.isOamBlocked() /* && mode != Mode.OamSearch && mode != Mode.PixelTransfer*/)
+                !_dma.IsOamBlocked() /* && mode != Mode.OamSearch && mode != Mode.PixelTransfer*/)
             {
                 return _oamRam;
             }
@@ -102,7 +102,7 @@ namespace CoreBoy.gpu
 
         private AddressSpace GetVideoRam()
         {
-            if (_gbc && (_r.get(GpuRegister.VBK) & 1) == 1)
+            if (_gbc && (_r.Get(GpuRegister.VBK) & 1) == 1)
             {
                 return _videoRam1;
             }
@@ -114,7 +114,7 @@ namespace CoreBoy.gpu
 
         public void setByte(int address, int value)
         {
-            if (address == GpuRegister.STAT.getAddress())
+            if (address == GpuRegister.STAT.GetAddress())
             {
                 SetStat(value);
                 return;
@@ -132,7 +132,7 @@ namespace CoreBoy.gpu
 
         public int getByte(int address)
         {
-            if (address == GpuRegister.STAT.getAddress())
+            if (address == GpuRegister.STAT.GetAddress())
             {
                 return GetStat();
             }
@@ -143,7 +143,7 @@ namespace CoreBoy.gpu
                 return 0xff;
             }
 
-            if (address == GpuRegister.VBK.getAddress())
+            if (address == GpuRegister.VBK.GetAddress())
             {
                 return _gbc ? 0xfe : 0xff;
             }
@@ -175,9 +175,9 @@ namespace CoreBoy.gpu
             if (_phase.tick())
             {
                 // switch line 153 to 0
-                if (_ticksInLine == 4 && _mode == Mode.VBlank && _r.get(GpuRegister.LY) == 153)
+                if (_ticksInLine == 4 && _mode == Mode.VBlank && _r.Get(GpuRegister.LY) == 153)
                 {
-                    _r.put(GpuRegister.LY, 0);
+                    _r.Put(GpuRegister.LY, 0);
                     RequestLycEqualsLyInterrupt();
                 }
             }
@@ -198,7 +198,7 @@ namespace CoreBoy.gpu
 
                     case Mode.HBlank:
                         _ticksInLine = 0;
-                        if (_r.preIncrement(GpuRegister.LY) == 144)
+                        if (_r.PreIncrement(GpuRegister.LY) == 144)
                         {
                             _mode = Mode.VBlank;
                             _phase = _vBlankPhase.start();
@@ -217,10 +217,10 @@ namespace CoreBoy.gpu
 
                     case Mode.VBlank:
                         _ticksInLine = 0;
-                        if (_r.preIncrement(GpuRegister.LY) == 1)
+                        if (_r.PreIncrement(GpuRegister.LY) == 1)
                         {
                             _mode = Mode.OamSearch;
-                            _r.put(GpuRegister.LY, 0);
+                            _r.Put(GpuRegister.LY, 0);
                             _phase = _oamSearchPhase.start();
                             RequestLcdcInterrupt(5);
                         }
@@ -249,7 +249,7 @@ namespace CoreBoy.gpu
 
         private void RequestLcdcInterrupt(int statBit)
         {
-            if ((_r.get(GpuRegister.STAT) & (1 << statBit)) != 0)
+            if ((_r.Get(GpuRegister.STAT) & (1 << statBit)) != 0)
             {
                 _interruptManager.requestInterrupt(InterruptManager.InterruptType.LCDC);
             }
@@ -257,7 +257,7 @@ namespace CoreBoy.gpu
 
         private void RequestLycEqualsLyInterrupt()
         {
-            if (_r.get(GpuRegister.LYC) == _r.get(GpuRegister.LY))
+            if (_r.Get(GpuRegister.LYC) == _r.Get(GpuRegister.LY))
             {
                 RequestLcdcInterrupt(6);
             }
@@ -265,13 +265,13 @@ namespace CoreBoy.gpu
 
         private int GetStat()
         {
-            return _r.get(GpuRegister.STAT) | (int) _mode |
-                   (_r.get(GpuRegister.LYC) == _r.get(GpuRegister.LY) ? (1 << 2) : 0) | 0x80;
+            return _r.Get(GpuRegister.STAT) | (int) _mode |
+                   (_r.Get(GpuRegister.LYC) == _r.Get(GpuRegister.LY) ? (1 << 2) : 0) | 0x80;
         }
 
         private void SetStat(int value)
         {
-            _r.put(GpuRegister.STAT, value & 0b11111000); // last three bits are read-only
+            _r.Put(GpuRegister.STAT, value & 0b11111000); // last three bits are read-only
         }
 
         private void SetLcdc(int value)
@@ -289,7 +289,7 @@ namespace CoreBoy.gpu
 
         private void DisableLcd()
         {
-            _r.put(GpuRegister.LY, 0);
+            _r.Put(GpuRegister.LY, 0);
             _ticksInLine = 0;
             _phase = _hBlankPhase.start(250);
             _mode = Mode.HBlank;

@@ -24,7 +24,7 @@ namespace CoreBoy.gpu
 
         private static readonly int[] EmptyPixelLine = new int[8];
 
-        private readonly PixelFifo _fifo;
+        private readonly IPixelFifo _fifo;
         private readonly AddressSpace _videoRam0;
         private readonly AddressSpace _videoRam1;
         private readonly AddressSpace _oemRam;
@@ -55,7 +55,7 @@ namespace CoreBoy.gpu
 
         private int _divider = 2;
 
-        public Fetcher(PixelFifo fifo, AddressSpace videoRam0, AddressSpace videoRam1, AddressSpace oemRam, Lcdc lcdc,
+        public Fetcher(IPixelFifo fifo, AddressSpace videoRam0, AddressSpace videoRam1, AddressSpace oemRam, Lcdc lcdc,
             MemoryRegisters registers, bool gbc)
         {
             _gbc = gbc;
@@ -84,7 +84,7 @@ namespace CoreBoy.gpu
             _xOffset = xOffset;
             _tileIdSigned = tileIdSigned;
             _tileLine = tileLine;
-            _fifo.clear();
+            _fifo.Clear();
 
             _state = State.ReadTileId;
             _tileId = 0;
@@ -102,7 +102,7 @@ namespace CoreBoy.gpu
         {
             _sprite = sprite;
             _state = State.ReadSpriteTileId;
-            _spriteTileLine = _r.get(LY) + 16 - sprite.getY();
+            _spriteTileLine = _r.Get(LY) + 16 - sprite.getY();
             _spriteOffset = offset;
             _spriteOamIndex = oamIndex;
         }
@@ -111,9 +111,9 @@ namespace CoreBoy.gpu
         {
             if (_fetchingDisabled && _state == State.ReadTileId)
             {
-                if (_fifo.getLength() <= 8)
+                if (_fifo.GetLength() <= 8)
                 {
-                    _fifo.enqueue8Pixels(EmptyPixelLine, _tileAttributes);
+                    _fifo.Enqueue8Pixels(EmptyPixelLine, _tileAttributes);
                 }
 
                 return;
@@ -157,9 +157,9 @@ namespace CoreBoy.gpu
                     goto stateSwitch; // Sorry mum
 
                 case State.Push:
-                    if (_fifo.getLength() <= 8)
+                    if (_fifo.GetLength() <= 8)
                     {
-                        _fifo.enqueue8Pixels(Zip(_tileData1, _tileData2, _tileAttributes.isXflip()), _tileAttributes);
+                        _fifo.Enqueue8Pixels(Zip(_tileData1, _tileData2, _tileAttributes.isXflip()), _tileAttributes);
                         _xOffset = (_xOffset + 1) % 0x20;
                         _state = State.ReadTileId;
                     }
@@ -194,7 +194,7 @@ namespace CoreBoy.gpu
                     break;
 
                 case State.PushSprite:
-                    _fifo.setOverlay(Zip(_tileData1, _tileData2, _spriteAttributes.isXflip()), _spriteOffset,
+                    _fifo.SetOverlay(Zip(_tileData1, _tileData2, _spriteAttributes.isXflip()), _spriteOffset,
                         _spriteAttributes, _spriteOamIndex);
                     _state = State.ReadTileId;
                     break;

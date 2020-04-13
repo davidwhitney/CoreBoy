@@ -1,6 +1,6 @@
 namespace CoreBoy.gpu
 {
-    public class ColorPixelFifo : PixelFifo
+    public class ColorPixelFifo : IPixelFifo
     {
         private readonly IntQueue pixels = new IntQueue(16);
         private readonly IntQueue palettes = new IntQueue(16);
@@ -18,12 +18,12 @@ namespace CoreBoy.gpu
             this.oamPalette = oamPalette;
         }
 
-        public int getLength()
+        public int GetLength()
         {
             return pixels.size();
         }
 
-        public void putPixelToScreen()
+        public void PutPixelToScreen()
         {
             display.PutColorPixel(dequeuePixel());
         }
@@ -33,12 +33,12 @@ namespace CoreBoy.gpu
             return getColor(priorities.dequeue(), palettes.dequeue(), pixels.dequeue());
         }
 
-        public void dropPixel()
+        public void DropPixel()
         {
             dequeuePixel();
         }
 
-        public void enqueue8Pixels(int[] pixelLine, TileAttributes tileAttributes)
+        public void Enqueue8Pixels(int[] pixelLine, TileAttributes tileAttributes)
         {
             foreach (int p in pixelLine)
             {
@@ -64,7 +64,7 @@ namespace CoreBoy.gpu
         when 1 => sprite above bg color 0
          */
 
-        public void setOverlay(int[] pixelLine, int offset, TileAttributes spriteAttr, int oamIndex)
+        public void SetOverlay(int[] pixelLine, int offset, TileAttributes spriteAttr, int oamIndex)
         {
             for (int j = offset; j < pixelLine.Length; j++)
             {
@@ -114,7 +114,7 @@ namespace CoreBoy.gpu
         }
 
 
-        public void clear()
+        public void Clear()
         {
             pixels.clear();
             palettes.clear();
@@ -125,11 +125,11 @@ namespace CoreBoy.gpu
         {
             if (priority >= 0 && priority < 10)
             {
-                return oamPalette.getPalette(palette)[color];
+                return oamPalette.GetPalette(palette)[color];
             }
             else
             {
-                return bgPalette.getPalette(palette)[color];
+                return bgPalette.GetPalette(palette)[color];
             }
         }
     }

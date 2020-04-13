@@ -4,7 +4,7 @@ using CoreBoy.memory;
 namespace CoreBoy.gpu
 {
 
-    public class GpuRegister : Register
+    public class GpuRegister : IRegister
     {
         public static GpuRegister STAT = new GpuRegister(0xff41, RegisterType.RW);
         public static GpuRegister SCY = new GpuRegister(0xff42, RegisterType.RW);
@@ -18,27 +18,26 @@ namespace CoreBoy.gpu
         public static GpuRegister WX = new GpuRegister(0xff4b, RegisterType.RW);
         public static GpuRegister VBK = new GpuRegister(0xff4f, RegisterType.W);
 
-        private int address;
-
-        private RegisterType type;
+        public int Address { get; }
+        public RegisterType Type { get;  }
 
         public GpuRegister(int address, RegisterType type)
         {
-            this.address = address;
-            this.type = type;
+            Address = address;
+            Type = type;
         }
 
-        public int getAddress()
+        public int GetAddress()
         {
-            return address;
+            return Address;
         }
 
-        public RegisterType getType()
+        public RegisterType GetRegisterType()
         {
-            return type;
+            return Type;
         }
 
-        public static IEnumerable<Register> values()
+        public static IEnumerable<IRegister> values()
         {
             yield return STAT;
             yield return SCY;

@@ -4,28 +4,21 @@ namespace CoreBoy.memory
 {
     public class Dma : AddressSpace
     {
+        private readonly AddressSpace _addressSpace;
+        private readonly AddressSpace _oam;
+        private readonly SpeedMode _speedMode;
 
-        private readonly AddressSpace addressSpace;
-
-        private readonly AddressSpace oam;
-
-        private readonly SpeedMode speedMode;
-
-        private bool transferInProgress;
-
-        private bool restarted;
-
-        private int from;
-
-        private int ticks;
-
-        private int regValue = 0xff;
+        private bool _transferInProgress;
+        private bool _restarted;
+        private int _from;
+        private int _ticks;
+        private int _regValue = 0xff;
 
         public Dma(AddressSpace addressSpace, AddressSpace oam, SpeedMode speedMode)
         {
-            this.addressSpace = new DmaAddressSpace(addressSpace);
-            this.speedMode = speedMode;
-            this.oam = oam;
+            _addressSpace = new DmaAddressSpace(addressSpace);
+            _speedMode = speedMode;
+            _oam = oam;
         }
 
         public bool accepts(int address)
@@ -33,40 +26,31 @@ namespace CoreBoy.memory
             return address == 0xff46;
         }
 
-        public void tick()
+        public void Tick()
         {
-            if (transferInProgress)
+            if (!_transferInProgress) return;
+            if (++_ticks < 648 / _speedMode.getSpeedMode()) return;
+
+            _transferInProgress = false;
+            _restarted = false;
+            _ticks = 0;
+            
+            for (var i = 0; i < 0xa0; i++)
             {
-                if (++ticks >= 648 / speedMode.getSpeedMode())
-                {
-                    transferInProgress = false;
-                    restarted = false;
-                    ticks = 0;
-                    for (int i = 0; i < 0xa0; i++)
-                    {
-                        oam.setByte(0xfe00 + i, addressSpace.getByte(from + i));
-                    }
-                }
+                _oam.setByte(0xfe00 + i, _addressSpace.getByte(_from + i));
             }
         }
 
         public void setByte(int address, int value)
         {
-            from = value * 0x100;
-            restarted = isOamBlocked();
-            ticks = 0;
-            transferInProgress = true;
-            regValue = value;
+            _from = value * 0x100;
+            _restarted = IsOamBlocked();
+            _ticks = 0;
+            _transferInProgress = true;
+            _regValue = value;
         }
 
-        public int getByte(int address)
-        {
-            return regValue;
-        }
-
-        public bool isOamBlocked()
-        {
-            return restarted || (transferInProgress && ticks >= 5);
-        }
+        public int getByte(int address) => _regValue;
+        public bool IsOamBlocked() => _restarted || _transferInProgress && _ticks >= 5;
     }
 }

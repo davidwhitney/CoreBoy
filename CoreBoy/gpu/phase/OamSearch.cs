@@ -86,7 +86,7 @@ namespace CoreBoy.gpu.phase
 
                 case State.READING_X:
                     spriteX = oemRam.getByte(spriteAddress + 1);
-                    if (spritePosIndex < sprites.Length && between(spriteY, registers.get(GpuRegister.LY) + 16,
+                    if (spritePosIndex < sprites.Length && between(spriteY, registers.Get(GpuRegister.LY) + 16,
                             spriteY + lcdc.getSpriteHeight()))
                     {
                         sprites[spritePosIndex++] = new SpritePosition(spriteX, spriteY, spriteAddress);

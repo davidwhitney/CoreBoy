@@ -2,97 +2,74 @@ using CoreBoy.memory;
 
 namespace CoreBoy.gpu
 {
-    public class DmgPixelFifo : PixelFifo
+    public class DmgPixelFifo : IPixelFifo
     {
+        private readonly IntQueue _pixels = new IntQueue(16);
+        private readonly IntQueue _palettes = new IntQueue(16);
+        private readonly IntQueue _pixelType = new IntQueue(16); // 0 - bg, 1 - sprite
 
-        private readonly IntQueue pixels = new IntQueue(16);
-
-        private readonly IntQueue palettes = new IntQueue(16);
-
-        private readonly IntQueue pixelType = new IntQueue(16); // 0 - bg, 1 - sprite
-
-        private readonly IDisplay display;
-
-        private readonly Lcdc lcdc;
-
-        private readonly MemoryRegisters registers;
+        private readonly IDisplay _display;
+        private readonly Lcdc _lcdc;
+        private readonly MemoryRegisters _registers;
 
         public DmgPixelFifo(IDisplay display, Lcdc lcdc, MemoryRegisters registers)
         {
-            this.lcdc = lcdc;
-            this.display = display;
-            this.registers = registers;
+            _lcdc = lcdc;
+            _display = display;
+            _registers = registers;
         }
 
-        public int getLength()
+        public int GetLength() => _pixels.size();
+        public void PutPixelToScreen() => _display.PutDmgPixel(DequeuePixel());
+        public void DropPixel() => DequeuePixel();
+
+        private int DequeuePixel()
         {
-            return pixels.size();
+            _pixelType.dequeue();
+            return GetColor(_palettes.dequeue(), _pixels.dequeue());
         }
 
-        public void putPixelToScreen()
+        public void Enqueue8Pixels(int[] pixelLine, TileAttributes tileAttributes)
         {
-            display.PutDmgPixel(dequeuePixel());
-        }
-
-        public void dropPixel()
-        {
-            dequeuePixel();
-        }
-
-        int dequeuePixel()
-        {
-            pixelType.dequeue();
-            return getColor(palettes.dequeue(), pixels.dequeue());
-        }
-
-        public void enqueue8Pixels(int[] pixelLine, TileAttributes tileAttributes)
-        {
-            foreach (int p in pixelLine)
+            foreach (var p in pixelLine)
             {
-                pixels.enqueue(p);
-                palettes.enqueue(registers.get(GpuRegister.BGP));
-                pixelType.enqueue(0);
+                _pixels.enqueue(p);
+                _palettes.enqueue(_registers.Get(GpuRegister.BGP));
+                _pixelType.enqueue(0);
             }
         }
 
-        public void setOverlay(int[] pixelLine, int offset, TileAttributes flags, int oamIndex)
+        public void SetOverlay(int[] pixelLine, int offset, TileAttributes flags, int oamIndex)
         {
-            bool priority = flags.isPriority();
-            int overlayPalette = registers.get(flags.getDmgPalette());
+            var priority = flags.isPriority();
+            var overlayPalette = _registers.Get(flags.getDmgPalette());
 
-            for (int j = offset; j < pixelLine.Length; j++)
+            for (var j = offset; j < pixelLine.Length; j++)
             {
-                int p = pixelLine[j];
-                int i = j - offset;
-                if (pixelType.get(i) == 1)
+                var p = pixelLine[j];
+                var i = j - offset;
+
+                if (_pixelType.get(i) == 1)
                 {
                     continue;
                 }
 
-                if ((priority && pixels.get(i) == 0) || !priority && p != 0)
+                if (priority && _pixels.get(i) == 0 || !priority && p != 0)
                 {
-                    pixels.set(i, p);
-                    palettes.set(i, overlayPalette);
-                    pixelType.set(i, 1);
+                    _pixels.set(i, p);
+                    _palettes.set(i, overlayPalette);
+                    _pixelType.set(i, 1);
                 }
             }
         }
+        
+        private static int GetColor(int palette, int colorIndex) => 0b11 & (palette >> (colorIndex * 2));
 
-        IntQueue getPixels()
+        public void Clear()
         {
-            return pixels;
-        }
-
-        private static int getColor(int palette, int colorIndex)
-        {
-            return 0b11 & (palette >> (colorIndex * 2));
-        }
-
-        public void clear()
-        {
-            pixels.clear();
-            palettes.clear();
-            pixelType.clear();
+            _pixels.clear();
+            _palettes.clear();
+            _pixelType.clear();
         }
     }
 }

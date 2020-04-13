@@ -5,7 +5,7 @@ namespace CoreBoy.gpu.phase
     public class PixelTransfer : GpuPhase
     {
 
-        private readonly PixelFifo fifo;
+        private readonly IPixelFifo fifo;
 
         private readonly Fetcher fetcher;
 
@@ -70,20 +70,20 @@ namespace CoreBoy.gpu.phase
             fetcher.Tick();
             if (lcdc.isBgAndWindowDisplay() || gbc)
             {
-                if (fifo.getLength() <= 8)
+                if (fifo.GetLength() <= 8)
                 {
                     return true;
                 }
 
-                if (droppedPixels < r.get(GpuRegister.SCX) % 8)
+                if (droppedPixels < r.Get(GpuRegister.SCX) % 8)
                 {
-                    fifo.dropPixel();
+                    fifo.DropPixel();
                     droppedPixels++;
                     return true;
                 }
 
-                if (!window && lcdc.isWindowDisplay() && r.get(GpuRegister.LY) >= r.get(GpuRegister.WY) &&
-                    x == r.get(GpuRegister.WX) - 7)
+                if (!window && lcdc.isWindowDisplay() && r.Get(GpuRegister.LY) >= r.Get(GpuRegister.WY) &&
+                    x == r.Get(GpuRegister.WX) - 7)
                 {
                     window = true;
                     startFetchingWindow();
@@ -135,7 +135,7 @@ namespace CoreBoy.gpu.phase
                 }
             }
 
-            fifo.putPixelToScreen();
+            fifo.PutPixelToScreen();
             if (++x == 160)
             {
                 return false;
@@ -146,8 +146,8 @@ namespace CoreBoy.gpu.phase
 
         private void startFetchingBackground()
         {
-            int bgX = r.get(GpuRegister.SCX) / 0x08;
-            int bgY = (r.get(GpuRegister.SCY) + r.get(GpuRegister.LY)) % 0x100;
+            int bgX = r.Get(GpuRegister.SCX) / 0x08;
+            int bgY = (r.Get(GpuRegister.SCY) + r.Get(GpuRegister.LY)) % 0x100;
 
             fetcher.StartFetching(lcdc.getBgTileMapDisplay() + (bgY / 0x08) * 0x20, lcdc.getBgWindowTileData(), bgX,
                 lcdc.isBgWindowTileDataSigned(), bgY % 0x08);
@@ -155,8 +155,8 @@ namespace CoreBoy.gpu.phase
 
         private void startFetchingWindow()
         {
-            int winX = (this.x - r.get(GpuRegister.WX) + 7) / 0x08;
-            int winY = r.get(GpuRegister.LY) - r.get(GpuRegister.WY);
+            int winX = (this.x - r.Get(GpuRegister.WX) + 7) / 0x08;
+            int winY = r.Get(GpuRegister.LY) - r.Get(GpuRegister.WY);
 
             fetcher.StartFetching(lcdc.getWindowTileMapDisplay() + (winY / 0x08) * 0x20, lcdc.getBgWindowTileData(),
                 winX, lcdc.isBgWindowTileDataSigned(), winY % 0x08);

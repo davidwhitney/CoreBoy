@@ -4,112 +4,79 @@ using System.Linq;
 
 namespace CoreBoy.memory
 {
-    public enum RegisterType
-    {
-        R,
-        W,
-        RW
-    }
-
-    public interface Register
-    {
-        int getAddress();
-        RegisterType getType();
-    }
-
     public class MemoryRegisters : AddressSpace
     {
+        private readonly Dictionary<int, IRegister> _registers;
+        private readonly Dictionary<int, int> _values = new Dictionary<int, int>();
 
-        private Dictionary<int, Register> registers;
-
-        private Dictionary<int, int> values = new Dictionary<int, int>();
-
-        public MemoryRegisters(params Register[] registers)
+        public MemoryRegisters(params IRegister[] registers)
         {
-            var map = new Dictionary<int, Register>();
+            var map = new Dictionary<int, IRegister>();
             foreach (var r in registers)
             {
-                if (map.ContainsKey(r.getAddress()))
+                if (map.ContainsKey(r.GetAddress()))
                 {
-                    throw new ArgumentException("Two registers with the same address: " + r.getAddress());
+                    throw new ArgumentException("Two registers with the same address: " + r.GetAddress());
                 }
 
-                map.Add(r.getAddress(), r);
-                values.Add(r.getAddress(), 0);
+                map.Add(r.GetAddress(), r);
+                _values.Add(r.GetAddress(), 0);
             }
 
-            this.registers = map;
+            _registers = map;
         }
 
         private MemoryRegisters(MemoryRegisters original)
         {
-            this.registers = original.registers;
-            this.values = new Dictionary<int, int>(original.values);
+            _registers = original._registers;
+            _values = new Dictionary<int, int>(original._values);
         }
 
-        public int get(Register reg)
+        public int Get(IRegister reg)
         {
-            if (registers.ContainsKey(reg.getAddress()))
-            {
-                return values[reg.getAddress()];
-            }
-            else
-            {
-                throw new ArgumentException("Not valid register: " + reg);
-            }
+            return _registers.ContainsKey(reg.GetAddress())
+                ? _values[reg.GetAddress()]
+                : throw new ArgumentException("Not valid register: " + reg);
         }
 
-        public void put(Register reg, int value)
+        public void Put(IRegister reg, int value)
         {
-            if (registers.ContainsKey(reg.getAddress()))
-            {
-                values[reg.getAddress()] = value;
-            }
-            else
-            {
-                throw new ArgumentException("Not valid register: " + reg);
-            }
+            _values[reg.GetAddress()] = _registers.ContainsKey(reg.GetAddress())
+                ? value
+                : throw new ArgumentException("Not valid register: " + reg);
         }
 
-        public MemoryRegisters freeze()
-        {
-            return new MemoryRegisters(this);
-        }
+        public MemoryRegisters Freeze() => new MemoryRegisters(this);
 
-        public int preIncrement(Register reg)
+        public int PreIncrement(IRegister reg)
         {
-            if (registers.ContainsKey(reg.getAddress()))
+            if (_registers.ContainsKey(reg.GetAddress()))
             {
-                int value = values[reg.getAddress()] + 1;
-                values[reg.getAddress()] = value;
+                var value = _values[reg.GetAddress()] + 1;
+                _values[reg.GetAddress()] = value;
                 return value;
             }
-            else
-            {
-                throw new ArgumentException("Not valid register: " + reg);
-            }
+
+            throw new ArgumentException("Not valid register: " + reg);
         }
 
-        public bool accepts(int address)
-        {
-            return registers.ContainsKey(address);
-        }
+        public bool accepts(int address) => _registers.ContainsKey(address);
 
         public void setByte(int address, int value)
         {
             var allowsWrite = new[] { RegisterType.W, RegisterType.RW };
-            var regType = registers[address].getType();
+            var regType = _registers[address].GetRegisterType();
             if (allowsWrite.Contains(regType))
             {
-                values[address] = value;
+                _values[address] = value;
             }
         }
 
         public int getByte(int address)
         {
             var allowsRead = new[] { RegisterType.R, RegisterType.RW };
-            var regType = registers[address].getType(); 
-            return allowsRead.Contains(regType) ? values[address] : 0xff;
+            var regType = _registers[address].GetRegisterType(); 
+            return allowsRead.Contains(regType) ? _values[address] : 0xff;
         }
     }
 }
