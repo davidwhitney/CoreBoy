@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <LangVersion>8.0</LangVersion>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>CoreBoy</RootNamespace>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AssemblyName>CoreBoy</AssemblyName>
+    <StartupObject>CoreBoy.Program</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="debugging\Console.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="tetris.gb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="tetris.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="debugging\Console.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
+  </ItemGroup>
+
+</Project>
