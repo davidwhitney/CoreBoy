@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using eu.rekawek.coffeegb.controller;
 using eu.rekawek.coffeegb.cpu;
 using eu.rekawek.coffeegb.gpu;
@@ -10,30 +11,23 @@ using eu.rekawek.coffeegb.sound;
 
 namespace eu.rekawek.coffeegb.gui
 {
+    public interface IRunnable
+    {
+        void run();
+    }
+
     public class Emulator
     {
-
         private static readonly int SCALE = 2;
-
         private readonly GameboyOptions options;
-
         private readonly Cartridge rom;
-
         private readonly SoundOutput sound;
-
         private readonly Display display;
-
         private readonly Controller controller;
-
         private readonly SerialEndpoint serialEndpoint;
-
         private readonly SpeedMode speedMode;
-
         private readonly Gameboy gameboy;
-
         private readonly TextWriter console;
-
-        // private JFrame mainWindow;
 
         public Emulator(String[] args, string properties)
         {
@@ -51,17 +45,22 @@ namespace eu.rekawek.coffeegb.gui
                 sound = null;
                 display = null;
                 controller = null;
-                gameboy = new Gameboy(options, rom, new NullDisplay(), new NullController(), new NullSoundOutput(),
-                    serialEndpoint, console);
+                gameboy = new Gameboy(options, rom, new NullDisplay(), new NullController(), new NullSoundOutput(), serialEndpoint, console);
             }
             else
             {
                 // TODO: Make real things work
-                throw new NotImplementedException("Not implemented not headless.");
+                // throw new NotImplementedException("Not implemented not headless.");
                 //sound = new AudioSystemSoundOutput();
                 //display = new SwingDisplay(SCALE);
                 //controller = new SwingController(properties);
                 //gameboy = new Gameboy(options, rom, display, controller, sound, serialEndpoint, console);
+
+               
+                sound = new NullSoundOutput();
+                display = new WinFormsDisplay(SCALE);
+                controller = new NullController();
+                gameboy = new Gameboy(options, rom, display, controller, sound, serialEndpoint, console);
             }
 
             // TODO: Do I even want to port this?
@@ -91,12 +90,13 @@ namespace eu.rekawek.coffeegb.gui
             }
         }
 
-        private static GameboyOptions createGameboyOptions(String[] args)
+        private static GameboyOptions createGameboyOptions(string[] args)
         {
-            var paramz = new HashSet<String>();
-            var shortparamz = new HashSet<String>();
-            String romPath = null;
-            foreach (String a in args)
+            var paramz = new HashSet<string>();
+            var shortparamz = new HashSet<string>();
+
+            string romPath = null;
+            foreach (var a in args)
             {
                 if (a.StartsWith("--"))
                 {
@@ -117,7 +117,7 @@ namespace eu.rekawek.coffeegb.gui
                 throw new ArgumentException("ROM path hasn't been specified");
             }
 
-            FileInfo romFile = new FileInfo(romPath);
+            var romFile = new FileInfo(romPath);
             if (!romFile.Exists)
             {
                 throw new ArgumentException("The ROM path doesn't exist: " + romPath);
@@ -135,11 +135,19 @@ namespace eu.rekawek.coffeegb.gui
             else
             {
                 // TODO: Implement
-                throw new NotImplementedException();
+                // throw new NotImplementedException();
                 //System.setProperty("sun.java2d.opengl", "true");
 
                 //UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
                 //SwingUtilities.invokeLater(() -> startGui());
+
+                if (display is IRunnable runnableDisplay)
+                {
+                    var thread = new Thread(() => runnableDisplay.run());
+                    thread.Start();
+                }
+
+                gameboy.run();
             }
         }
 
