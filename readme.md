@@ -2,6 +2,10 @@
 
 A .NET Core port of Coffee-GB.
 
+This is based on https://github.com/trekawek/coffee-gb which was an absolute joy to port.
+
+MIT licensed, go nuts.
+
 # Docs
 
 Um, coming soon.
