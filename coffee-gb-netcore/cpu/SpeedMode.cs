@@ -23,7 +23,7 @@ namespace eu.rekawek.coffeegb.cpu
             return (currentSpeed ? (1 << 7) : 0) | (prepareSpeedSwitch ? (1 << 0) : 0) | 0b01111110;
         }
 
-        bool onStop()
+        public bool onStop()
         {
             if (prepareSpeedSwitch)
             {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using eu.rekawek.coffeegb;
 
 namespace eu.rekawek.coffeegb.cpu
@@ -28,6 +29,15 @@ namespace eu.rekawek.coffeegb.cpu
             public int getHandler()
             {
                 return handler;
+            }
+
+            public static IEnumerable<InterruptType> values()
+            {
+                yield return VBlank;
+                yield return LCDC;
+                yield return Timer;
+                yield return Serial;
+                yield return P10_13;
             }
         }
 

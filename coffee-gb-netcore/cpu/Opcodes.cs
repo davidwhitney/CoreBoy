@@ -4,10 +4,10 @@ using eu.rekawek.coffeegb.cpu.opcode;
 
 namespace eu.rekawek.coffeegb.cpu
 {
-    public sealed class Opcodes
+    public static class Opcodes
     {
-        public static readonly List<Opcode> COMMANDS;
-        public static readonly List<Opcode> EXT_COMMANDS;
+        public static readonly Dictionary<int, Opcode> COMMANDS;
+        public static readonly Dictionary<int, Opcode> EXT_COMMANDS;
 
         static Opcodes()
         {
@@ -208,40 +208,22 @@ namespace eu.rekawek.coffeegb.cpu
                     }
                 }
             }
-
-            var commands = new List<Opcode>(0x100);
-            var extCommands = new List<Opcode>(0x100);
+            
+            var commands = new Dictionary<int, Opcode>(0x100);
+            var extCommands = new Dictionary<int, Opcode>(0x100);
 
             foreach (var b in opcodes)
             {
-                if (b == null)
-                {
-                    commands.Add(null);
-                }
-                else
-                {
-                    commands.Add(b.build());
-                }
+                commands.Add(b.getOpcode(), b.build());
             }
 
             foreach (var b in extOpcodes)
             {
-                if (b == null)
-                {
-                    extCommands.Add(null);
-                }
-                else
-                {
-                    extCommands.Add(b.build());
-                }
+                extCommands.Add(b.getOpcode(), b.build());
             }
 
             COMMANDS = commands;
             EXT_COMMANDS = extCommands;
-        }
-
-        private Opcodes()
-        {
         }
 
         private static OpcodeBuilder regLoad(OpcodeBuilder[] commands, int opcode, String target, String source)
