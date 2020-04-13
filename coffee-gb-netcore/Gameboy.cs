@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using eu.rekawek.coffeegb.cpu;
 using eu.rekawek.coffeegb.gpu;
 using eu.rekawek.coffeegb.memory;
-using eu.rekawek.coffeegb.timer;
+using eu.rekawek.coffeegb.memory.cart;
+using Timer = eu.rekawek.coffeegb.timer.Timer;
 
 namespace eu.rekawek.coffeegb
 {
 
 
-    public class Gameboy implements Runnable {
+    public class Gameboy 
+    {
 
     public static readonly int TICKS_PER_SEC = 4_194_304;
 
@@ -37,20 +41,20 @@ namespace eu.rekawek.coffeegb
 
     private readonly SpeedMode speedMode;
 
-    private readonly Optional<Console> console;
+    private readonly TextWriter console;
 
     private volatile bool doStop;
 
-    private readonly List<Runnable> tickListeners = new ArrayList<>();
+    private readonly List<Thread> tickListeners = new List<Thread>();
 
     public Gameboy(GameboyOptions options, Cartridge rom, Display display, Controller controller,
-        SoundOutput soundOutput, SerialEndpoint serialEndpoint): this(options, rom, display, controller, soundOutput, serialEndpoint, Optional.empty());
+        SoundOutput soundOutput, SerialEndpoint serialEndpoint): this(options, rom, display, controller, soundOutput, serialEndpoint, null);
     {
         
     }
 
     public Gameboy(GameboyOptions options, Cartridge rom, Display display, Controller controller,
-        SoundOutput soundOutput, SerialEndpoint serialEndpoint, Optional<Console> console)
+        SoundOutput soundOutput, SerialEndpoint serialEndpoint, TextWriter console)
     {
         this.display = display;
         gbc = rom.isGbc();

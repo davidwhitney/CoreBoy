@@ -10,4 +10,12 @@
     <StartupObject>eu.rekawek.coffeegb.Program</StartupObject>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Gameboy.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Gameboy.cs" />
+  </ItemGroup>
+
 </Project>
