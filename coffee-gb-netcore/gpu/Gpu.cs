@@ -1,51 +1,49 @@
-package eu.rekawek.coffeegb.gpu;
+using System.Linq;
+using eu.rekawek.coffeegb.cpu;
+using eu.rekawek.coffeegb.gpu.phase;
+using eu.rekawek.coffeegb.memory;
 
-import eu.rekawek.coffeegb.AddressSpace;
-import eu.rekawek.coffeegb.cpu.InterruptManager;
-import eu.rekawek.coffeegb.cpu.InterruptManager.InterruptType;
-import eu.rekawek.coffeegb.cpu.SpeedMode;
-import eu.rekawek.coffeegb.gpu.phase.GpuPhase;
-import eu.rekawek.coffeegb.gpu.phase.HBlankPhase;
-import eu.rekawek.coffeegb.gpu.phase.OamSearch;
-import eu.rekawek.coffeegb.gpu.phase.PixelTransfer;
-import eu.rekawek.coffeegb.gpu.phase.VBlankPhase;
-import eu.rekawek.coffeegb.memory.Dma;
-import eu.rekawek.coffeegb.memory.MemoryRegisters;
-import eu.rekawek.coffeegb.memory.Ram;
+namespace eu.rekawek.coffeegb.gpu { 
 
-import static eu.rekawek.coffeegb.gpu.GpuRegister.*;
 
 public class Gpu: AddressSpace {
+    public enum Mode
+    {
+        HBlank,
+        VBlank,
+        OamSearch,
+        PixelTransfer
+    }
 
-    private final AddressSpace videoRam0;
+    private readonly AddressSpace videoRam0;
 
-    private final AddressSpace videoRam1;
+    private readonly AddressSpace videoRam1;
 
-    private final AddressSpace oamRam;
+    private readonly AddressSpace oamRam;
 
-    private final Display display;
+    private readonly Display display;
 
-    private final InterruptManager interruptManager;
+    private readonly InterruptManager interruptManager;
 
-    private final Dma dma;
+    private readonly Dma dma;
 
-    private final Lcdc lcdc;
+    private readonly Lcdc lcdc;
 
-    private final boolean gbc;
+    private readonly bool gbc;
 
-    private final ColorPalette bgPalette;
+    private readonly ColorPalette bgPalette;
 
-    private final ColorPalette oamPalette;
+    private readonly ColorPalette oamPalette;
 
-    private final HBlankPhase hBlankPhase;
+    private readonly HBlankPhase hBlankPhase;
 
-    private final OamSearch oamSearchPhase;
+    private readonly OamSearch oamSearchPhase;
 
-    private final PixelTransfer pixelTransferPhase;
+    private readonly PixelTransfer pixelTransferPhase;
 
-    private final VBlankPhase vBlankPhase;
+    private readonly VBlankPhase vBlankPhase;
 
-    private boolean lcdEnabled = true;
+    private bool lcdEnabled = true;
 
     private int lcdEnabledDelay;
 
@@ -57,8 +55,8 @@ public class Gpu: AddressSpace {
 
     private GpuPhase phase;
 
-    public Gpu(Display display, InterruptManager interruptManager, Dma dma, Ram oamRam, boolean gbc) {
-        this.r = new MemoryRegisters(GpuRegister.values());
+    public Gpu(Display display, InterruptManager interruptManager, Dma dma, Ram oamRam, bool gbc) {
+        this.r = new MemoryRegisters(GpuRegister.values().ToArray());
         this.lcdc = new Lcdc();
         this.interruptManager = interruptManager;
         this.gbc = gbc;
@@ -105,7 +103,7 @@ public class Gpu: AddressSpace {
     }
 
     private AddressSpace getVideoRam() {
-        if (gbc && (r.get(VBK) & 1) == 1) {
+        if (gbc && (r.get(GpuRegister.VBK) & 1) == 1) {
             return videoRam1;
         } else {
             return videoRam0;
@@ -120,14 +118,12 @@ public class Gpu: AddressSpace {
         return videoRam1;
     }
 
-    @Override
-    public boolean accepts(int address) {
+    public bool accepts(int address) {
         return getAddressSpace(address) != null;
     }
-
-    @Override
+        
     public void setByte(int address, int value) {
-        if (address == STAT.getAddress()) {
+        if (address == GpuRegister.STAT.getAddress()) {
             setStat(value);
         } else {
             AddressSpace space = getAddressSpace(address);
@@ -138,16 +134,15 @@ public class Gpu: AddressSpace {
             }
         }
     }
-
-    @Override
+    
     public int getByte(int address) {
-        if (address == STAT.getAddress()) {
+        if (address == GpuRegister.STAT.getAddress()) {
             return getStat();
         } else {
             AddressSpace space = getAddressSpace(address);
             if (space == null) {
                 return 0xff;
-            } else if (address == VBK.getAddress()) {
+            } else if (address == GpuRegister.VBK.getAddress()) {
                 return gbc ? 0xfe : 0xff;
             } else {
                 return space.getByte(address);
@@ -155,7 +150,7 @@ public class Gpu: AddressSpace {
         }
     }
 
-    public Mode tick() {
+    public Mode? tick() {
         if (!lcdEnabled) {
             if (lcdEnabledDelay != -1) {
                 if (--lcdEnabledDelay == 0) {
@@ -172,29 +167,29 @@ public class Gpu: AddressSpace {
         ticksInLine++;
         if (phase.tick()) {
             // switch line 153 to 0
-            if (ticksInLine == 4 && mode == Mode.VBlank && r.get(LY) == 153) {
-                r.put(LY, 0);
+            if (ticksInLine == 4 && mode == Mode.VBlank && r.get(GpuRegister.LY) == 153) {
+                r.put(GpuRegister.LY, 0);
                 requestLycEqualsLyInterrupt();
             }
         } else {
             switch (oldMode) {
-                case OamSearch:
+                case Mode.OamSearch:
                     mode = Mode.PixelTransfer;
                     phase = pixelTransferPhase.start(oamSearchPhase.getSprites());
                     break;
 
-                case PixelTransfer:
+                case Mode.PixelTransfer:
                     mode = Mode.HBlank;
                     phase = hBlankPhase.start(ticksInLine);
                     requestLcdcInterrupt(3);
                     break;
 
-                case HBlank:
+                case Mode.HBlank:
                     ticksInLine = 0;
-                    if (r.preIncrement(LY) == 144) {
+                    if (r.preIncrement(GpuRegister.LY) == 144) {
                         mode = Mode.VBlank;
                         phase = vBlankPhase.start();
-                        interruptManager.requestInterrupt(InterruptType.VBlank);
+                        interruptManager.requestInterrupt(InterruptManager.InterruptType.VBlank);
                         requestLcdcInterrupt(4);
                     } else {
                         mode = Mode.OamSearch;
@@ -204,11 +199,11 @@ public class Gpu: AddressSpace {
                     requestLycEqualsLyInterrupt();
                     break;
 
-                case VBlank:
+                case Mode.VBlank:
                     ticksInLine = 0;
-                    if (r.preIncrement(LY) == 1) {
+                    if (r.preIncrement(GpuRegister.LY) == 1) {
                         mode = Mode.OamSearch;
-                        r.put(LY, 0);
+                        r.put(GpuRegister.LY, 0);
                         phase = oamSearchPhase.start();
                         requestLcdcInterrupt(5);
                     } else {
@@ -230,23 +225,23 @@ public class Gpu: AddressSpace {
     }
 
     private void requestLcdcInterrupt(int statBit) {
-        if ((r.get(STAT) & (1 << statBit)) != 0) {
-            interruptManager.requestInterrupt(InterruptType.LCDC);
+        if ((r.get(GpuRegister.STAT) & (1 << statBit)) != 0) {
+            interruptManager.requestInterrupt(InterruptManager.InterruptType.LCDC);
         }
     }
 
     private void requestLycEqualsLyInterrupt() {
-        if (r.get(LYC) == r.get(LY)) {
+        if (r.get(GpuRegister.LYC) == r.get(GpuRegister.LY)) {
             requestLcdcInterrupt(6);
         }
     }
 
     private int getStat() {
-        return r.get(STAT) | mode.ordinal() | (r.get(LYC) == r.get(LY) ? (1 << 2) : 0) | 0x80;
+        return r.get(GpuRegister.STAT) | (int)mode | (r.get(GpuRegister.LYC) == r.get(GpuRegister.LY) ? (1 << 2) : 0) | 0x80;
     }
 
     private void setStat(int value) {
-        r.put(STAT, value & 0b11111000); // last three bits are read-only
+        r.put(GpuRegister.STAT, value & 0b11111000); // last three bits are read-only
     }
 
     private void setLcdc(int value) {
@@ -259,7 +254,7 @@ public class Gpu: AddressSpace {
     }
 
     private void disableLcd() {
-        r.put(LY, 0);
+        r.put(GpuRegister.LY, 0);
         this.ticksInLine = 0;
         this.phase = hBlankPhase.start(250);
         this.mode = Mode.HBlank;
@@ -272,7 +267,7 @@ public class Gpu: AddressSpace {
         lcdEnabledDelay = 244;
     }
 
-    public boolean isLcdEnabled() {
+    public bool isLcdEnabled() {
         return lcdEnabled;
     }
 
@@ -284,7 +279,7 @@ public class Gpu: AddressSpace {
         return r;
     }
 
-    public boolean isGbc() {
+    public bool isGbc() {
         return gbc;
     }
 
@@ -296,3 +291,4 @@ public class Gpu: AddressSpace {
         return mode;
     }
 }
+	}

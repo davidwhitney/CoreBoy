@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using eu.rekawek.coffeegb.memory;
 
 namespace eu.rekawek.coffeegb.gpu
@@ -35,6 +36,21 @@ namespace eu.rekawek.coffeegb.gpu
         public RegisterType getType()
         {
             return type;
+        }
+
+        public static IEnumerable<Register> values()
+        {
+            yield return STAT;
+            yield return SCY;
+            yield return SCX;
+            yield return LY;
+            yield return LYC;
+            yield return BGP;
+            yield return OBP0;
+            yield return OBP1;
+            yield return WY;
+            yield return WX;
+            yield return VBK;
         }
     }
 }
