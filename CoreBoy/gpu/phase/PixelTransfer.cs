@@ -52,14 +52,14 @@ namespace CoreBoy.gpu.phase
             x = 0;
             window = false;
 
-            fetcher.init();
+            fetcher.Init();
             if (gbc || lcdc.isBgAndWindowDisplay())
             {
                 startFetchingBackground();
             }
             else
             {
-                fetcher.fetchingDisabled();
+                fetcher.FetchingDisabled();
             }
 
             return this;
@@ -67,7 +67,7 @@ namespace CoreBoy.gpu.phase
 
         public bool tick()
         {
-            fetcher.tick();
+            fetcher.Tick();
             if (lcdc.isBgAndWindowDisplay() || gbc)
             {
                 if (fifo.getLength() <= 8)
@@ -93,7 +93,7 @@ namespace CoreBoy.gpu.phase
 
             if (lcdc.isObjDisplay())
             {
-                if (fetcher.spriteInProgress())
+                if (fetcher.SpriteInProgress())
                 {
                     return true;
                 }
@@ -111,7 +111,7 @@ namespace CoreBoy.gpu.phase
                     {
                         if (!spriteAdded)
                         {
-                            fetcher.addSprite(s, 8 - s.getX(), i);
+                            fetcher.AddSprite(s, 8 - s.getX(), i);
                             spriteAdded = true;
                         }
 
@@ -121,7 +121,7 @@ namespace CoreBoy.gpu.phase
                     {
                         if (!spriteAdded)
                         {
-                            fetcher.addSprite(s, 0, i);
+                            fetcher.AddSprite(s, 0, i);
                             spriteAdded = true;
                         }
 
@@ -149,7 +149,7 @@ namespace CoreBoy.gpu.phase
             int bgX = r.get(GpuRegister.SCX) / 0x08;
             int bgY = (r.get(GpuRegister.SCY) + r.get(GpuRegister.LY)) % 0x100;
 
-            fetcher.startFetching(lcdc.getBgTileMapDisplay() + (bgY / 0x08) * 0x20, lcdc.getBgWindowTileData(), bgX,
+            fetcher.StartFetching(lcdc.getBgTileMapDisplay() + (bgY / 0x08) * 0x20, lcdc.getBgWindowTileData(), bgX,
                 lcdc.isBgWindowTileDataSigned(), bgY % 0x08);
         }
 
@@ -158,7 +158,7 @@ namespace CoreBoy.gpu.phase
             int winX = (this.x - r.get(GpuRegister.WX) + 7) / 0x08;
             int winY = r.get(GpuRegister.LY) - r.get(GpuRegister.WY);
 
-            fetcher.startFetching(lcdc.getWindowTileMapDisplay() + (winY / 0x08) * 0x20, lcdc.getBgWindowTileData(),
+            fetcher.StartFetching(lcdc.getWindowTileMapDisplay() + (winY / 0x08) * 0x20, lcdc.getBgWindowTileData(),
                 winX, lcdc.isBgWindowTileDataSigned(), winY % 0x08);
         }
 

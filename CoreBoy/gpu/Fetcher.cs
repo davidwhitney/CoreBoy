@@ -9,270 +9,233 @@ namespace CoreBoy.gpu
 
     public class Fetcher
     {
-
         private enum State
         {
-            READ_TILE_ID,
-            READ_DATA_1,
-            READ_DATA_2,
-            PUSH,
-            READ_SPRITE_TILE_ID,
-            READ_SPRITE_FLAGS,
-            READ_SPRITE_DATA_1,
-            READ_SPRITE_DATA_2,
-            PUSH_SPRITE
+            ReadTileId,
+            ReadData1,
+            ReadData2,
+            Push,
+            ReadSpriteTileId,
+            ReadSpriteFlags,
+            ReadSpriteData1,
+            ReadSpriteData2,
+            PushSprite
         }
 
-        private static readonly int[] EMPTY_PIXEL_LINE = new int[8];
+        private static readonly int[] EmptyPixelLine = new int[8];
 
-        private readonly PixelFifo fifo;
+        private readonly PixelFifo _fifo;
+        private readonly AddressSpace _videoRam0;
+        private readonly AddressSpace _videoRam1;
+        private readonly AddressSpace _oemRam;
+        private readonly MemoryRegisters _r;
+        private readonly Lcdc _lcdc;
+        private readonly bool _gbc;
 
-        private readonly AddressSpace videoRam0;
-
-        private readonly AddressSpace videoRam1;
-
-        private readonly AddressSpace oemRam;
-
-        private readonly MemoryRegisters r;
-
-        private readonly Lcdc lcdc;
-
-        private readonly bool gbc;
-
-        private readonly int[] pixelLine = new int[8];
-
-        private State state;
-
+        private readonly int[] _pixelLine = new int[8];
+        private State _state;
         private bool _fetchingDisabled;
 
-        private int mapAddress;
+        private int _mapAddress;
+        private int _xOffset;
 
-        private int xOffset;
+        private int _tileDataAddress;
+        private bool _tileIdSigned;
+        private int _tileLine;
+        private int _tileId;
+        private TileAttributes _tileAttributes;
+        private int _tileData1;
+        private int _tileData2;
 
-        private int tileDataAddress;
+        private int _spriteTileLine;
+        private OamSearch.SpritePosition _sprite;
+        private TileAttributes _spriteAttributes;
+        private int _spriteOffset;
+        private int _spriteOamIndex;
 
-        private bool tileIdSigned;
-
-        private int tileLine;
-
-        private int tileId;
-
-        private TileAttributes tileAttributes;
-
-        private int tileData1;
-
-        private int tileData2;
-
-        private int spriteTileLine;
-
-        private OamSearch.SpritePosition sprite;
-
-        private TileAttributes spriteAttributes;
-
-        private int spriteOffset;
-
-        private int spriteOamIndex;
-
-        private int divider = 2;
+        private int _divider = 2;
 
         public Fetcher(PixelFifo fifo, AddressSpace videoRam0, AddressSpace videoRam1, AddressSpace oemRam, Lcdc lcdc,
             MemoryRegisters registers, bool gbc)
         {
-            this.gbc = gbc;
-            this.fifo = fifo;
-            this.videoRam0 = videoRam0;
-            this.videoRam1 = videoRam1;
-            this.oemRam = oemRam;
-            r = registers;
-            this.lcdc = lcdc;
+            _gbc = gbc;
+            _fifo = fifo;
+            _videoRam0 = videoRam0;
+            _videoRam1 = videoRam1;
+            _oemRam = oemRam;
+            _r = registers;
+            _lcdc = lcdc;
         }
 
-        public void init()
+        public void Init()
         {
-            state = State.READ_TILE_ID;
-            tileId = 0;
-            tileData1 = 0;
-            tileData2 = 0;
-            divider = 2;
+            _state = State.ReadTileId;
+            _tileId = 0;
+            _tileData1 = 0;
+            _tileData2 = 0;
+            _divider = 2;
             _fetchingDisabled = false;
         }
 
-        public void startFetching(int mapAddress, int tileDataAddress, int xOffset, bool tileIdSigned, int tileLine)
+        public void StartFetching(int mapAddress, int tileDataAddress, int xOffset, bool tileIdSigned, int tileLine)
         {
-            this.mapAddress = mapAddress;
-            this.tileDataAddress = tileDataAddress;
-            this.xOffset = xOffset;
-            this.tileIdSigned = tileIdSigned;
-            this.tileLine = tileLine;
-            fifo.clear();
+            _mapAddress = mapAddress;
+            _tileDataAddress = tileDataAddress;
+            _xOffset = xOffset;
+            _tileIdSigned = tileIdSigned;
+            _tileLine = tileLine;
+            _fifo.clear();
 
-            state = State.READ_TILE_ID;
-            tileId = 0;
-            tileData1 = 0;
-            tileData2 = 0;
-            divider = 2;
+            _state = State.ReadTileId;
+            _tileId = 0;
+            _tileData1 = 0;
+            _tileData2 = 0;
+            _divider = 2;
         }
 
-        public void fetchingDisabled()
+        public void FetchingDisabled()
         {
             _fetchingDisabled = true;
         }
 
-        public void addSprite(OamSearch.SpritePosition sprite, int offset, int oamIndex)
+        public void AddSprite(OamSearch.SpritePosition sprite, int offset, int oamIndex)
         {
-            this.sprite = sprite;
-            state = State.READ_SPRITE_TILE_ID;
-            spriteTileLine = r.get(LY) + 16 - sprite.getY();
-            spriteOffset = offset;
-            spriteOamIndex = oamIndex;
+            _sprite = sprite;
+            _state = State.ReadSpriteTileId;
+            _spriteTileLine = _r.get(LY) + 16 - sprite.getY();
+            _spriteOffset = offset;
+            _spriteOamIndex = oamIndex;
         }
 
-        public void tick()
+        public void Tick()
         {
-            if (_fetchingDisabled && state == State.READ_TILE_ID)
+            if (_fetchingDisabled && _state == State.ReadTileId)
             {
-                if (fifo.getLength() <= 8)
+                if (_fifo.getLength() <= 8)
                 {
-                    fifo.enqueue8Pixels(EMPTY_PIXEL_LINE, tileAttributes);
+                    _fifo.enqueue8Pixels(EmptyPixelLine, _tileAttributes);
                 }
 
                 return;
             }
 
-            if (--divider == 0)
+            if (--_divider == 0)
             {
-                divider = 2;
+                _divider = 2;
             }
             else
             {
                 return;
             }
 
-			stateSwitch:
+            stateSwitch:
 
-            switch (state)
+            switch (_state)
             {
-                case State.READ_TILE_ID:
-                    tileId = videoRam0.getByte(mapAddress + xOffset);
-                    if (gbc)
+                case State.ReadTileId:
+                    _tileId = _videoRam0.getByte(_mapAddress + _xOffset);
+                    if (_gbc)
                     {
-                        tileAttributes = TileAttributes.valueOf(videoRam1.getByte(mapAddress + xOffset));
+                        _tileAttributes = TileAttributes.valueOf(_videoRam1.getByte(_mapAddress + _xOffset));
                     }
                     else
                     {
-                        tileAttributes = TileAttributes.EMPTY;
+                        _tileAttributes = TileAttributes.EMPTY;
                     }
 
-                    state = State.READ_DATA_1;
+                    _state = State.ReadData1;
                     break;
 
-                case State.READ_DATA_1:
-                    tileData1 = getTileData(tileId, tileLine, 0, tileDataAddress, tileIdSigned, tileAttributes, 8);
-                    state = State.READ_DATA_2;
+                case State.ReadData1:
+                    _tileData1 = GetTileData(_tileId, _tileLine, 0, _tileDataAddress, _tileIdSigned, _tileAttributes, 8);
+                    _state = State.ReadData2;
                     break;
 
-                case State.READ_DATA_2:
-                    tileData2 = getTileData(tileId, tileLine, 1, tileDataAddress, tileIdSigned, tileAttributes, 8);
-                    state = State.PUSH;
-					goto stateSwitch; // Sorry mum
+                case State.ReadData2:
+                    _tileData2 = GetTileData(_tileId, _tileLine, 1, _tileDataAddress, _tileIdSigned, _tileAttributes, 8);
+                    _state = State.Push;
+                    goto stateSwitch; // Sorry mum
 
-                case State.PUSH:
-                    if (fifo.getLength() <= 8)
+                case State.Push:
+                    if (_fifo.getLength() <= 8)
                     {
-                        fifo.enqueue8Pixels(zip(tileData1, tileData2, tileAttributes.isXflip()), tileAttributes);
-                        xOffset = (xOffset + 1) % 0x20;
-                        state = State.READ_TILE_ID;
+                        _fifo.enqueue8Pixels(Zip(_tileData1, _tileData2, _tileAttributes.isXflip()), _tileAttributes);
+                        _xOffset = (_xOffset + 1) % 0x20;
+                        _state = State.ReadTileId;
                     }
 
                     break;
 
-                case State.READ_SPRITE_TILE_ID:
-                    tileId = oemRam.getByte(sprite.getAddress() + 2);
-                    state = State.READ_SPRITE_FLAGS;
+                case State.ReadSpriteTileId:
+                    _tileId = _oemRam.getByte(_sprite.getAddress() + 2);
+                    _state = State.ReadSpriteFlags;
                     break;
 
-                case State.READ_SPRITE_FLAGS:
-                    spriteAttributes = TileAttributes.valueOf(oemRam.getByte(sprite.getAddress() + 3));
-                    state = State.READ_SPRITE_DATA_1;
+                case State.ReadSpriteFlags:
+                    _spriteAttributes = TileAttributes.valueOf(_oemRam.getByte(_sprite.getAddress() + 3));
+                    _state = State.ReadSpriteData1;
                     break;
 
-                case State.READ_SPRITE_DATA_1:
-                    if (lcdc.getSpriteHeight() == 16)
+                case State.ReadSpriteData1:
+                    if (_lcdc.getSpriteHeight() == 16)
                     {
-                        tileId &= 0xfe;
+                        _tileId &= 0xfe;
                     }
 
-                    tileData1 = getTileData(tileId, spriteTileLine, 0, 0x8000, false, spriteAttributes,
-                        lcdc.getSpriteHeight());
-                    state = State.READ_SPRITE_DATA_2;
+                    _tileData1 = GetTileData(_tileId, _spriteTileLine, 0, 0x8000, false, _spriteAttributes,
+                        _lcdc.getSpriteHeight());
+                    _state = State.ReadSpriteData2;
                     break;
 
-                case State.READ_SPRITE_DATA_2:
-                    tileData2 = getTileData(tileId, spriteTileLine, 1, 0x8000, false, spriteAttributes,
-                        lcdc.getSpriteHeight());
-                    state = State.PUSH_SPRITE;
+                case State.ReadSpriteData2:
+                    _tileData2 = GetTileData(_tileId, _spriteTileLine, 1, 0x8000, false, _spriteAttributes,
+                        _lcdc.getSpriteHeight());
+                    _state = State.PushSprite;
                     break;
 
-                case State.PUSH_SPRITE:
-                    fifo.setOverlay(zip(tileData1, tileData2, spriteAttributes.isXflip()), spriteOffset,
-                        spriteAttributes, spriteOamIndex);
-                    state = State.READ_TILE_ID;
+                case State.PushSprite:
+                    _fifo.setOverlay(Zip(_tileData1, _tileData2, _spriteAttributes.isXflip()), _spriteOffset,
+                        _spriteAttributes, _spriteOamIndex);
+                    _state = State.ReadTileId;
                     break;
             }
         }
 
-        private int getTileData(int tileId, int line, int byteNumber, int tileDataAddress, bool signed,
+        private int GetTileData(int tileId, int line, int byteNumber, int tileDataAddress, bool signed,
             TileAttributes attr, int tileHeight)
         {
-            int effectiveLine;
-            if (attr.isYflip())
-            {
-                effectiveLine = tileHeight - 1 - line;
-            }
-            else
-            {
-                effectiveLine = line;
-            }
+            var effectiveLine = attr.isYflip() ? tileHeight - 1 - line : line;
+            var tileAddress = signed ? tileDataAddress + toSigned(tileId) * 0x10 : tileDataAddress + tileId * 0x10;
 
-            int tileAddress;
-            if (signed)
-            {
-                tileAddress = tileDataAddress + toSigned(tileId) * 0x10;
-            }
-            else
-            {
-                tileAddress = tileDataAddress + tileId * 0x10;
-            }
-
-            AddressSpace videoRam = (attr.getBank() == 0 || !gbc) ? videoRam0 : videoRam1;
+            var videoRam = (attr.getBank() == 0 || !_gbc) ? _videoRam0 : _videoRam1;
             return videoRam.getByte(tileAddress + effectiveLine * 2 + byteNumber);
         }
 
-        public bool spriteInProgress()
+        public bool SpriteInProgress()
         {
             var set = new List<State>
             {
-                State.READ_SPRITE_TILE_ID, 
-                State.READ_SPRITE_FLAGS, 
-                State.READ_SPRITE_DATA_1,
-                State.READ_SPRITE_DATA_2, 
-                State.PUSH_SPRITE
+                State.ReadSpriteTileId,
+                State.ReadSpriteFlags,
+                State.ReadSpriteData1,
+                State.ReadSpriteData2,
+                State.PushSprite
             };
 
-            return set.Contains(state);
+            return set.Contains(_state);
         }
 
-        public int[] zip(int data1, int data2, bool reverse)
+        public int[] Zip(int data1, int data2, bool reverse)
         {
-            return zip(data1, data2, reverse, pixelLine);
+            return Zip(data1, data2, reverse, _pixelLine);
         }
 
-        public static int[] zip(int data1, int data2, bool reverse, int[] pixelLine)
+        public static int[] Zip(int data1, int data2, bool reverse, int[] pixelLine)
         {
-            for (int i = 7; i >= 0; i--)
+            for (var i = 7; i >= 0; i--)
             {
-                int mask = (1 << i);
-                int p = 2 * ((data2 & mask) == 0 ? 0 : 1) + ((data1 & mask) == 0 ? 0 : 1);
+                var mask = (1 << i);
+                var p = 2 * ((data2 & mask) == 0 ? 0 : 1) + ((data1 & mask) == 0 ? 0 : 1);
                 if (reverse)
                 {
                     pixelLine[i] = p;
@@ -285,7 +248,5 @@ namespace CoreBoy.gpu
 
             return pixelLine;
         }
-
     }
-
 }
