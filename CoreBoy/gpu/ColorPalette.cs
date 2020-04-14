@@ -16,7 +16,18 @@ namespace CoreBoy.gpu
 
         public ColorPalette(int offset)
         {
-            _palettes = Enumerable.Repeat(Enumerable.Repeat(0, 4).ToList(), 8).ToList();
+            _palettes = new List<List<int>>();
+            for (var x = 0; x < 8; x++)
+            {
+                var row = new List<int>(4);
+                for (var y = 0; y < 4; y++)
+                {
+                    row.Add(0);
+                }
+
+                _palettes.Add(row);
+            }
+
             _indexAddress = offset;
             _dataAddress = offset + 1;
         }
@@ -29,28 +40,27 @@ namespace CoreBoy.gpu
             {
                 _index = value & 0x3f;
                 _autoIncrement = (value & (1 << 7)) != 0;
-                return;
             }
-
-            if (address != _dataAddress)
+            else if (address == _dataAddress)
             {
-                throw new ArgumentException();
-            }
-
-            var color = _palettes[_index / 8][(_index % 8) / 2];
-            if (_index % 2 == 0)
-            {
-                color = (color & 0xff00) | value;
+                int color = _palettes[_index / 8][(_index % 8) / 2];
+                if (_index % 2 == 0)
+                {
+                    color = (color & 0xff00) | value;
+                }
+                else
+                {
+                    color = (color & 0x00ff) | (value << 8);
+                }
+                _palettes[_index / 8][(_index % 8) / 2] = color;
+                if (_autoIncrement)
+                {
+                    _index = (_index + 1) & 0x3f;
+                }
             }
             else
             {
-                color = (color & 0x00ff) | (value << 8);
-            }
-
-            _palettes[_index / 8][(_index % 8) / 2] = color;
-            if (_autoIncrement)
-            {
-                _index = (_index + 1) & 0x3f;
+                throw new InvalidOperationException();
             }
         }
 
