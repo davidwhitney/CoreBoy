@@ -4,146 +4,55 @@ namespace CoreBoy.cpu
 
     public class Registers
     {
-        private int a, b, c, d, e, h, l;
-        private int sp;
-        private int pc;
-        private Flags flags = new Flags();
+        public int A { get; set; }
+        public int B { get; set; }
+        public int C { get; set; }
+        public int D { get; set; }
+        public int E { get; set; }
+        public int H { get; set; }
+        public int L { get; set; }
+        public int SP { get; set; }
+        public int PC { get; set; }
 
-        public int getA() => a;
-        public int getB() => b;
-        public int getC() => c;
-        public int getD() => d;
-        public int getE() => e;
-        public int getH() => h;
-        public int getL() => l;
+        public Flags Flags { get; } = new Flags();
 
-        public int getAF()
+        public int AF => A << 8 | Flags.FlagsByte;
+        public int BC =>  B << 8 | C;
+        public int DE => D << 8 | E;
+        public int HL =>  H << 8 | L;
+
+        public void SetAf(int af)
         {
-            return a << 8 | flags.FlagsByte;
+            A = GetMsb(af);
+            Flags.SetFlagsByte(GetLsb(af));
         }
 
-        public int getBC()
+        public void SetBc(int bc)
         {
-            return b << 8 | c;
+            B = GetMsb(bc);
+            C = GetLsb(bc);
         }
 
-        public int getDE()
+        public void SetDe(int de)
         {
-            return d << 8 | e;
+            D = GetMsb(de);
+            E = GetLsb(de);
         }
 
-        public int getHL()
+        public void SetHl(int hl)
         {
-            return h << 8 | l;
+            H = GetMsb(hl);
+            L = GetLsb(hl);
         }
 
-        public int getSP() => sp;
-        public int getPC() => pc;
-        public Flags getFlags() => flags;
-
-        public void setA(int a)
-        {
-            CheckByteArgument("a", a);
-            this.a = a;
-        }
-
-        public void setB(int b)
-        {
-            CheckByteArgument("b", b);
-            this.b = b;
-        }
-
-        public void setC(int c)
-        {
-            CheckByteArgument("c", c);
-            this.c = c;
-        }
-
-        public void setD(int d)
-        {
-            CheckByteArgument("d", d);
-            this.d = d;
-        }
-
-        public void setE(int e)
-        {
-            CheckByteArgument("e", e);
-            this.e = e;
-        }
-
-        public void setH(int h)
-        {
-            CheckByteArgument("h", h);
-            this.h = h;
-        }
-
-        public void setL(int l)
-        {
-            CheckByteArgument("l", l);
-            this.l = l;
-        }
-
-        public void setAF(int af)
-        {
-            CheckWordArgument("af", af);
-            a = GetMsb(af);
-            flags.SetFlagsByte(GetLsb(af));
-        }
-
-        public void setBC(int bc)
-        {
-            CheckWordArgument("bc", bc);
-            b = GetMsb(bc);
-            c = GetLsb(bc);
-        }
-
-        public void setDE(int de)
-        {
-            CheckWordArgument("de", de);
-            d = GetMsb(de);
-            e = GetLsb(de);
-        }
-
-        public void setHL(int hl)
-        {
-            CheckWordArgument("hl", hl);
-            h = GetMsb(hl);
-            l = GetLsb(hl);
-        }
-
-        public void setSP(int sp)
-        {
-            CheckWordArgument("sp", sp);
-            this.sp = sp;
-        }
-
-        public void setPC(int pc)
-        {
-            CheckWordArgument("pc", pc);
-            this.pc = pc;
-        }
-
-        public void incrementPC()
-        {
-            pc = (pc + 1) & 0xffff;
-        }
-
-        public void decrementSP()
-        {
-            sp = (sp - 1) & 0xffff;
-        }
-
-        public void incrementSP()
-        {
-            sp = (sp + 1) & 0xffff;
-        }
-
-        public string toString() => ToString();
-
+        public void IncrementPc() => PC = (PC + 1) & 0xffff;
+        public void IncrementSp() => SP = (SP + 1) & 0xffff;
+        public void DecrementSp() => SP = (SP - 1) & 0xffff;
+        
         public override string ToString()
         {
-            return string.Format("AF=%04x, BC=%04x, DE=%04x, HL=%04x, SP=%04x, PC=%04x, %s", getAF(), getBC(), getDE(),
-                getHL(), getSP(), getPC(), getFlags().ToString());
+            return
+                $"AF={AF:X4}, BC={BC:X4}, DE={DE:X4}, HL={HL:X4}, SP={SP:X4}, PC={PC:X4}, {Flags}";
         }
     }
 }

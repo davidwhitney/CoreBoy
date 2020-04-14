@@ -29,7 +29,7 @@ namespace CoreBoy.memory
         public void Tick()
         {
             if (!_transferInProgress) return;
-            if (++_ticks < 648 / _speedMode.getSpeedMode()) return;
+            if (++_ticks < 648 / _speedMode.GetSpeedMode()) return;
 
             _transferInProgress = false;
             _restarted = false;

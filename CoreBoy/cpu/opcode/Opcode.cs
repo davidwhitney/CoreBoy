@@ -7,47 +7,19 @@ namespace CoreBoy.cpu.opcode
 {
     public class Opcode
     {
-
-        private readonly int opcode;
-
-        private readonly String label;
-
-        private readonly List<Op> ops;
-
-        private readonly int length;
+        public int Value { get; }
+        public string Label { get; }
+        public List<Op> Ops { get; }
+        public int Length { get; }
 
         public Opcode(OpcodeBuilder builder)
         {
-            this.opcode = builder.getOpcode();
-            this.label = builder.getLabel();
-            this.ops = new List<Op>(builder.getOps());
-            this.length = ops.Count <= 0 ? 0 : ops.Max(o => o.operandLength());
+            Value = builder.getOpcode();
+            Label = builder.getLabel();
+            Ops = new List<Op>(builder.getOps());
+            Length = Ops.Count <= 0 ? 0 : Ops.Max(o => o.operandLength());
         }
 
-        public int getOperandLength()
-        {
-            return length;
-        }
-
-
-        public String toString()
-        {
-            return String.Format("%02x %s", opcode, label);
-        }
-
-        public List<Op> getOps()
-        {
-            return ops;
-        }
-
-        public String getLabel()
-        {
-            return label;
-        }
-
-        public int getOpcode()
-        {
-            return opcode;
-        }
+        public override string ToString() => $"{Value:X2} {Label}";
     }
 }

@@ -20,31 +20,31 @@ namespace CoreBoy.cpu.op
         {
             _values = new List<Argument>
             {
-                new Argument("A").Handle((r, a, args) => r.getA(), (r, a, i1, value) => r.setA(value)),
-                new Argument("B").Handle((r, a, args) => r.getB(), (r, a, i1, value) => r.setB(value)),
-                new Argument("C").Handle((r, a, args) => r.getC(), (r, a, i1, value) => r.setC(value)),
-                new Argument("D").Handle((r, a, args) => r.getD(), (r, a, i1, value) => r.setD(value)),
-                new Argument("E").Handle((r, a, args) => r.getE(), (r, a, i1, value) => r.setE(value)),
-                new Argument("H").Handle((r, a, args) => r.getH(), (r, a, i1, value) => r.setH(value)),
-                new Argument("L").Handle((r, a, args) => r.getL(), (r, a, i1, value) => r.setL(value)),
+                new Argument("A").Handle((r, a, args) => r.A, (r, a, i1, value) => r.A = value),
+                new Argument("B").Handle((r, a, args) => r.B, (r, a, i1, value) => r.B = value),
+                new Argument("C").Handle((r, a, args) => r.C, (r, a, i1, value) => r.C = value),
+                new Argument("D").Handle((r, a, args) => r.D, (r, a, i1, value) => r.D = value),
+                new Argument("E").Handle((r, a, args) => r.E, (r, a, i1, value) => r.E = value),
+                new Argument("H").Handle((r, a, args) => r.H, (r, a, i1, value) => r.H = value),
+                new Argument("L").Handle((r, a, args) => r.L, (r, a, i1, value) => r.L = value),
                 
                 new Argument("AF", 0, false, DataType.D16)
-                    .Handle((r, a, args) => r.getAF(), (r, a, i1, value) => r.setAF(value)),
+                    .Handle((r, a, args) => r.AF, (r, a, i1, value) => r.SetAf(value)),
 
                 new Argument("BC", 0, false, DataType.D16)
-                    .Handle((r, a, args) => r.getBC(), (r, a, i1, value) => r.setBC(value)),
+                    .Handle((r, a, args) => r.BC, (r, a, i1, value) => r.SetBc(value)),
 
                 new Argument("DE", 0, false, DataType.D16)
-                    .Handle((r, a, args) => r.getDE(), (r, a, i1, value) => r.setDE(value)),
+                    .Handle((r, a, args) => r.DE, (r, a, i1, value) => r.SetDe(value)),
 
                 new Argument("HL", 0, false, DataType.D16)
-                    .Handle((r, a, args) => r.getHL(), (r, a, i1, value) => r.setHL(value)),
+                    .Handle((r, a, args) => r.HL, (r, a, i1, value) => r.SetHl(value)),
 
                 new Argument("SP", 0, false, DataType.D16)
-                    .Handle((r, a, args) => r.getSP(), (r, a, i1, value) => r.setSP(value)),
+                    .Handle((r, a, args) => r.SP, (r, a, i1, value) => r.SP = value),
 
                 new Argument("PC", 0, false, DataType.D16)
-                    .Handle((r, a, args) => r.getPC(), (r, a, i1, value) => r.setPC(value)),
+                    .Handle((r, a, args) => r.PC, (r, a, i1, value) => r.PC = value),
 
                 new Argument("d8", 1, false, DataType.D8)
                     .Handle((r, a, args) => args[0], (r, a, i1, value) => throw new InvalidOperationException("Unsupported")),
@@ -60,15 +60,15 @@ namespace CoreBoy.cpu.op
 				
                 // _BC
                 new Argument("(BC)", 0, true, DataType.D8)
-                    .Handle((r, a, args) => a.getByte(r.getBC()), (r, a, i1, value) => a.setByte(r.getBC(), value)),
+                    .Handle((r, a, args) => a.getByte(r.BC), (r, a, i1, value) => a.setByte(r.BC, value)),
 
                 // _DE
                 new Argument("(DE)", 0, true, DataType.D8)
-                    .Handle((r, a, args) => a.getByte(r.getDE()), (r, a, i1, value) => a.setByte(r.getDE(), value)),
+                    .Handle((r, a, args) => a.getByte(r.DE), (r, a, i1, value) => a.setByte(r.DE, value)),
 
                 // _HL
                 new Argument("(HL)", 0, true, DataType.D8)
-                    .Handle((r, a, args) => a.getByte(r.getHL()), (r, a, i1, value) => a.setByte(r.getHL(), value)),
+                    .Handle((r, a, args) => a.getByte(r.HL), (r, a, i1, value) => a.setByte(r.HL, value)),
 
                 // _a8
                 new Argument("(a8)", 1, true, DataType.D8)
@@ -80,7 +80,7 @@ namespace CoreBoy.cpu.op
 
                 // _C
                 new Argument("(C)", 0, true, DataType.D8)
-                    .Handle((r, a, args) => a.getByte(0xff00 | r.getC()), (r, a, i1, value) => a.setByte(0xff00 | r.getC(), value))
+                    .Handle((r, a, args) => a.getByte(0xff00 | r.C), (r, a, i1, value) => a.setByte(0xff00 | r.C, value))
             };
         }
 

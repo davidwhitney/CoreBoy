@@ -148,10 +148,10 @@ namespace CoreBoy.cpu.opcode
             {
                 return _condition switch
                 {
-                    "NZ" => !registers.getFlags().IsZ(),
-                    "Z" => registers.getFlags().IsZ(),
-                    "NC" => !registers.getFlags().IsC(),
-                    "C" => registers.getFlags().IsC(),
+                    "NZ" => !registers.Flags.IsZ(),
+                    "Z" => registers.Flags.IsZ(),
+                    "NC" => !registers.Flags.IsC(),
+                    "C" => registers.Flags.IsC(),
                     _ => false
                 };
             }
@@ -173,14 +173,14 @@ namespace CoreBoy.cpu.opcode
             public override bool writesMemory() => true;
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
-                registers.setSP(_func(registers.getFlags(), registers.getSP()));
-                addressSpace.setByte(registers.getSP(), (context & 0xff00) >> 8);
+                registers.SP = _func(registers.Flags, registers.SP);
+                addressSpace.setByte(registers.SP, (context & 0xff00) >> 8);
                 return context;
             }
 
             public override SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
             {
-                return inOamArea(registers.getSP()) ? SpriteBug.CorruptionType.PUSH_1 : (SpriteBug.CorruptionType?) null;
+                return inOamArea(registers.SP) ? SpriteBug.CorruptionType.PUSH_1 : (SpriteBug.CorruptionType?) null;
             }
 
             public override string ToString() => "[_ ] → (SP--)";
@@ -193,13 +193,13 @@ namespace CoreBoy.cpu.opcode
             public override bool writesMemory() => true;
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
-                registers.setSP(_func(registers.getFlags(), registers.getSP()));
-                addressSpace.setByte(registers.getSP(), context & 0x00ff);
+                registers.SP = _func(registers.Flags, registers.SP);
+                addressSpace.setByte(registers.SP, context & 0x00ff);
                 return context;
             }
             public override SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
             {
-                return inOamArea(registers.getSP()) ? SpriteBug.CorruptionType.PUSH_2 : (SpriteBug.CorruptionType?) null;
+                return inOamArea(registers.SP) ? SpriteBug.CorruptionType.PUSH_2 : (SpriteBug.CorruptionType?) null;
             }
 
 
@@ -226,15 +226,15 @@ namespace CoreBoy.cpu.opcode
 
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
-                int lsb = addressSpace.getByte(registers.getSP());
-                registers.setSP(_func(registers.getFlags(), registers.getSP()));
+                int lsb = addressSpace.getByte(registers.SP);
+                registers.SP = _func(registers.Flags, registers.SP);
                 return lsb;
             }
 
 
             public override SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
             {
-                return inOamArea(registers.getSP()) ? SpriteBug.CorruptionType.POP_1 : (SpriteBug.CorruptionType?) null;
+                return inOamArea(registers.SP) ? SpriteBug.CorruptionType.POP_1 : (SpriteBug.CorruptionType?) null;
             }
 
 
@@ -255,15 +255,15 @@ namespace CoreBoy.cpu.opcode
         
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
-                int msb = addressSpace.getByte(registers.getSP());
-                registers.setSP(_func(registers.getFlags(), registers.getSP()));
+                int msb = addressSpace.getByte(registers.SP);
+                registers.SP = _func(registers.Flags, registers.SP);
                 return context | (msb << 8);
             }
 
 
             public override SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
             {
-                return inOamArea(registers.getSP()) ? SpriteBug.CorruptionType.POP_2 : (SpriteBug.CorruptionType?) null;
+                return inOamArea(registers.SP) ? SpriteBug.CorruptionType.POP_2 : (SpriteBug.CorruptionType?) null;
             }
         
             public override string ToString()
@@ -311,7 +311,7 @@ namespace CoreBoy.cpu.opcode
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int v1)
             {
                 var v2 = _arg2.read(registers, addressSpace, args);
-                return _func(registers.getFlags(), v1, v2);
+                return _func(registers.Flags, v1, v2);
             }
 
 
@@ -352,7 +352,7 @@ namespace CoreBoy.cpu.opcode
 
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int v1)
             {
-                return _func(registers.getFlags(), v1, _d8Value);
+                return _func(registers.Flags, v1, _d8Value);
             }
 
 
@@ -389,7 +389,7 @@ namespace CoreBoy.cpu.opcode
 
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int value)
             {
-                return _func(registers.getFlags(), value);
+                return _func(registers.Flags, value);
             }
 
 
@@ -431,7 +431,7 @@ namespace CoreBoy.cpu.opcode
 
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int value)
             {
-                return _func(registers.getFlags(), value);
+                return _func(registers.Flags, value);
             }
 
             public override SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
@@ -469,8 +469,8 @@ namespace CoreBoy.cpu.opcode
 
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
-                var value = addressSpace.getByte(registers.getHL());
-                var flags = registers.getFlags();
+                var value = addressSpace.getByte(registers.HL);
+                var flags = registers.Flags;
                 flags.SetN(false);
                 flags.SetH(true);
                 if (_bit < 8)
@@ -496,7 +496,7 @@ namespace CoreBoy.cpu.opcode
         {
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
-                registers.getFlags().SetZ(false);
+                registers.Flags.SetZ(false);
                 return context;
             }
 

@@ -41,7 +41,7 @@ namespace CoreBoy.serial
             
             //if (++divider >= Gameboy.TICKS_PER_SEC / 8192 / speedMode.getSpeedMode())
             int TICKS_PER_SEC = 4_194_304;
-            if (++divider >= TICKS_PER_SEC / 8192 / speedMode.getSpeedMode())
+            if (++divider >= TICKS_PER_SEC / 8192 / speedMode.GetSpeedMode())
             {
                 transferInProgress = false;
                 try

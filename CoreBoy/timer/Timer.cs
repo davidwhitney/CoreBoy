@@ -66,7 +66,7 @@ namespace CoreBoy.timer
         {
             this.div = newDiv;
             int bitPos = FREQ_TO_BIT[tac & 0b11];
-            bitPos <<= speedMode.getSpeedMode() - 1;
+            bitPos <<= speedMode.GetSpeedMode() - 1;
             bool bit = (div & (1 << bitPos)) != 0;
             bit &= (tac & (1 << 2)) != 0;
             if (!bit && previousBit)

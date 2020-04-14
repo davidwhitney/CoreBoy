@@ -91,17 +91,17 @@ namespace CoreBoy
         {
             var registers = _cpu.GetRegisters();
 
-            registers.setAF(0x01b0);
+            registers.SetAf(0x01b0);
             if (_gbc)
             {
-                registers.setA(0x11);
+                registers.A = 0x11;
             }
 
-            registers.setBC(0x0013);
-            registers.setDE(0x00d8);
-            registers.setHL(0x014d);
-            registers.setSP(0xfffe);
-            registers.setPC(0x0100);
+            registers.SetBc(0x0013);
+            registers.SetDe(0x00d8);
+            registers.SetHl(0x014d);
+            registers.SP = 0xfffe;
+            registers.PC = 0x0100;
         }
 
         public void Run()

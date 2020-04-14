@@ -63,7 +63,7 @@ namespace CoreBoy.cpu
 
         public void Tick()
         {
-            if (++_clockCycle >= (4 / _speedMode.getSpeedMode()))
+            if (++_clockCycle >= (4 / _speedMode.GetSpeedMode()))
             {
                 _clockCycle = 0;
             }
@@ -107,7 +107,7 @@ namespace CoreBoy.cpu
             var accessedMemory = false;
             while (true)
             {
-                var pc = _registers.getPC();
+                var pc = _registers.PC;
                 switch (_state)
                 {
                     case State.OPCODE:
@@ -135,7 +135,7 @@ namespace CoreBoy.cpu
 
                         if (!_haltBugMode)
                         {
-                            _registers.incrementPC();
+                            _registers.IncrementPc();
                         }
                         else
                         {
@@ -163,11 +163,11 @@ namespace CoreBoy.cpu
                         }
 
                         _state = State.OPERAND;
-                        _registers.incrementPC();
+                        _registers.IncrementPc();
                         break;
 
                     case State.OPERAND:
-                        while (_operandIndex < _currentOpcode.getOperandLength())
+                        while (_operandIndex < _currentOpcode.Length)
                         {
                             if (accessedMemory)
                             {
@@ -176,17 +176,17 @@ namespace CoreBoy.cpu
 
                             accessedMemory = true;
                             _operand[_operandIndex++] = _addressSpace.getByte(pc);
-                            _registers.incrementPC();
+                            _registers.IncrementPc();
                         }
 
-                        _ops = _currentOpcode.getOps();
+                        _ops = _currentOpcode.Ops;
                         _state = State.RUNNING;
                         break;
 
                     case State.RUNNING:
                         if (_opcode1 == 0x10)
                         {
-                            if (_speedMode.onStop())
+                            if (_speedMode.OnStop())
                             {
                                 _state = State.OPCODE;
                             }
@@ -302,19 +302,19 @@ namespace CoreBoy.cpu
                     break;
 
                 case State.IRQ_PUSH_1:
-                    _registers.decrementSP();
-                    _addressSpace.setByte(_registers.getSP(), (_registers.getPC() & 0xff00) >> 8);
+                    _registers.DecrementSp();
+                    _addressSpace.setByte(_registers.SP, (_registers.PC & 0xff00) >> 8);
                     _state = State.IRQ_PUSH_2;
                     break;
 
                 case State.IRQ_PUSH_2:
-                    _registers.decrementSP();
-                    _addressSpace.setByte(_registers.getSP(), _registers.getPC() & 0x00ff);
+                    _registers.DecrementSp();
+                    _addressSpace.setByte(_registers.SP, _registers.PC & 0x00ff);
                     _state = State.IRQ_JUMP;
                     break;
 
                 case State.IRQ_JUMP:
-                    _registers.setPC(_requestedIrq.Handler);
+                    _registers.PC = _requestedIrq.Handler;
                     _requestedIrq = null;
                     _state = State.OPCODE;
                     break;

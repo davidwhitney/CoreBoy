@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using CoreBoy.cpu;
 
 namespace CoreBoy.memory
 {
@@ -21,14 +20,11 @@ namespace CoreBoy.memory
 
         public void setByte(int address, int value)
         {
-            BitUtils.CheckByteArgument("value", value);
-            BitUtils.CheckWordArgument("address", address);
             getSpace(address).setByte(address, value);
         }
 
         public int getByte(int address)
         {
-            BitUtils.CheckWordArgument("address", address);
             return getSpace(address).getByte(address);
         }
 
