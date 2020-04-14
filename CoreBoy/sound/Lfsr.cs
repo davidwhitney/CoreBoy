@@ -32,7 +32,7 @@ namespace CoreBoy.sound
             return 1 & ~lfsr;
         }
 
-        int getValue()
+        public int getValue()
         {
             return lfsr;
         }
