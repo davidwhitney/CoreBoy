@@ -50,14 +50,14 @@ namespace CoreBoy.memory
 
         public int PreIncrement(IRegister reg)
         {
-            if (_registers.ContainsKey(reg.GetAddress()))
+            if (!_registers.ContainsKey(reg.GetAddress()))
             {
-                var value = _values[reg.GetAddress()] + 1;
-                _values[reg.GetAddress()] = value;
-                return value;
+                throw new ArgumentException("Not valid register: " + reg);
             }
 
-            throw new ArgumentException("Not valid register: " + reg);
+            var value = _values[reg.GetAddress()] + 1;
+            _values[reg.GetAddress()] = value;
+            return value;
         }
 
         public bool accepts(int address) => _registers.ContainsKey(address);

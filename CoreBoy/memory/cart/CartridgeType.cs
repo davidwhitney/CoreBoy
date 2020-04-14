@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace CoreBoy.memory.cart
 {
     public enum CartridgeType
@@ -28,73 +24,5 @@ namespace CoreBoy.memory.cart
         ROM_MBC5_RUMBLE = 0x1c,
         ROM_MBC5_RUMBLE_SRAM = 0x1d,
         ROM_MBC5_RUMBLE_SRAM_BATTERY = 0x1e
-    }
-
-    public static class CartridgeTypeExtensions
-    {
-        public static IEnumerable<CartridgeType> values(this CartridgeType src)
-        {
-            return Enum.GetValues(typeof(CartridgeType)).Cast<CartridgeType>();
-        }
-
-        public static bool isMbc1(this CartridgeType src)
-        {
-            return src.nameContainsSegment("MBC1");
-        }
-
-        public static bool isMbc2(this CartridgeType src)
-        {
-            return src.nameContainsSegment("MBC2");
-        }
-
-        public static bool isMbc3(this CartridgeType src)
-        {
-            return src.nameContainsSegment("MBC3");
-        }
-
-        public static bool isMbc5(this CartridgeType src)
-        {
-            return src.nameContainsSegment("MBC5");
-        }
-
-        public static bool isMmm01(this CartridgeType src)
-        {
-            return src.nameContainsSegment("MMM01");
-        }
-
-        public static bool isRam(this CartridgeType src)
-        {
-            return src.nameContainsSegment("RAM");
-        }
-
-        public static bool isSram(this CartridgeType src)
-        {
-            return src.nameContainsSegment("SRAM");
-        }
-
-        public static bool isTimer(this CartridgeType src)
-        {
-            return src.nameContainsSegment("TIMER");
-        }
-
-        public static bool isBattery(this CartridgeType src)
-        {
-            return src.nameContainsSegment("BATTERY");
-        }
-
-        public static bool isRumble(this CartridgeType src)
-        {
-            return src.nameContainsSegment("RUMBLE");
-        }
-
-        private static bool nameContainsSegment(this CartridgeType src, string segment)
-        {
-            return src.ToString().Contains($"_{segment}_");
-        }
-
-        public static CartridgeType getById(int id)
-        {
-            return (CartridgeType) id;
-        }
     }
 }

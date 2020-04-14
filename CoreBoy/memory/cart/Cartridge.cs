@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -16,48 +17,26 @@ namespace CoreBoy.memory.cart
             NON_CGB = 0
         }
 
-        public static class GameboyTypeFlagExtensions
-        {
-            public static GameboyTypeFlag getFlag(int value)
-            {
-                if (value == 0x80)
-                {
-                    return GameboyTypeFlag.UNIVERSAL;
-                }
-                else if (value == 0xc0)
-                {
-                    return GameboyTypeFlag.CGB;
-                }
-                else
-                {
-                    return GameboyTypeFlag.NON_CGB;
-                }
-            }
-        }
-
-        //private static readonly Logger LOG = LoggerFactory.getLogger(Cartridge.class);
-
-        private readonly AddressSpace addressSpace;
-
-        private readonly GameboyTypeFlag gameboyType;
-
-        private readonly bool gbc;
-
-        private readonly String title;
-
-        private int dmgBoostrap;
+        private readonly AddressSpace _addressSpace;
+        private int _dmgBootstrap;
+        
+        public bool Gbc { get; }
+        public string Title { get; }
 
         public Cartridge(GameboyOptions options)
         {
             var file = options.RomFile;
-            int[] rom = loadFile(file);
-            CartridgeType type = CartridgeTypeExtensions.getById(rom[0x0147]);
-            title = getTitle(rom);
+            var rom = LoadFile(file);
+            var type = CartridgeTypeExtensions.GetById(rom[0x0147]);
+            
+            Title = GetTitle(rom);
             // LOG.debug("Cartridge {}, type: {}", title, type);
-            gameboyType = GameboyTypeFlagExtensions.getFlag(rom[0x0143]);
-            int romBanks = getRomBanks(rom[0x0148]);
-            int ramBanks = getRamBanks(rom[0x0149]);
-            if (ramBanks == 0 && type.isRam())
+            
+            var gameboyType = GetFlag(rom[0x0143]);
+            var romBanks = GetRomBanks(rom[0x0148]);
+            var ramBanks = GetRamBanks(rom[0x0149]);
+            
+            if (ramBanks == 0 && type.IsRam())
             {
                 // LOG.warn("RAM bank is defined to 0. Overriding to 1.");
                 ramBanks = 1;
@@ -65,59 +44,62 @@ namespace CoreBoy.memory.cart
             // LOG.debug("ROM banks: {}, RAM banks: {}", romBanks, ramBanks);
 
             Battery battery = new NullBattery();
-            if (type.isBattery() && options.IsSupportBatterySaves())
+            if (type.IsBattery() && options.IsSupportBatterySaves())
             {
                 throw new NotImplementedException("Implement battery loading");
                 // battery = new FileBattery(file.getParentFile(), FilenameUtils.removeExtension(file.getName()));
             }
 
-            if (type.isMbc1())
+            if (type.IsMbc1())
             {
-                addressSpace = new Mbc1(rom, type, battery, romBanks, ramBanks);
+                _addressSpace = new Mbc1(rom, type, battery, romBanks, ramBanks);
             }
-            else if (type.isMbc2())
+            else if (type.IsMbc2())
             {
-                addressSpace = new Mbc2(rom, type, battery, romBanks);
+                _addressSpace = new Mbc2(rom, type, battery, romBanks);
             }
-            else if (type.isMbc3())
+            else if (type.IsMbc3())
             {
-                addressSpace = new Mbc3(rom, type, battery, romBanks, ramBanks);
+                _addressSpace = new Mbc3(rom, type, battery, romBanks, ramBanks);
             }
-            else if (type.isMbc5())
+            else if (type.IsMbc5())
             {
-                addressSpace = new Mbc5(rom, type, battery, romBanks, ramBanks);
+                _addressSpace = new Mbc5(rom, type, battery, romBanks, ramBanks);
             }
             else
             {
-                addressSpace = new Rom(rom, type, romBanks, ramBanks);
+                _addressSpace = new Rom(rom, type, romBanks, ramBanks);
             }
 
-            dmgBoostrap = options.UseBootstrap ? 0 : 1;
+            _dmgBootstrap = options.UseBootstrap ? 0 : 1;
+            
             if (options.ForceCgb)
             {
-                gbc = true;
+                Gbc = true;
+                return;
             }
-            else if (gameboyType == Cartridge.GameboyTypeFlag.NON_CGB)
+
+            switch (gameboyType)
             {
-                gbc = false;
-            }
-            else if (gameboyType == Cartridge.GameboyTypeFlag.CGB)
-            {
-                gbc = true;
-            }
-            else
-            {
-                // UNIVERSAL
-                gbc = !options.ForceDmg;
+                case GameboyTypeFlag.NON_CGB:
+                    Gbc = false;
+                    break;
+                case GameboyTypeFlag.CGB:
+                    Gbc = true;
+                    break;
+                default:
+                    // UNIVERSAL
+                    Gbc = !options.ForceDmg;
+                    break;
             }
         }
 
-        private String getTitle(int[] rom)
+        private static string GetTitle(IReadOnlyList<int> rom)
         {
-            StringBuilder t = new StringBuilder();
-            for (int i = 0x0134; i < 0x0143; i++)
+            var t = new StringBuilder();
+            for (var i = 0x0134; i < 0x0143; i++)
             {
-                char c = (char) rom[i];
+                var c = (char) rom[i];
                 if (c == 0)
                 {
                     break;
@@ -129,160 +111,84 @@ namespace CoreBoy.memory.cart
             return t.ToString();
         }
 
-        public String getTitle()
-        {
-            return title;
-        }
-
-        public bool isGbc()
-        {
-            return gbc;
-        }
-
-
-        public bool accepts(int address)
-        {
-            return addressSpace.accepts(address) || address == 0xff50;
-        }
-
-
+        public bool accepts(int address) => _addressSpace.accepts(address) || address == 0xff50;
+        
         public void setByte(int address, int value)
         {
             if (address == 0xff50)
             {
-                dmgBoostrap = 1;
+                _dmgBootstrap = 1;
             }
             else
             {
-                addressSpace.setByte(address, value);
+                _addressSpace.setByte(address, value);
             }
         }
 
 
         public int getByte(int address)
         {
-            if (dmgBoostrap == 0 && !gbc && (address >= 0x0000 && address < 0x0100))
+            switch (_dmgBootstrap)
             {
-                return BootRom.GAMEBOY_CLASSIC[address];
+                case 0 when !Gbc && (address >= 0x0000 && address < 0x0100):
+                    return BootRom.GAMEBOY_CLASSIC[address];
+                case 0 when Gbc && address >= 0x000 && address < 0x0100:
+                    return BootRom.GAMEBOY_COLOR[address];
+                case 0 when Gbc && address >= 0x200 && address < 0x0900:
+                    return BootRom.GAMEBOY_COLOR[address - 0x0100];
             }
-            else if (dmgBoostrap == 0 && gbc && address >= 0x000 && address < 0x0100)
-            {
-                return BootRom.GAMEBOY_COLOR[address];
-            }
-            else if (dmgBoostrap == 0 && gbc && address >= 0x200 && address < 0x0900)
-            {
-                return BootRom.GAMEBOY_COLOR[address - 0x0100];
-            }
-            else if (address == 0xff50)
-            {
-                return 0xff;
-            }
-            else
-            {
-                return addressSpace.getByte(address);
-            }
+
+            return address == 0xff50 ? 0xff : _addressSpace.getByte(address);
         }
 
-        private static int[] loadFile(FileInfo file)
+        private static int[] LoadFile(FileSystemInfo file)
         {
-            //string ext = file.Extension;
+            // string ext = file.Extension;
+            // TODO: If file is a zip, try extract gb, gbc or rom file to play
+            // Deleted original java impl
 
             return File.ReadAllBytes(file.FullName).Select(x => (int) x).ToArray();
-
-            /*try (InputStream is = new FileInputStream(file)) {
-                if ("zip".equalsIgnoreCase(ext)) {
-                    try (ZipInputStream zis = new ZipInputStream(is)) {
-                        ZipEntry entry;
-                        while ((entry = zis.getNextEntry()) != null) {
-                            String name = entry.getName();
-                            String entryExt = FilenameUtils.getExtension(name);
-                            if (Stream.of("gb", "gbc", "rom").anyMatch(e -> e.equalsIgnoreCase(entryExt))) {
-                                return load(zis, (int) entry.getSize());
-                            }
-                            zis.closeEntry();
-                        }
-                    }
-                    throw new ArgumentException("Can't find ROM file inside the zip.");
-                } else {
-                    return load(is, (int) file.length());
-                }
-            }*/
-
         }
 
-        /* private static int[] load(InputStream is, int length) throws IOException {
-             byte[] byteArray = IOUtils.toByteArray(is, length);
-             int[] intArray = new int[byteArray.length];
-             for (int i = 0; i < byteArray.length; i++) {
-                 intArray[i] = byteArray[i] & 0xff;
-             }
-             return intArray;
-         }*/
-
-        private static int getRomBanks(int id)
+        private static int GetRomBanks(int id)
         {
-            switch (id)
+            return id switch
             {
-                case 0:
-                    return 2;
-
-                case 1:
-                    return 4;
-
-                case 2:
-                    return 8;
-
-                case 3:
-                    return 16;
-
-                case 4:
-                    return 32;
-
-                case 5:
-                    return 64;
-
-                case 6:
-                    return 128;
-
-                case 7:
-                    return 256;
-
-                case 0x52:
-                    return 72;
-
-                case 0x53:
-                    return 80;
-
-                case 0x54:
-                    return 96;
-
-                default:
-                    throw new ArgumentException("Unsupported ROM size: " + Integer.ToHexString(id));
-            }
+                0 => 2,
+                1 => 4,
+                2 => 8,
+                3 => 16,
+                4 => 32,
+                5 => 64,
+                6 => 128,
+                7 => 256,
+                0x52 => 72,
+                0x53 => 80,
+                0x54 => 96,
+                _ => throw new ArgumentException("Unsupported ROM size: " + Integer.ToHexString(id))
+            };
         }
 
-        private static int getRamBanks(int id)
+        private static int GetRamBanks(int id)
         {
-            switch (id)
+            return id switch
             {
-                case 0:
-                    return 0;
-
-                case 1:
-                    return 1;
-
-                case 2:
-                    return 1;
-
-                case 3:
-                    return 4;
-
-                case 4:
-                    return 16;
-
-                default:
-                    throw new ArgumentException("Unsupported RAM size: " + Integer.ToHexString(id));
-            }
+                0 => 0,
+                1 => 1,
+                2 => 1,
+                3 => 4,
+                4 => 16,
+                _ => throw new ArgumentException("Unsupported RAM size: " + Integer.ToHexString(id))
+            };
+        }
+        public static GameboyTypeFlag GetFlag(int value)
+        {
+            return value switch
+            {
+                0x80 => GameboyTypeFlag.UNIVERSAL,
+                0xc0 => GameboyTypeFlag.CGB,
+                _ => GameboyTypeFlag.NON_CGB
+            };
         }
     }
 }

@@ -39,7 +39,7 @@ namespace CoreBoy
             SoundOutput soundOutput, SerialEndpoint serialEndpoint)
         {
             _display = display;
-            _gbc = rom.isGbc();
+            _gbc = rom.Gbc;
             _speedMode = new SpeedMode();
             _interruptManager = new InterruptManager(_gbc);
             _timer = new Timer(_interruptManager, _speedMode);
@@ -114,14 +114,14 @@ namespace CoreBoy
                 var newMode = Tick();
                 if (newMode.HasValue)
                 {
-                    _hdma.onGpuUpdate(newMode.Value);
+                    _hdma.OnGpuUpdate(newMode.Value);
                 }
 
                 if (!lcdDisabled && !_gpu.IsLcdEnabled())
                 {
                     lcdDisabled = true;
                     _display.RequestRefresh();
-                    _hdma.onLcdSwitch(false);
+                    _hdma.OnLcdSwitch(false);
                 }
                 else if (newMode == Gpu.Mode.VBlank)
                 {
@@ -133,7 +133,7 @@ namespace CoreBoy
                 {
                     lcdDisabled = false;
                     _display.WaitForRefresh();
-                    _hdma.onLcdSwitch(true);
+                    _hdma.OnLcdSwitch(true);
                 }
                 else if (requestedScreenRefresh && newMode == Gpu.Mode.OamSearch)
                 {
@@ -153,9 +153,9 @@ namespace CoreBoy
         public Gpu.Mode? Tick()
         {
             _timer.tick();
-            if (_hdma.isTransferInProgress())
+            if (_hdma.IsTransferInProgress())
             {
-                _hdma.tick();
+                _hdma.Tick();
             }
             else
             {

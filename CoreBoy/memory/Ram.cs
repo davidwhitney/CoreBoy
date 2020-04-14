@@ -4,53 +4,29 @@ namespace CoreBoy.memory
 {
     public class Ram : AddressSpace
     {
-
-        private int[] space;
-
-        private int length;
-
-        private int offset;
+        private readonly int[] _space;
+        private readonly int _length;
+        private readonly int _offset;
 
         public Ram(int offset, int length)
         {
-            this.space = new int[length];
-            this.length = length;
-            this.offset = offset;
+            _space = new int[length];
+            _length = length;
+            _offset = offset;
         }
 
-        private Ram(int offset, int length, Ram ram)
-        {
-            this.offset = offset;
-            this.length = length;
-            this.space = ram.space;
-        }
-
-        public static Ram createShadow(int offset, int length, Ram ram)
-        {
-            return new Ram(offset, length, ram);
-        }
-
-
-        public bool accepts(int address)
-        {
-            return address >= offset && address < offset + length;
-        }
-
-
-        public void setByte(int address, int value)
-        {
-            space[address - offset] = value;
-        }
+        public bool accepts(int address) => address >= _offset && address < _offset + _length;
+        public void setByte(int address, int value) => _space[address - _offset] = value;
 
         public int getByte(int address)
         {
-            int index = address - offset;
-            if (index < 0 || index >= space.Length)
+            var index = address - _offset;
+            if (index < 0 || index >= _space.Length)
             {
                 throw new IndexOutOfRangeException("Address: " + address);
             }
 
-            return space[index];
+            return _space[index];
         }
     }
 }
