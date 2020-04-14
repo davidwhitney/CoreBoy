@@ -12,8 +12,8 @@ namespace CoreBoy.Test.Unit.Memory.Cart.Rtc
         [SetUp]
         public void SetUp()
         {
-            this._clock = new VirtualClock();
-            this._rtc = new RealTimeClock(_clock);
+            _clock = new VirtualClock();
+            _rtc = new RealTimeClock(_clock);
         }
 
         [Test]
