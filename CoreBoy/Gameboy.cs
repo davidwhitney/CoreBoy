@@ -16,11 +16,9 @@ namespace CoreBoy
     {
         public static readonly int TicksPerSec = 4_194_304;
 
-        private readonly InterruptManager _interruptManager;
-
+        public Mmu Mmu { get; }
+        public Cpu Cpu { get; }
         private readonly Gpu _gpu;
-        private readonly Mmu _mmu;
-        private readonly Cpu _cpu;
         private readonly Timer _timer;
         private readonly Dma _dma;
         private readonly Hdma _hdma;
@@ -29,7 +27,7 @@ namespace CoreBoy
         private readonly SerialPort _serialPort;
 
         private readonly bool _gbc;
-        private readonly SpeedMode _speedMode;
+        public SpeedMode SpeedMode { get; }
 
         private volatile bool _doStop;
 
@@ -40,46 +38,46 @@ namespace CoreBoy
         {
             _display = display;
             _gbc = rom.Gbc;
-            _speedMode = new SpeedMode();
-            _interruptManager = new InterruptManager(_gbc);
-            _timer = new Timer(_interruptManager, _speedMode);
-            _mmu = new Mmu();
+            SpeedMode = new SpeedMode();
+            var interruptManager = new InterruptManager(_gbc);
+            _timer = new Timer(interruptManager, SpeedMode);
+            Mmu = new Mmu();
 
             var oamRam = new Ram(0xfe00, 0x00a0);
 
-            _dma = new Dma(_mmu, oamRam, _speedMode);
-            _gpu = new Gpu(display, _interruptManager, _dma, oamRam, _gbc);
-            _hdma = new Hdma(_mmu);
+            _dma = new Dma(Mmu, oamRam, SpeedMode);
+            _gpu = new Gpu(display, interruptManager, _dma, oamRam, _gbc);
+            _hdma = new Hdma(Mmu);
             _sound = new Sound(soundOutput, _gbc);
-            _serialPort = new SerialPort(_interruptManager, serialEndpoint, _speedMode);
-            _mmu.addAddressSpace(rom);
-            _mmu.addAddressSpace(_gpu);
-            _mmu.addAddressSpace(new Joypad(_interruptManager, controller));
-            _mmu.addAddressSpace(_interruptManager);
-            _mmu.addAddressSpace(_serialPort);
-            _mmu.addAddressSpace(_timer);
-            _mmu.addAddressSpace(_dma);
-            _mmu.addAddressSpace(_sound);
+            _serialPort = new SerialPort(interruptManager, serialEndpoint, SpeedMode);
+            Mmu.addAddressSpace(rom);
+            Mmu.addAddressSpace(_gpu);
+            Mmu.addAddressSpace(new Joypad(interruptManager, controller));
+            Mmu.addAddressSpace(interruptManager);
+            Mmu.addAddressSpace(_serialPort);
+            Mmu.addAddressSpace(_timer);
+            Mmu.addAddressSpace(_dma);
+            Mmu.addAddressSpace(_sound);
 
-            _mmu.addAddressSpace(new Ram(0xc000, 0x1000));
+            Mmu.addAddressSpace(new Ram(0xc000, 0x1000));
             if (_gbc)
             {
-                _mmu.addAddressSpace(_speedMode);
-                _mmu.addAddressSpace(_hdma);
-                _mmu.addAddressSpace(new GbcRam());
-                _mmu.addAddressSpace(new UndocumentedGbcRegisters());
+                Mmu.addAddressSpace(SpeedMode);
+                Mmu.addAddressSpace(_hdma);
+                Mmu.addAddressSpace(new GbcRam());
+                Mmu.addAddressSpace(new UndocumentedGbcRegisters());
             }
             else
             {
-                _mmu.addAddressSpace(new Ram(0xd000, 0x1000));
+                Mmu.addAddressSpace(new Ram(0xd000, 0x1000));
             }
 
-            _mmu.addAddressSpace(new Ram(0xff80, 0x7f));
-            _mmu.addAddressSpace(new ShadowAddressSpace(_mmu, 0xe000, 0xc000, 0x1e00));
+            Mmu.addAddressSpace(new Ram(0xff80, 0x7f));
+            Mmu.addAddressSpace(new ShadowAddressSpace(Mmu, 0xe000, 0xc000, 0x1e00));
 
-            _cpu = new Cpu(_mmu, _interruptManager, _gpu, display, _speedMode);
+            Cpu = new Cpu(Mmu, interruptManager, _gpu, display, SpeedMode);
 
-            _interruptManager.DisableInterrupts(false);
+            interruptManager.DisableInterrupts(false);
             
             if (!options.UseBootstrap)
             {
@@ -89,7 +87,7 @@ namespace CoreBoy
 
         private void InitiliseRegisters()
         {
-            var registers = _cpu.GetRegisters();
+            var registers = Cpu.GetRegisters();
 
             registers.SetAf(0x01b0);
             if (_gbc)
@@ -159,7 +157,7 @@ namespace CoreBoy
             }
             else
             {
-                _cpu.Tick();
+                Cpu.Tick();
             }
 
             _dma.Tick();
