@@ -23,7 +23,6 @@ namespace CoreBoy.gui
         private readonly object _lockObject = new object();
         
         public event FrameProducedEventHandler OnFrameProduced;
-        public delegate void FrameProducedEventHandler(object sender, byte[] frameData);
 
         private byte[] _currentScreenBytes = { };
         public byte[] CurrentScreenBytes

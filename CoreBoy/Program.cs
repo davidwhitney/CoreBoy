@@ -17,17 +17,12 @@ namespace CoreBoy
 
             var properties = LoadProperties();
             var emulator = new Emulator(args, properties);
+            var ui = new WinFormsEmulatorSurface();
 
-            var ui = new WinFormsEmulatorSurface(() =>
-            {
-                emulator.Stop();
-            });
+            emulator.Display.OnFrameProduced += ui.UpdateDisplay;
+            ui.Closed += (sender, e) => { emulator.Stop(); };
 
-            if (emulator.Display is BitmapDisplay display)
-            {
-                display.OnFrameProduced += ui.UpdateDisplay;
-            }
-            
+
             new Thread(emulator.Run).Start();
             Application.Run(ui);
         }

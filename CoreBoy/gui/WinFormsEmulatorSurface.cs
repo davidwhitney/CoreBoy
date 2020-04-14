@@ -7,12 +7,10 @@ namespace CoreBoy.gui
 {
     public partial class WinFormsEmulatorSurface : Form
     {
-        private readonly Action _onFormClosed;
         private readonly PictureBox _pictureBox;
 
-        public WinFormsEmulatorSurface(Action onFormClosed)
+        public WinFormsEmulatorSurface()
         {
-            _onFormClosed = onFormClosed ?? (() => { });
             InitializeComponent();
 
             _pictureBox = new PictureBox
@@ -35,7 +33,7 @@ namespace CoreBoy.gui
             _pictureBox.Height = Height;
         }
 
-        public void UpdateDisplay(object sender, byte[] frame)
+        public void UpdateDisplay(object _, byte[] frame)
         {
             using var memoryStream = new MemoryStream(frame);
             _pictureBox.Image = Image.FromStream(memoryStream);
@@ -43,7 +41,6 @@ namespace CoreBoy.gui
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            _onFormClosed();
             base.OnFormClosed(e);
             _pictureBox.Dispose();
         }
