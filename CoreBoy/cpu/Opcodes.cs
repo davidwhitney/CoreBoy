@@ -78,14 +78,14 @@ namespace CoreBoy.cpu
                 RegCmd(opcodes, c, "JR {},r8").load("PC").proceedIf(c.Value).alu("ADD", "r8").store("PC");
             }
 
-            RegCmd(opcodes, 0x22, "LD (HL+),A").copyByte("(HL)", "A").aluHL("INC");
-            RegCmd(opcodes, 0x2a, "LD A,(HL+)").copyByte("A", "(HL)").aluHL("INC");
+            RegCmd(opcodes, 0x22, "LD (HL+),A").CopyByte("(HL)", "A").aluHL("INC");
+            RegCmd(opcodes, 0x2a, "LD A,(HL+)").CopyByte("A", "(HL)").aluHL("INC");
 
             RegCmd(opcodes, 0x27, "DAA").load("A").alu("DAA").store("A");
             RegCmd(opcodes, 0x2f, "CPL").load("A").alu("CPL").store("A");
 
-            RegCmd(opcodes, 0x32, "LD (HL-),A").copyByte("(HL)", "A").aluHL("DEC");
-            RegCmd(opcodes, 0x3a, "LD A,(HL-)").copyByte("A", "(HL)").aluHL("DEC");
+            RegCmd(opcodes, 0x32, "LD (HL-),A").CopyByte("(HL)", "A").aluHL("DEC");
+            RegCmd(opcodes, 0x3a, "LD A,(HL-)").CopyByte("A", "(HL)").aluHL("DEC");
 
             RegCmd(opcodes, 0x37, "SCF").load("A").alu("SCF").store("A");
             RegCmd(opcodes, 0x3f, "CCF").load("A").alu("CCF").store("A");
@@ -115,7 +115,7 @@ namespace CoreBoy.cpu
 
             foreach (var c in OpcodesForValues(0xc0, 0x08, "NZ", "Z", "NC", "C"))
             {
-                RegCmd(opcodes, c, "RET {}").extraCycle().proceedIf(c.Value).pop().forceFinish().store("PC");
+                RegCmd(opcodes, c, "RET {}").extraCycle().proceedIf(c.Value).pop().ForceFinish().store("PC");
             }
 
             foreach (var t in OpcodesForValues(0xc1, 0x10, "BC", "DE", "HL", "AF"))
@@ -148,29 +148,29 @@ namespace CoreBoy.cpu
 
             for (int i = 0xc7, j = 0x00; i <= 0xf7; i += 0x10, j += 0x10)
             {
-                RegCmd(opcodes, i, $"RST {j:X2}H").load("PC").push().forceFinish().loadWord(j)
+                RegCmd(opcodes, i, $"RST {j:X2}H").load("PC").push().ForceFinish().loadWord(j)
                     .store("PC");
             }
 
-            RegCmd(opcodes, 0xc9, "RET").pop().forceFinish().store("PC");
+            RegCmd(opcodes, 0xc9, "RET").pop().ForceFinish().store("PC");
 
             RegCmd(opcodes, 0xcd, "CALL a16").load("PC").extraCycle().push().load("a16").store("PC");
 
             for (int i = 0xcf, j = 0x08; i <= 0xff; i += 0x10, j += 0x10)
             {
-                RegCmd(opcodes, i, $"RST {j:X2}H").load("PC").push().forceFinish().loadWord(j)
+                RegCmd(opcodes, i, $"RST {j:X2}H").load("PC").push().ForceFinish().loadWord(j)
                     .store("PC");
             }
 
-            RegCmd(opcodes, 0xd9, "RETI").pop().forceFinish().store("PC").switchInterrupts(true, false);
+            RegCmd(opcodes, 0xd9, "RETI").pop().ForceFinish().store("PC").switchInterrupts(true, false);
 
             RegLoad(opcodes, 0xe2, "(C)", "A");
             RegLoad(opcodes, 0xf2, "A", "(C)");
 
             RegCmd(opcodes, 0xe9, "JP (HL)").load("HL").store("PC");
 
-            RegCmd(opcodes, 0xe0, "LDH (a8),A").copyByte("(a8)", "A");
-            RegCmd(opcodes, 0xf0, "LDH A,(a8)").copyByte("A", "(a8)");
+            RegCmd(opcodes, 0xe0, "LDH (a8),A").CopyByte("(a8)", "A");
+            RegCmd(opcodes, 0xf0, "LDH A,(a8)").CopyByte("A", "(a8)");
 
             RegCmd(opcodes, 0xe8, "ADD SP,r8").load("SP").alu("ADD_SP", "r8").extraCycle().store("SP");
             RegCmd(opcodes, 0xf8, "LD HL,SP+r8").load("SP").alu("ADD_SP", "r8").store("HL");
@@ -213,8 +213,8 @@ namespace CoreBoy.cpu
             var commands = new List<Opcode>(0x100);
             var extCommands = new List<Opcode>(0x100);
 
-            commands.AddRange(opcodes.Select(b => b?.build()));
-            extCommands.AddRange(extOpcodes.Select(b => b?.build()));
+            commands.AddRange(opcodes.Select(b => b?.Build()));
+            extCommands.AddRange(extOpcodes.Select(b => b?.Build()));
 
             COMMANDS = commands;
             EXT_COMMANDS = extCommands;
@@ -222,7 +222,7 @@ namespace CoreBoy.cpu
 
         private static OpcodeBuilder RegLoad(IList<OpcodeBuilder> commands, int opcode, string target, string source)
         {
-            return RegCmd(commands, opcode, $"LD {target},{source}").copyByte(target, source);
+            return RegCmd(commands, opcode, $"LD {target},{source}").CopyByte(target, source);
         }
 
         private static OpcodeBuilder RegCmd(IList<OpcodeBuilder> commands, KeyValuePair<int, string> opcode, string label)

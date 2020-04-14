@@ -1,30 +1,33 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using CoreBoy.cpu.op;
 using CoreBoy.cpu.opcode;
 using CoreBoy.gpu;
 
 namespace CoreBoy.cpu
 {
+    public enum State
+    {
+        OPCODE,
+        EXT_OPCODE,
+        OPERAND,
+        RUNNING,
+        IRQ_READ_IF,
+        IRQ_READ_IE,
+        IRQ_PUSH_1,
+        IRQ_PUSH_2,
+        IRQ_JUMP,
+        STOPPED,
+        HALTED
+    }
+
     public class Cpu
     {
-        public enum State
-        {
-            OPCODE,
-            EXT_OPCODE,
-            OPERAND,
-            RUNNING,
-            IRQ_READ_IF,
-            IRQ_READ_IE,
-            IRQ_PUSH_1,
-            IRQ_PUSH_2,
-            IRQ_JUMP,
-            STOPPED,
-            HALTED
-        }
+        public Registers Registers { get; set; }
+        public Opcode CurrentOpcode { get; private set; }
+        public State State { get; private set; } = State.OPCODE;
 
-        private readonly Registers _registers;
         private readonly AddressSpace _addressSpace;
         private readonly InterruptManager _interruptManager;
         private readonly Gpu _gpu;
@@ -34,12 +37,10 @@ namespace CoreBoy.cpu
         private int _opcode1;
         private int _opcode2;
         private readonly int[] _operand = new int[2];
-        private Opcode _currentOpcode;
         private List<Op> _ops;
         private int _operandIndex;
         private int _opIndex;
 
-        private State _state = State.OPCODE;
 
         private int _opContext;
         private int _interruptFlag;
@@ -54,7 +55,7 @@ namespace CoreBoy.cpu
         public Cpu(AddressSpace addressSpace, InterruptManager interruptManager, Gpu gpu, IDisplay display, SpeedMode speedMode)
         {
             _opcodes = new Opcodes();
-            _registers = new Registers();
+            Registers = new Registers();
             _addressSpace = addressSpace;
             _interruptManager = interruptManager;
             _gpu = gpu;
@@ -73,20 +74,20 @@ namespace CoreBoy.cpu
                 return;
             }
 
-            if (_state == State.OPCODE || _state == State.HALTED || _state == State.STOPPED)
+            if (State == State.OPCODE || State == State.HALTED || State == State.STOPPED)
             {
                 if (_interruptManager.IsIme() && _interruptManager.IsInterruptRequested())
                 {
-                    if (_state == State.STOPPED)
+                    if (State == State.STOPPED)
                     {
                         _display.EnableLcd();
                     }
 
-                    _state = State.IRQ_READ_IF;
+                    State = State.IRQ_READ_IF;
                 }
             }
 
-            switch (_state)
+            switch (State)
             {
                 case State.IRQ_READ_IF:
                 case State.IRQ_READ_IE:
@@ -96,11 +97,11 @@ namespace CoreBoy.cpu
                     HandleInterrupt();
                     return;
                 case State.HALTED when _interruptManager.IsInterruptRequested():
-                    _state = State.OPCODE;
+                    State = State.OPCODE;
                     break;
             }
 
-            if (_state == State.HALTED || _state == State.STOPPED)
+            if (State == State.HALTED || State == State.STOPPED)
             {
                 return;
             }
@@ -108,8 +109,8 @@ namespace CoreBoy.cpu
             var accessedMemory = false;
             while (true)
             {
-                var pc = _registers.PC;
-                switch (_state)
+                var pc = Registers.PC;
+                switch (State)
                 {
                     case State.OPCODE:
                         ClearState();
@@ -117,18 +118,18 @@ namespace CoreBoy.cpu
                         accessedMemory = true;
                         if (_opcode1 == 0xcb)
                         {
-                            _state = State.EXT_OPCODE;
+                            State = State.EXT_OPCODE;
                         }
                         else if (_opcode1 == 0x10)
                         {
-                            _currentOpcode = _opcodes.COMMANDS[_opcode1];
-                            _state = State.EXT_OPCODE;
+                            CurrentOpcode = _opcodes.COMMANDS[_opcode1];
+                            State = State.EXT_OPCODE;
                         }
                         else
                         {
-                            _state = State.OPERAND;
-                            _currentOpcode = _opcodes.COMMANDS[_opcode1];
-                            if (_currentOpcode == null)
+                            State = State.OPERAND;
+                            CurrentOpcode = _opcodes.COMMANDS[_opcode1];
+                            if (CurrentOpcode == null)
                             {
                                 throw new InvalidOperationException($"No command for 0x{_opcode1:X2}");
                             }
@@ -136,7 +137,7 @@ namespace CoreBoy.cpu
 
                         if (!_haltBugMode)
                         {
-                            _registers.IncrementPc();
+                            Registers.IncrementPc();
                         }
                         else
                         {
@@ -153,22 +154,22 @@ namespace CoreBoy.cpu
 
                         accessedMemory = true;
                         _opcode2 = _addressSpace.getByte(pc);
-                        if (_currentOpcode == null)
+                        if (CurrentOpcode == null)
                         {
-                            _currentOpcode = _opcodes.EXT_COMMANDS[_opcode2];
+                            CurrentOpcode = _opcodes.EXT_COMMANDS[_opcode2];
                         }
 
-                        if (_currentOpcode == null)
+                        if (CurrentOpcode == null)
                         {
                             throw new InvalidOperationException($"No command for {_opcode2:X}cb 0x{_opcode2:X2}");
                         }
 
-                        _state = State.OPERAND;
-                        _registers.IncrementPc();
+                        State = State.OPERAND;
+                        Registers.IncrementPc();
                         break;
 
                     case State.OPERAND:
-                        while (_operandIndex < _currentOpcode.Length)
+                        while (_operandIndex < CurrentOpcode.Length)
                         {
                             if (accessedMemory)
                             {
@@ -177,11 +178,11 @@ namespace CoreBoy.cpu
 
                             accessedMemory = true;
                             _operand[_operandIndex++] = _addressSpace.getByte(pc);
-                            _registers.IncrementPc();
+                            Registers.IncrementPc();
                         }
 
-                        _ops = _currentOpcode.Ops;
-                        _state = State.RUNNING;
+                        _ops = CurrentOpcode.Ops.ToList();
+                        State = State.RUNNING;
                         break;
 
                     case State.RUNNING:
@@ -189,11 +190,11 @@ namespace CoreBoy.cpu
                         {
                             if (_speedMode.OnStop())
                             {
-                                _state = State.OPCODE;
+                                State = State.OPCODE;
                             }
                             else
                             {
-                                _state = State.STOPPED;
+                                State = State.STOPPED;
                                 _display.DisableLcd();
                             }
 
@@ -203,13 +204,13 @@ namespace CoreBoy.cpu
                         {
                             if (_interruptManager.IsHaltBug())
                             {
-                                _state = State.OPCODE;
+                                State = State.OPCODE;
                                 _haltBugMode = true;
                                 return;
                             }
                             else
                             {
-                                _state = State.HALTED;
+                                State = State.HALTED;
                                 return;
                             }
                         }
@@ -225,16 +226,16 @@ namespace CoreBoy.cpu
 
                             _opIndex++;
 
-                            var corruptionType = op.causesOemBug(_registers, _opContext);
+                            var corruptionType = op.causesOemBug(Registers, _opContext);
                             if (corruptionType != null)
                             {
                                 HandleSpriteBug(corruptionType.Value);
                             }
                             
-                            _opContext = op.execute(_registers, _addressSpace, _operand, _opContext);
+                            _opContext = op.execute(Registers, _addressSpace, _operand, _opContext);
                             op.switchInterrupts(_interruptManager);
 
-                            if (!op.proceed(_registers))
+                            if (!op.proceed(Registers))
                             {
                                 _opIndex = _ops.Count;
                                 break;
@@ -253,7 +254,7 @@ namespace CoreBoy.cpu
 
                         if (_opIndex >= _ops.Count)
                         {
-                            _state = State.OPCODE;
+                            State = State.OPCODE;
                             _operandIndex = 0;
                             _interruptManager.OnInstructionFinished();
                             return;
@@ -270,11 +271,11 @@ namespace CoreBoy.cpu
 
         private void HandleInterrupt()
         {
-            switch (_state)
+            switch (State)
             {
                 case State.IRQ_READ_IF:
                     _interruptFlag = _addressSpace.getByte(0xff0f);
-                    _state = State.IRQ_READ_IE;
+                    State = State.IRQ_READ_IE;
                     break;
 
                 case State.IRQ_READ_IE:
@@ -291,11 +292,11 @@ namespace CoreBoy.cpu
 
                     if (_requestedIrq == null)
                     {
-                        _state = State.OPCODE;
+                        State = State.OPCODE;
                     }
                     else
                     {
-                        _state = State.IRQ_PUSH_1;
+                        State = State.IRQ_PUSH_1;
                         _interruptManager.ClearInterrupt(_requestedIrq);
                         _interruptManager.DisableInterrupts(false);
                     }
@@ -303,21 +304,21 @@ namespace CoreBoy.cpu
                     break;
 
                 case State.IRQ_PUSH_1:
-                    _registers.DecrementSp();
-                    _addressSpace.setByte(_registers.SP, (_registers.PC & 0xff00) >> 8);
-                    _state = State.IRQ_PUSH_2;
+                    Registers.DecrementSp();
+                    _addressSpace.setByte(Registers.SP, (Registers.PC & 0xff00) >> 8);
+                    State = State.IRQ_PUSH_2;
                     break;
 
                 case State.IRQ_PUSH_2:
-                    _registers.DecrementSp();
-                    _addressSpace.setByte(_registers.SP, _registers.PC & 0x00ff);
-                    _state = State.IRQ_JUMP;
+                    Registers.DecrementSp();
+                    _addressSpace.setByte(Registers.SP, Registers.PC & 0x00ff);
+                    State = State.IRQ_JUMP;
                     break;
 
                 case State.IRQ_JUMP:
-                    _registers.PC = _requestedIrq.Handler;
+                    Registers.PC = _requestedIrq.Handler;
                     _requestedIrq = null;
-                    _state = State.OPCODE;
+                    State = State.OPCODE;
                     break;
 
             }
@@ -339,14 +340,14 @@ namespace CoreBoy.cpu
 
         public Registers GetRegisters()
         {
-            return _registers;
+            return Registers;
         }
 
-        private void ClearState()
+        public void ClearState()
         {
             _opcode1 = 0;
             _opcode2 = 0;
-            _currentOpcode = null;
+            CurrentOpcode = null;
             _ops = null;
 
             _operand[0] = 0x00;

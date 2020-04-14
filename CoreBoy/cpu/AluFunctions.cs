@@ -11,14 +11,14 @@ namespace CoreBoy.cpu
         private readonly AluFunctionsMap _functions = new AluFunctionsMap();
         private readonly AluBiFunctionsMap _biFunctions = new AluBiFunctionsMap();
 
-        public IntRegistryFunction FindAluFunction(string name, DataType argumentType) => _functions[new FunctionKey(name, argumentType)];
-        public BiIntRegistryFunction FindAluFunction(string name, DataType arg1Type, DataType arg2Type) => _biFunctions[new FunctionKey(name, arg1Type, arg2Type)];
-        private void RegisterAluFunction(string name, DataType dataType, IntRegistryFunction function) => _functions[new FunctionKey(name, dataType)] = function;
-        private void RegisterAluFunction(string name, DataType dataType1, DataType dataType2, BiIntRegistryFunction function) => _biFunctions[new FunctionKey(name, dataType1, dataType2)] = function;
+        public IntRegistryFunction GetFunction(string name, DataType argumentType) => _functions[new FunctionKey(name, argumentType)];
+        public BiIntRegistryFunction GetFunction(string name, DataType arg1Type, DataType arg2Type) => _biFunctions[new FunctionKey(name, arg1Type, arg2Type)];
+        private void AddFunction(string name, DataType dataType, IntRegistryFunction function) => _functions[new FunctionKey(name, dataType)] = function;
+        private void AddFunction(string name, DataType dataType1, DataType dataType2, BiIntRegistryFunction function) => _biFunctions[new FunctionKey(name, dataType1, dataType2)] = function;
 
         public AluFunctions()
         {
-            RegisterAluFunction("INC", DataType.D8, (flags, arg) =>
+            AddFunction("INC", DataType.D8, (flags, arg) =>
             {
                 var result = (arg + 1) & 0xff;
                 flags.SetZ(result == 0);
@@ -27,8 +27,8 @@ namespace CoreBoy.cpu
                 return result;
             });
 
-            RegisterAluFunction("INC", DataType.D16, (flags, arg) => (arg + 1) & 0xffff);
-            RegisterAluFunction("DEC", DataType.D8, (flags, arg) =>
+            AddFunction("INC", DataType.D16, (flags, arg) => (arg + 1) & 0xffff);
+            AddFunction("DEC", DataType.D8, (flags, arg) =>
             {
                 var result = (arg - 1) & 0xff;
                 flags.SetZ(result == 0);
@@ -36,16 +36,16 @@ namespace CoreBoy.cpu
                 flags.SetH((arg & 0x0f) == 0x0);
                 return result;
             });
-            RegisterAluFunction("DEC", DataType.D16, (flags, arg) => (arg - 1) & 0xffff);
-            RegisterAluFunction("ADD", DataType.D16, DataType.D16, (flags, arg1, arg2) =>
+            AddFunction("DEC", DataType.D16, (flags, arg) => (arg - 1) & 0xffff);
+            AddFunction("ADD", DataType.D16, DataType.D16, (flags, arg1, arg2) =>
             {
                 flags.SetN(false);
                 flags.SetH((arg1 & 0x0fff) + (arg2 & 0x0fff) > 0x0fff);
                 flags.SetC(arg1 + arg2 > 0xffff);
                 return (arg1 + arg2) & 0xffff;
             });
-            RegisterAluFunction("ADD", DataType.D16, DataType.R8, (flags, arg1, arg2) => (arg1 + arg2) & 0xffff);
-            RegisterAluFunction("ADD_SP", DataType.D16, DataType.R8, (flags, arg1, arg2) =>
+            AddFunction("ADD", DataType.D16, DataType.R8, (flags, arg1, arg2) => (arg1 + arg2) & 0xffff);
+            AddFunction("ADD_SP", DataType.D16, DataType.R8, (flags, arg1, arg2) =>
             {
                 flags.SetZ(false);
                 flags.SetN(false);
@@ -55,7 +55,7 @@ namespace CoreBoy.cpu
                 flags.SetH((((arg1 & 0x0f) + (arg2 & 0x0f)) & 0x10) != 0);
                 return result & 0xffff;
             });
-            RegisterAluFunction("DAA", DataType.D8, (flags, arg) =>
+            AddFunction("DAA", DataType.D8, (flags, arg) =>
             {
                 var result = arg;
                 if (flags.IsN())
@@ -93,27 +93,27 @@ namespace CoreBoy.cpu
                 flags.SetZ(result == 0);
                 return result;
             });
-            RegisterAluFunction("CPL", DataType.D8, (flags, arg) =>
+            AddFunction("CPL", DataType.D8, (flags, arg) =>
             {
                 flags.SetN(true);
                 flags.SetH(true);
                 return (~arg) & 0xff;
             });
-            RegisterAluFunction("SCF", DataType.D8, (flags, arg) =>
+            AddFunction("SCF", DataType.D8, (flags, arg) =>
             {
                 flags.SetN(false);
                 flags.SetH(false);
                 flags.SetC(true);
                 return arg;
             });
-            RegisterAluFunction("CCF", DataType.D8, (flags, arg) =>
+            AddFunction("CCF", DataType.D8, (flags, arg) =>
             {
                 flags.SetN(false);
                 flags.SetH(false);
                 flags.SetC(!flags.IsC());
                 return arg;
             });
-            RegisterAluFunction("ADD", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
+            AddFunction("ADD", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
                 flags.SetZ(((byte1 + byte2) & 0xff) == 0);
                 flags.SetN(false);
@@ -121,7 +121,7 @@ namespace CoreBoy.cpu
                 flags.SetC(byte1 + byte2 > 0xff);
                 return (byte1 + byte2) & 0xff;
             });
-            RegisterAluFunction("ADC", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
+            AddFunction("ADC", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
                 var carry = flags.IsC() ? 1 : 0;
                 flags.SetZ(((byte1 + byte2 + carry) & 0xff) == 0);
@@ -130,7 +130,7 @@ namespace CoreBoy.cpu
                 flags.SetC(byte1 + byte2 + carry > 0xff);
                 return (byte1 + byte2 + carry) & 0xff;
             });
-            RegisterAluFunction("SUB", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
+            AddFunction("SUB", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
                 flags.SetZ(((byte1 - byte2) & 0xff) == 0);
                 flags.SetN(true);
@@ -138,7 +138,7 @@ namespace CoreBoy.cpu
                 flags.SetC(byte2 > byte1);
                 return (byte1 - byte2) & 0xff;
             });
-            RegisterAluFunction("SBC", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
+            AddFunction("SBC", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
                 var carry = flags.IsC() ? 1 : 0;
                 var res = byte1 - byte2 - carry;
@@ -149,7 +149,7 @@ namespace CoreBoy.cpu
                 flags.SetC(res < 0);
                 return res & 0xff;
             });
-            RegisterAluFunction("AND", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
+            AddFunction("AND", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
                 var result = byte1 & byte2;
                 flags.SetZ(result == 0);
@@ -158,7 +158,7 @@ namespace CoreBoy.cpu
                 flags.SetC(false);
                 return result;
             });
-            RegisterAluFunction("OR", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
+            AddFunction("OR", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
                 var result = byte1 | byte2;
                 flags.SetZ(result == 0);
@@ -167,7 +167,7 @@ namespace CoreBoy.cpu
                 flags.SetC(false);
                 return result;
             });
-            RegisterAluFunction("XOR", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
+            AddFunction("XOR", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
                 var result = (byte1 ^ byte2) & 0xff;
                 flags.SetZ(result == 0);
@@ -176,7 +176,7 @@ namespace CoreBoy.cpu
                 flags.SetC(false);
                 return result;
             });
-            RegisterAluFunction("CP", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
+            AddFunction("CP", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
                 flags.SetZ(((byte1 - byte2) & 0xff) == 0);
                 flags.SetN(true);
@@ -184,7 +184,7 @@ namespace CoreBoy.cpu
                 flags.SetC(byte2 > byte1);
                 return byte1;
             });
-            RegisterAluFunction("RLC", DataType.D8, (flags, arg) =>
+            AddFunction("RLC", DataType.D8, (flags, arg) =>
             {
                 var result = (arg << 1) & 0xff;
                 if ((arg & (1 << 7)) != 0)
@@ -202,7 +202,7 @@ namespace CoreBoy.cpu
                 flags.SetH(false);
                 return result;
             });
-            RegisterAluFunction("RRC", DataType.D8, (flags, arg) =>
+            AddFunction("RRC", DataType.D8, (flags, arg) =>
             {
                 var result = arg >> 1;
                 if ((arg & 1) == 1)
@@ -220,7 +220,7 @@ namespace CoreBoy.cpu
                 flags.SetH(false);
                 return result;
             });
-            RegisterAluFunction("RL", DataType.D8, (flags, arg) =>
+            AddFunction("RL", DataType.D8, (flags, arg) =>
             {
                 var result = (arg << 1) & 0xff;
                 result |= flags.IsC() ? 1 : 0;
@@ -230,7 +230,7 @@ namespace CoreBoy.cpu
                 flags.SetH(false);
                 return result;
             });
-            RegisterAluFunction("RR", DataType.D8, (flags, arg) =>
+            AddFunction("RR", DataType.D8, (flags, arg) =>
             {
                 var result = arg >> 1;
                 result |= flags.IsC() ? (1 << 7) : 0;
@@ -240,7 +240,7 @@ namespace CoreBoy.cpu
                 flags.SetH(false);
                 return result;
             });
-            RegisterAluFunction("SLA", DataType.D8, (flags, arg) =>
+            AddFunction("SLA", DataType.D8, (flags, arg) =>
             {
                 var result = (arg << 1) & 0xff;
                 flags.SetC((arg & (1 << 7)) != 0);
@@ -249,7 +249,7 @@ namespace CoreBoy.cpu
                 flags.SetH(false);
                 return result;
             });
-            RegisterAluFunction("SRA", DataType.D8, (flags, arg) =>
+            AddFunction("SRA", DataType.D8, (flags, arg) =>
             {
                 var result = (arg >> 1) | (arg & (1 << 7));
                 flags.SetC((arg & 1) != 0);
@@ -258,7 +258,7 @@ namespace CoreBoy.cpu
                 flags.SetH(false);
                 return result;
             });
-            RegisterAluFunction("SWAP", DataType.D8, (flags, arg) =>
+            AddFunction("SWAP", DataType.D8, (flags, arg) =>
             {
                 var upper = arg & 0xf0;
                 var lower = arg & 0x0f;
@@ -269,7 +269,7 @@ namespace CoreBoy.cpu
                 flags.SetC(false);
                 return result;
             });
-            RegisterAluFunction("SRL", DataType.D8, (flags, arg) =>
+            AddFunction("SRL", DataType.D8, (flags, arg) =>
             {
                 var result = (arg >> 1);
                 flags.SetC((arg & 1) != 0);
@@ -278,7 +278,7 @@ namespace CoreBoy.cpu
                 flags.SetH(false);
                 return result;
             });
-            RegisterAluFunction("BIT", DataType.D8, DataType.D8, (flags, arg1, arg2) =>
+            AddFunction("BIT", DataType.D8, DataType.D8, (flags, arg1, arg2) =>
             {
                 var bit = arg2;
                 flags.SetN(false);
@@ -290,8 +290,8 @@ namespace CoreBoy.cpu
 
                 return arg1;
             });
-            RegisterAluFunction("RES", DataType.D8, DataType.D8, (flags, arg1, arg2) => BitUtils.ClearBit(arg1, arg2));
-            RegisterAluFunction("SET", DataType.D8, DataType.D8, (flags, arg1, arg2) => BitUtils.SetBit(arg1, arg2));
+            AddFunction("RES", DataType.D8, DataType.D8, (flags, arg1, arg2) => BitUtils.ClearBit(arg1, arg2));
+            AddFunction("SET", DataType.D8, DataType.D8, (flags, arg1, arg2) => BitUtils.SetBit(arg1, arg2));
         }
 
         public class FunctionKey

@@ -4,7 +4,7 @@ namespace CoreBoy.gpu
 {
     public class DmgPixelFifo : IPixelFifo
     {
-        private readonly IntQueue _pixels = new IntQueue(16);
+        public IntQueue Pixels { get; } = new IntQueue(16);
         private readonly IntQueue _palettes = new IntQueue(16);
         private readonly IntQueue _pixelType = new IntQueue(16); // 0 - bg, 1 - sprite
 
@@ -19,21 +19,21 @@ namespace CoreBoy.gpu
             _registers = registers;
         }
 
-        public int GetLength() => _pixels.Size();
+        public int GetLength() => Pixels.Size();
         public void PutPixelToScreen() => _display.PutDmgPixel(DequeuePixel());
         public void DropPixel() => DequeuePixel();
 
-        private int DequeuePixel()
+        public int DequeuePixel()
         {
             _pixelType.Dequeue();
-            return GetColor(_palettes.Dequeue(), _pixels.Dequeue());
+            return GetColor(_palettes.Dequeue(), Pixels.Dequeue());
         }
 
         public void Enqueue8Pixels(int[] pixelLine, TileAttributes tileAttributes)
         {
             foreach (var p in pixelLine)
             {
-                _pixels.Enqueue(p);
+                Pixels.Enqueue(p);
                 _palettes.Enqueue(_registers.Get(GpuRegister.BGP));
                 _pixelType.Enqueue(0);
             }
@@ -54,9 +54,9 @@ namespace CoreBoy.gpu
                     continue;
                 }
 
-                if (priority && _pixels.Get(i) == 0 || !priority && p != 0)
+                if (priority && Pixels.Get(i) == 0 || !priority && p != 0)
                 {
-                    _pixels.Set(i, p);
+                    Pixels.Set(i, p);
                     _palettes.Set(i, overlayPalette);
                     _pixelType.Set(i, 1);
                 }
@@ -67,7 +67,7 @@ namespace CoreBoy.gpu
 
         public void Clear()
         {
-            _pixels.Clear();
+            Pixels.Clear();
             _palettes.Clear();
             _pixelType.Clear();
         }
