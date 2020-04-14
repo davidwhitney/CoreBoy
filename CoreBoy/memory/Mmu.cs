@@ -21,14 +21,14 @@ namespace CoreBoy.memory
 
         public void setByte(int address, int value)
         {
-            BitUtils.checkByteArgument("value", value);
-            BitUtils.checkWordArgument("address", address);
+            BitUtils.CheckByteArgument("value", value);
+            BitUtils.CheckWordArgument("address", address);
             getSpace(address).setByte(address, value);
         }
 
         public int getByte(int address)
         {
-            BitUtils.checkWordArgument("address", address);
+            BitUtils.CheckWordArgument("address", address);
             return getSpace(address).getByte(address);
         }
 

@@ -89,7 +89,7 @@ namespace CoreBoy
 
         private void InitiliseRegisters()
         {
-            var registers = _cpu.getRegisters();
+            var registers = _cpu.GetRegisters();
 
             registers.setAF(0x01b0);
             if (_gbc)
@@ -159,7 +159,7 @@ namespace CoreBoy
             }
             else
             {
-                _cpu.tick();
+                _cpu.Tick();
             }
 
             _dma.Tick();

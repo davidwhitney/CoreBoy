@@ -83,7 +83,7 @@ namespace CoreBoy.cpu.opcode
             public override int operandLength() => _arg.getOperandLength();
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
-                addressSpace.setByte(toWord(args), context & 0x00ff);
+                addressSpace.setByte(ToWord(args), context & 0x00ff);
                 return context;
             }
             public override string ToString() => string.Format("[ _] → %s", _arg.getLabel());
@@ -97,7 +97,7 @@ namespace CoreBoy.cpu.opcode
             public override int operandLength() => _arg.getOperandLength();
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
-                addressSpace.setByte((toWord(args) + 1) & 0xffff, (context & 0xff00) >> 8);
+                addressSpace.setByte((ToWord(args) + 1) & 0xffff, (context & 0xff00) >> 8);
                 return context;
             }
             public override string ToString() => string.Format("[_ ] → %s", _arg.getLabel());
@@ -148,10 +148,10 @@ namespace CoreBoy.cpu.opcode
             {
                 return _condition switch
                 {
-                    "NZ" => !registers.getFlags().isZ(),
-                    "Z" => registers.getFlags().isZ(),
-                    "NC" => !registers.getFlags().isC(),
-                    "C" => registers.getFlags().isC(),
+                    "NZ" => !registers.getFlags().IsZ(),
+                    "Z" => registers.getFlags().IsZ(),
+                    "NC" => !registers.getFlags().IsC(),
+                    "C" => registers.getFlags().IsC(),
                     _ => false
                 };
             }
@@ -471,11 +471,11 @@ namespace CoreBoy.cpu.opcode
             {
                 var value = addressSpace.getByte(registers.getHL());
                 var flags = registers.getFlags();
-                flags.setN(false);
-                flags.setH(true);
+                flags.SetN(false);
+                flags.SetH(true);
                 if (_bit < 8)
                 {
-                    flags.setZ(!getBit(value, _bit));
+                    flags.SetZ(!GetBit(value, _bit));
                 }
                 return context;
             }
@@ -496,7 +496,7 @@ namespace CoreBoy.cpu.opcode
         {
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
-                registers.getFlags().setZ(false);
+                registers.getFlags().SetZ(false);
                 return context;
             }
 

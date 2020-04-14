@@ -205,7 +205,7 @@ namespace CoreBoy.gpu
             TileAttributes attr, int tileHeight)
         {
             var effectiveLine = attr.IsYflip() ? tileHeight - 1 - line : line;
-            var tileAddress = signed ? tileDataAddress + toSigned(tileId) * 0x10 : tileDataAddress + tileId * 0x10;
+            var tileAddress = signed ? tileDataAddress + ToSigned(tileId) * 0x10 : tileDataAddress + tileId * 0x10;
 
             var videoRam = (attr.GetBank() == 0 || !_gbc) ? _videoRam0 : _videoRam1;
             return videoRam.getByte(tileAddress + effectiveLine * 2 + byteNumber);

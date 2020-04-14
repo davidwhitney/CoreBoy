@@ -21,9 +21,9 @@ namespace CoreBoy.cpu
             RegisterAluFunction("INC", DataType.D8, (flags, arg) =>
             {
                 var result = (arg + 1) & 0xff;
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH((arg & 0x0f) == 0x0f);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH((arg & 0x0f) == 0x0f);
                 return result;
             });
 
@@ -31,157 +31,157 @@ namespace CoreBoy.cpu
             RegisterAluFunction("DEC", DataType.D8, (flags, arg) =>
             {
                 var result = (arg - 1) & 0xff;
-                flags.setZ(result == 0);
-                flags.setN(true);
-                flags.setH((arg & 0x0f) == 0x0);
+                flags.SetZ(result == 0);
+                flags.SetN(true);
+                flags.SetH((arg & 0x0f) == 0x0);
                 return result;
             });
             RegisterAluFunction("DEC", DataType.D16, (flags, arg) => (arg - 1) & 0xffff);
             RegisterAluFunction("ADD", DataType.D16, DataType.D16, (flags, arg1, arg2) =>
             {
-                flags.setN(false);
-                flags.setH((arg1 & 0x0fff) + (arg2 & 0x0fff) > 0x0fff);
-                flags.setC(arg1 + arg2 > 0xffff);
+                flags.SetN(false);
+                flags.SetH((arg1 & 0x0fff) + (arg2 & 0x0fff) > 0x0fff);
+                flags.SetC(arg1 + arg2 > 0xffff);
                 return (arg1 + arg2) & 0xffff;
             });
             RegisterAluFunction("ADD", DataType.D16, DataType.R8, (flags, arg1, arg2) => (arg1 + arg2) & 0xffff);
             RegisterAluFunction("ADD_SP", DataType.D16, DataType.R8, (flags, arg1, arg2) =>
             {
-                flags.setZ(false);
-                flags.setN(false);
+                flags.SetZ(false);
+                flags.SetN(false);
 
                 var result = arg1 + arg2;
-                flags.setC((((arg1 & 0xff) + (arg2 & 0xff)) & 0x100) != 0);
-                flags.setH((((arg1 & 0x0f) + (arg2 & 0x0f)) & 0x10) != 0);
+                flags.SetC((((arg1 & 0xff) + (arg2 & 0xff)) & 0x100) != 0);
+                flags.SetH((((arg1 & 0x0f) + (arg2 & 0x0f)) & 0x10) != 0);
                 return result & 0xffff;
             });
             RegisterAluFunction("DAA", DataType.D8, (flags, arg) =>
             {
                 var result = arg;
-                if (flags.isN())
+                if (flags.IsN())
                 {
-                    if (flags.isH())
+                    if (flags.IsH())
                     {
                         result = (result - 6) & 0xff;
                     }
 
-                    if (flags.isC())
+                    if (flags.IsC())
                     {
                         result = (result - 0x60) & 0xff;
                     }
                 }
                 else
                 {
-                    if (flags.isH() || (result & 0xf) > 9)
+                    if (flags.IsH() || (result & 0xf) > 9)
                     {
                         result += 0x06;
                     }
 
-                    if (flags.isC() || result > 0x9f)
+                    if (flags.IsC() || result > 0x9f)
                     {
                         result += 0x60;
                     }
                 }
 
-                flags.setH(false);
+                flags.SetH(false);
                 if (result > 0xff)
                 {
-                    flags.setC(true);
+                    flags.SetC(true);
                 }
 
                 result &= 0xff;
-                flags.setZ(result == 0);
+                flags.SetZ(result == 0);
                 return result;
             });
             RegisterAluFunction("CPL", DataType.D8, (flags, arg) =>
             {
-                flags.setN(true);
-                flags.setH(true);
+                flags.SetN(true);
+                flags.SetH(true);
                 return (~arg) & 0xff;
             });
             RegisterAluFunction("SCF", DataType.D8, (flags, arg) =>
             {
-                flags.setN(false);
-                flags.setH(false);
-                flags.setC(true);
+                flags.SetN(false);
+                flags.SetH(false);
+                flags.SetC(true);
                 return arg;
             });
             RegisterAluFunction("CCF", DataType.D8, (flags, arg) =>
             {
-                flags.setN(false);
-                flags.setH(false);
-                flags.setC(!flags.isC());
+                flags.SetN(false);
+                flags.SetH(false);
+                flags.SetC(!flags.IsC());
                 return arg;
             });
             RegisterAluFunction("ADD", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
-                flags.setZ(((byte1 + byte2) & 0xff) == 0);
-                flags.setN(false);
-                flags.setH((byte1 & 0x0f) + (byte2 & 0x0f) > 0x0f);
-                flags.setC(byte1 + byte2 > 0xff);
+                flags.SetZ(((byte1 + byte2) & 0xff) == 0);
+                flags.SetN(false);
+                flags.SetH((byte1 & 0x0f) + (byte2 & 0x0f) > 0x0f);
+                flags.SetC(byte1 + byte2 > 0xff);
                 return (byte1 + byte2) & 0xff;
             });
             RegisterAluFunction("ADC", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
-                var carry = flags.isC() ? 1 : 0;
-                flags.setZ(((byte1 + byte2 + carry) & 0xff) == 0);
-                flags.setN(false);
-                flags.setH((byte1 & 0x0f) + (byte2 & 0x0f) + carry > 0x0f);
-                flags.setC(byte1 + byte2 + carry > 0xff);
+                var carry = flags.IsC() ? 1 : 0;
+                flags.SetZ(((byte1 + byte2 + carry) & 0xff) == 0);
+                flags.SetN(false);
+                flags.SetH((byte1 & 0x0f) + (byte2 & 0x0f) + carry > 0x0f);
+                flags.SetC(byte1 + byte2 + carry > 0xff);
                 return (byte1 + byte2 + carry) & 0xff;
             });
             RegisterAluFunction("SUB", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
-                flags.setZ(((byte1 - byte2) & 0xff) == 0);
-                flags.setN(true);
-                flags.setH((0x0f & byte2) > (0x0f & byte1));
-                flags.setC(byte2 > byte1);
+                flags.SetZ(((byte1 - byte2) & 0xff) == 0);
+                flags.SetN(true);
+                flags.SetH((0x0f & byte2) > (0x0f & byte1));
+                flags.SetC(byte2 > byte1);
                 return (byte1 - byte2) & 0xff;
             });
             RegisterAluFunction("SBC", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
-                var carry = flags.isC() ? 1 : 0;
+                var carry = flags.IsC() ? 1 : 0;
                 var res = byte1 - byte2 - carry;
 
-                flags.setZ((res & 0xff) == 0);
-                flags.setN(true);
-                flags.setH(((byte1 ^ byte2 ^ (res & 0xff)) & (1 << 4)) != 0);
-                flags.setC(res < 0);
+                flags.SetZ((res & 0xff) == 0);
+                flags.SetN(true);
+                flags.SetH(((byte1 ^ byte2 ^ (res & 0xff)) & (1 << 4)) != 0);
+                flags.SetC(res < 0);
                 return res & 0xff;
             });
             RegisterAluFunction("AND", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
                 var result = byte1 & byte2;
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH(true);
-                flags.setC(false);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH(true);
+                flags.SetC(false);
                 return result;
             });
             RegisterAluFunction("OR", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
                 var result = byte1 | byte2;
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH(false);
-                flags.setC(false);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH(false);
+                flags.SetC(false);
                 return result;
             });
             RegisterAluFunction("XOR", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
                 var result = (byte1 ^ byte2) & 0xff;
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH(false);
-                flags.setC(false);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH(false);
+                flags.SetC(false);
                 return result;
             });
             RegisterAluFunction("CP", DataType.D8, DataType.D8, (flags, byte1, byte2) =>
             {
-                flags.setZ(((byte1 - byte2) & 0xff) == 0);
-                flags.setN(true);
-                flags.setH((0x0f & byte2) > (0x0f & byte1));
-                flags.setC(byte2 > byte1);
+                flags.SetZ(((byte1 - byte2) & 0xff) == 0);
+                flags.SetN(true);
+                flags.SetH((0x0f & byte2) > (0x0f & byte1));
+                flags.SetC(byte2 > byte1);
                 return byte1;
             });
             RegisterAluFunction("RLC", DataType.D8, (flags, arg) =>
@@ -190,16 +190,16 @@ namespace CoreBoy.cpu
                 if ((arg & (1 << 7)) != 0)
                 {
                     result |= 1;
-                    flags.setC(true);
+                    flags.SetC(true);
                 }
                 else
                 {
-                    flags.setC(false);
+                    flags.SetC(false);
                 }
 
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH(false);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH(false);
                 return result;
             });
             RegisterAluFunction("RRC", DataType.D8, (flags, arg) =>
@@ -208,54 +208,54 @@ namespace CoreBoy.cpu
                 if ((arg & 1) == 1)
                 {
                     result |= (1 << 7);
-                    flags.setC(true);
+                    flags.SetC(true);
                 }
                 else
                 {
-                    flags.setC(false);
+                    flags.SetC(false);
                 }
 
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH(false);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH(false);
                 return result;
             });
             RegisterAluFunction("RL", DataType.D8, (flags, arg) =>
             {
                 var result = (arg << 1) & 0xff;
-                result |= flags.isC() ? 1 : 0;
-                flags.setC((arg & (1 << 7)) != 0);
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH(false);
+                result |= flags.IsC() ? 1 : 0;
+                flags.SetC((arg & (1 << 7)) != 0);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH(false);
                 return result;
             });
             RegisterAluFunction("RR", DataType.D8, (flags, arg) =>
             {
                 var result = arg >> 1;
-                result |= flags.isC() ? (1 << 7) : 0;
-                flags.setC((arg & 1) != 0);
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH(false);
+                result |= flags.IsC() ? (1 << 7) : 0;
+                flags.SetC((arg & 1) != 0);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH(false);
                 return result;
             });
             RegisterAluFunction("SLA", DataType.D8, (flags, arg) =>
             {
                 var result = (arg << 1) & 0xff;
-                flags.setC((arg & (1 << 7)) != 0);
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH(false);
+                flags.SetC((arg & (1 << 7)) != 0);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH(false);
                 return result;
             });
             RegisterAluFunction("SRA", DataType.D8, (flags, arg) =>
             {
                 var result = (arg >> 1) | (arg & (1 << 7));
-                flags.setC((arg & 1) != 0);
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH(false);
+                flags.SetC((arg & 1) != 0);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH(false);
                 return result;
             });
             RegisterAluFunction("SWAP", DataType.D8, (flags, arg) =>
@@ -263,35 +263,35 @@ namespace CoreBoy.cpu
                 var upper = arg & 0xf0;
                 var lower = arg & 0x0f;
                 var result = (lower << 4) | (upper >> 4);
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH(false);
-                flags.setC(false);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH(false);
+                flags.SetC(false);
                 return result;
             });
             RegisterAluFunction("SRL", DataType.D8, (flags, arg) =>
             {
                 var result = (arg >> 1);
-                flags.setC((arg & 1) != 0);
-                flags.setZ(result == 0);
-                flags.setN(false);
-                flags.setH(false);
+                flags.SetC((arg & 1) != 0);
+                flags.SetZ(result == 0);
+                flags.SetN(false);
+                flags.SetH(false);
                 return result;
             });
             RegisterAluFunction("BIT", DataType.D8, DataType.D8, (flags, arg1, arg2) =>
             {
                 var bit = arg2;
-                flags.setN(false);
-                flags.setH(true);
+                flags.SetN(false);
+                flags.SetH(true);
                 if (bit < 8)
                 {
-                    flags.setZ(!BitUtils.getBit(arg1, arg2));
+                    flags.SetZ(!BitUtils.GetBit(arg1, arg2));
                 }
 
                 return arg1;
             });
-            RegisterAluFunction("RES", DataType.D8, DataType.D8, (flags, arg1, arg2) => BitUtils.clearBit(arg1, arg2));
-            RegisterAluFunction("SET", DataType.D8, DataType.D8, (flags, arg1, arg2) => BitUtils.setBit(arg1, arg2));
+            RegisterAluFunction("RES", DataType.D8, DataType.D8, (flags, arg1, arg2) => BitUtils.ClearBit(arg1, arg2));
+            RegisterAluFunction("SET", DataType.D8, DataType.D8, (flags, arg1, arg2) => BitUtils.SetBit(arg1, arg2));
         }
 
         public class FunctionKey

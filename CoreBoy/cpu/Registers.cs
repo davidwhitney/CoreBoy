@@ -19,7 +19,7 @@ namespace CoreBoy.cpu
 
         public int getAF()
         {
-            return a << 8 | flags.getFlagsByte();
+            return a << 8 | flags.FlagsByte;
         }
 
         public int getBC()
@@ -43,83 +43,83 @@ namespace CoreBoy.cpu
 
         public void setA(int a)
         {
-            checkByteArgument("a", a);
+            CheckByteArgument("a", a);
             this.a = a;
         }
 
         public void setB(int b)
         {
-            checkByteArgument("b", b);
+            CheckByteArgument("b", b);
             this.b = b;
         }
 
         public void setC(int c)
         {
-            checkByteArgument("c", c);
+            CheckByteArgument("c", c);
             this.c = c;
         }
 
         public void setD(int d)
         {
-            checkByteArgument("d", d);
+            CheckByteArgument("d", d);
             this.d = d;
         }
 
         public void setE(int e)
         {
-            checkByteArgument("e", e);
+            CheckByteArgument("e", e);
             this.e = e;
         }
 
         public void setH(int h)
         {
-            checkByteArgument("h", h);
+            CheckByteArgument("h", h);
             this.h = h;
         }
 
         public void setL(int l)
         {
-            checkByteArgument("l", l);
+            CheckByteArgument("l", l);
             this.l = l;
         }
 
         public void setAF(int af)
         {
-            checkWordArgument("af", af);
-            a = getMSB(af);
-            flags.setFlagsByte(getLSB(af));
+            CheckWordArgument("af", af);
+            a = GetMsb(af);
+            flags.SetFlagsByte(GetLsb(af));
         }
 
         public void setBC(int bc)
         {
-            checkWordArgument("bc", bc);
-            b = getMSB(bc);
-            c = getLSB(bc);
+            CheckWordArgument("bc", bc);
+            b = GetMsb(bc);
+            c = GetLsb(bc);
         }
 
         public void setDE(int de)
         {
-            checkWordArgument("de", de);
-            d = getMSB(de);
-            e = getLSB(de);
+            CheckWordArgument("de", de);
+            d = GetMsb(de);
+            e = GetLsb(de);
         }
 
         public void setHL(int hl)
         {
-            checkWordArgument("hl", hl);
-            h = getMSB(hl);
-            l = getLSB(hl);
+            CheckWordArgument("hl", hl);
+            h = GetMsb(hl);
+            l = GetLsb(hl);
         }
 
         public void setSP(int sp)
         {
-            checkWordArgument("sp", sp);
+            CheckWordArgument("sp", sp);
             this.sp = sp;
         }
 
         public void setPC(int pc)
         {
-            checkWordArgument("pc", pc);
+            CheckWordArgument("pc", pc);
             this.pc = pc;
         }
 
@@ -143,7 +143,7 @@ namespace CoreBoy.cpu
         public override string ToString()
         {
             return string.Format("AF=%04x, BC=%04x, DE=%04x, HL=%04x, SP=%04x, PC=%04x, %s", getAF(), getBC(), getDE(),
-                getHL(), getSP(), getPC(), getFlags().toString());
+                getHL(), getSP(), getPC(), getFlags().ToString());
         }
     }
 }

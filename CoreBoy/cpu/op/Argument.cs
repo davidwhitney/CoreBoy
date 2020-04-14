@@ -50,13 +50,13 @@ namespace CoreBoy.cpu.op
                     .Handle((r, a, args) => args[0], (r, a, i1, value) => throw new InvalidOperationException("Unsupported")),
 
                 new Argument("d16", 2, false, DataType.D16)
-                    .Handle((r, a, args) => BitUtils.toWord(args), (r, a, i1, value) => throw new InvalidOperationException("Unsupported")),
+                    .Handle((r, a, args) => BitUtils.ToWord(args), (r, a, i1, value) => throw new InvalidOperationException("Unsupported")),
 
                 new Argument("r8", 1, false, DataType.R8)
-                    .Handle((r, a, args) => BitUtils.toSigned(args[0]), (r, a, i1, value) => throw new InvalidOperationException("Unsupported")),
+                    .Handle((r, a, args) => BitUtils.ToSigned(args[0]), (r, a, i1, value) => throw new InvalidOperationException("Unsupported")),
 
                 new Argument("a16", 2, false, DataType.D16)
-                    .Handle((r, a, args) => BitUtils.toWord(args), (r, a, i1, value) => throw new InvalidOperationException("Unsupported")),
+                    .Handle((r, a, args) => BitUtils.ToWord(args), (r, a, i1, value) => throw new InvalidOperationException("Unsupported")),
 				
                 // _BC
                 new Argument("(BC)", 0, true, DataType.D8)
@@ -76,7 +76,7 @@ namespace CoreBoy.cpu.op
 
                 // _a16
                 new Argument("(a16)", 2, true, DataType.D8)
-                    .Handle((r, a, args) => a.getByte(BitUtils.toWord(args)), (r, a, i1, value) => a.setByte(BitUtils.toWord(i1), value)),
+                    .Handle((r, a, args) => a.getByte(BitUtils.ToWord(args)), (r, a, i1, value) => a.setByte(BitUtils.ToWord(i1), value)),
 
                 // _C
                 new Argument("(C)", 0, true, DataType.D8)

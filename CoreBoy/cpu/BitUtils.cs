@@ -4,53 +4,53 @@ namespace CoreBoy.cpu
 {
     public static class BitUtils
     {
-        public static int getMSB(int word)
+        public static int GetMsb(int word)
         {
-            checkWordArgument("word", word);
+            CheckWordArgument("word", word);
             return word >> 8;
         }
 
-        public static int getLSB(int word)
+        public static int GetLsb(int word)
         {
-            checkWordArgument("word", word);
+            CheckWordArgument("word", word);
             return word & 0xff;
         }
 
-        public static int toWord(int[] bytes)
+        public static int ToWord(int[] bytes)
         {
-            return toWord(bytes[1], bytes[0]);
+            return ToWord(bytes[1], bytes[0]);
         }
 
-        public static int toWord(int msb, int lsb)
+        public static int ToWord(int msb, int lsb)
         {
-            checkByteArgument("msb", msb);
-            checkByteArgument("lsb", lsb);
+            CheckByteArgument("msb", msb);
+            CheckByteArgument("lsb", lsb);
             return (msb << 8) | lsb;
         }
 
-        public static bool getBit(int byteValue, int position)
+        public static bool GetBit(int byteValue, int position)
         {
             return (byteValue & (1 << position)) != 0;
         }
 
-        public static int setBit(int byteValue, int position, bool value)
+        public static int SetBit(int byteValue, int position, bool value)
         {
-            return value ? setBit(byteValue, position) : clearBit(byteValue, position);
+            return value ? SetBit(byteValue, position) : ClearBit(byteValue, position);
         }
 
-        public static int setBit(int byteValue, int position)
+        public static int SetBit(int byteValue, int position)
         {
-            checkByteArgument("byteValue", byteValue);
+            CheckByteArgument("byteValue", byteValue);
             return (byteValue | (1 << position)) & 0xff;
         }
 
-        public static int clearBit(int byteValue, int position)
+        public static int ClearBit(int byteValue, int position)
         {
-            checkByteArgument("byteValue", byteValue);
+            CheckByteArgument("byteValue", byteValue);
             return ~(1 << position) & byteValue & 0xff;
         }
 
-        public static int toSigned(int byteValue)
+        public static int ToSigned(int byteValue)
         {
             if ((byteValue & (1 << 7)) == 0)
             {
@@ -62,12 +62,12 @@ namespace CoreBoy.cpu
             }
         }
 
-        public static void checkByteArgument(String argumentName, int argument)
+        public static void CheckByteArgument(String argumentName, int argument)
         {
             //checkArgument(argument >= 0 && argument <= 0xff, "Argument {} should be a byte", argumentName);
         }
 
-        public static void checkWordArgument(String argumentName, int argument)
+        public static void CheckWordArgument(String argumentName, int argument)
         {
             //checkArgument(argument >= 0 && argument <= 0xffff, "Argument {} should be a word", argumentName);
         }
