@@ -136,11 +136,11 @@ namespace CoreBoy.gpu
                     _tileId = _videoRam0.getByte(_mapAddress + _xOffset);
                     if (_gbc)
                     {
-                        _tileAttributes = TileAttributes.valueOf(_videoRam1.getByte(_mapAddress + _xOffset));
+                        _tileAttributes = TileAttributes.ValueOf(_videoRam1.getByte(_mapAddress + _xOffset));
                     }
                     else
                     {
-                        _tileAttributes = TileAttributes.EMPTY;
+                        _tileAttributes = TileAttributes.Empty;
                     }
 
                     _state = State.ReadData1;
@@ -159,7 +159,7 @@ namespace CoreBoy.gpu
                 case State.Push:
                     if (_fifo.GetLength() <= 8)
                     {
-                        _fifo.Enqueue8Pixels(Zip(_tileData1, _tileData2, _tileAttributes.isXflip()), _tileAttributes);
+                        _fifo.Enqueue8Pixels(Zip(_tileData1, _tileData2, _tileAttributes.IsXflip()), _tileAttributes);
                         _xOffset = (_xOffset + 1) % 0x20;
                         _state = State.ReadTileId;
                     }
@@ -172,7 +172,7 @@ namespace CoreBoy.gpu
                     break;
 
                 case State.ReadSpriteFlags:
-                    _spriteAttributes = TileAttributes.valueOf(_oemRam.getByte(_sprite.getAddress() + 3));
+                    _spriteAttributes = TileAttributes.ValueOf(_oemRam.getByte(_sprite.getAddress() + 3));
                     _state = State.ReadSpriteData1;
                     break;
 
@@ -194,7 +194,7 @@ namespace CoreBoy.gpu
                     break;
 
                 case State.PushSprite:
-                    _fifo.SetOverlay(Zip(_tileData1, _tileData2, _spriteAttributes.isXflip()), _spriteOffset,
+                    _fifo.SetOverlay(Zip(_tileData1, _tileData2, _spriteAttributes.IsXflip()), _spriteOffset,
                         _spriteAttributes, _spriteOamIndex);
                     _state = State.ReadTileId;
                     break;
@@ -204,10 +204,10 @@ namespace CoreBoy.gpu
         private int GetTileData(int tileId, int line, int byteNumber, int tileDataAddress, bool signed,
             TileAttributes attr, int tileHeight)
         {
-            var effectiveLine = attr.isYflip() ? tileHeight - 1 - line : line;
+            var effectiveLine = attr.IsYflip() ? tileHeight - 1 - line : line;
             var tileAddress = signed ? tileDataAddress + toSigned(tileId) * 0x10 : tileDataAddress + tileId * 0x10;
 
-            var videoRam = (attr.getBank() == 0 || !_gbc) ? _videoRam0 : _videoRam1;
+            var videoRam = (attr.GetBank() == 0 || !_gbc) ? _videoRam0 : _videoRam1;
             return videoRam.getByte(tileAddress + effectiveLine * 2 + byteNumber);
         }
 

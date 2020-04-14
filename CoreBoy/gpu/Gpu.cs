@@ -39,7 +39,7 @@ namespace CoreBoy.gpu
 
         public Gpu(IDisplay display, InterruptManager interruptManager, Dma dma, Ram oamRam, bool gbc)
         {
-            _r = new MemoryRegisters(GpuRegister.values().ToArray());
+            _r = new MemoryRegisters(GpuRegister.Values().ToArray());
             _lcdc = new Lcdc();
             _interruptManager = interruptManager;
             _gbc = gbc;

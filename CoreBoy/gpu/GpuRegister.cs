@@ -3,7 +3,6 @@ using CoreBoy.memory;
 
 namespace CoreBoy.gpu
 {
-
     public class GpuRegister : IRegister
     {
         public static GpuRegister STAT = new GpuRegister(0xff41, RegisterType.RW);
@@ -27,17 +26,10 @@ namespace CoreBoy.gpu
             Type = type;
         }
 
-        public int GetAddress()
-        {
-            return Address;
-        }
+        public int GetAddress() => Address;
+        public RegisterType GetRegisterType() => Type;
 
-        public RegisterType GetRegisterType()
-        {
-            return Type;
-        }
-
-        public static IEnumerable<IRegister> values()
+        public static IEnumerable<IRegister> Values()
         {
             yield return STAT;
             yield return SCY;

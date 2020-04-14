@@ -19,46 +19,46 @@ namespace CoreBoy.gpu
             _registers = registers;
         }
 
-        public int GetLength() => _pixels.size();
+        public int GetLength() => _pixels.Size();
         public void PutPixelToScreen() => _display.PutDmgPixel(DequeuePixel());
         public void DropPixel() => DequeuePixel();
 
         private int DequeuePixel()
         {
-            _pixelType.dequeue();
-            return GetColor(_palettes.dequeue(), _pixels.dequeue());
+            _pixelType.Dequeue();
+            return GetColor(_palettes.Dequeue(), _pixels.Dequeue());
         }
 
         public void Enqueue8Pixels(int[] pixelLine, TileAttributes tileAttributes)
         {
             foreach (var p in pixelLine)
             {
-                _pixels.enqueue(p);
-                _palettes.enqueue(_registers.Get(GpuRegister.BGP));
-                _pixelType.enqueue(0);
+                _pixels.Enqueue(p);
+                _palettes.Enqueue(_registers.Get(GpuRegister.BGP));
+                _pixelType.Enqueue(0);
             }
         }
 
         public void SetOverlay(int[] pixelLine, int offset, TileAttributes flags, int oamIndex)
         {
-            var priority = flags.isPriority();
-            var overlayPalette = _registers.Get(flags.getDmgPalette());
+            var priority = flags.IsPriority();
+            var overlayPalette = _registers.Get(flags.GetDmgPalette());
 
             for (var j = offset; j < pixelLine.Length; j++)
             {
                 var p = pixelLine[j];
                 var i = j - offset;
 
-                if (_pixelType.get(i) == 1)
+                if (_pixelType.Get(i) == 1)
                 {
                     continue;
                 }
 
-                if (priority && _pixels.get(i) == 0 || !priority && p != 0)
+                if (priority && _pixels.Get(i) == 0 || !priority && p != 0)
                 {
-                    _pixels.set(i, p);
-                    _palettes.set(i, overlayPalette);
-                    _pixelType.set(i, 1);
+                    _pixels.Set(i, p);
+                    _palettes.Set(i, overlayPalette);
+                    _pixelType.Set(i, 1);
                 }
             }
         }
@@ -67,9 +67,9 @@ namespace CoreBoy.gpu
 
         public void Clear()
         {
-            _pixels.clear();
-            _palettes.clear();
-            _pixelType.clear();
+            _pixels.Clear();
+            _palettes.Clear();
+            _pixelType.Clear();
         }
     }
 }

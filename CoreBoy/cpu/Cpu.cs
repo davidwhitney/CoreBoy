@@ -343,7 +343,7 @@ namespace CoreBoy.cpu
             int stat = addressSpace.getByte(GpuRegister.STAT.GetAddress());
             if ((stat & 0b11) == (int) Gpu.Mode.OamSearch && gpu.GetTicksInLine() < 79)
             {
-                SpriteBug.corruptOam(addressSpace, type, gpu.GetTicksInLine());
+                SpriteBug.CorruptOam(addressSpace, type, gpu.GetTicksInLine());
             }
         }
 

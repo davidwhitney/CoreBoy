@@ -1,7 +1,9 @@
+using System;
+
 namespace CoreBoy.gpu
 {
 
-    public sealed class SpriteBug
+    public static class SpriteBug
     {
 		public enum CorruptionType
         {
@@ -13,19 +15,15 @@ namespace CoreBoy.gpu
             LD_HL
         }
 
-        private SpriteBug()
+        public static void CorruptOam(AddressSpace addressSpace, CorruptionType type, int ticksInLine)
         {
-        }
-
-        public static void corruptOam(AddressSpace addressSpace, CorruptionType type, int ticksInLine)
-        {
-            int cpuCycle = (ticksInLine + 1) / 4 + 1;
+            var cpuCycle = (ticksInLine + 1) / 4 + 1;
             switch (type)
             {
                 case CorruptionType.INC_DEC:
                     if (cpuCycle >= 2)
                     {
-                        copyValues(addressSpace, (cpuCycle - 2) * 8 + 2, (cpuCycle - 1) * 8 + 2, 6);
+                        CopyValues(addressSpace, (cpuCycle - 2) * 8 + 2, (cpuCycle - 1) * 8 + 2, 6);
                     }
 
                     break;
@@ -33,9 +31,9 @@ namespace CoreBoy.gpu
                 case CorruptionType.POP_1:
                     if (cpuCycle >= 4)
                     {
-                        copyValues(addressSpace, (cpuCycle - 3) * 8 + 2, (cpuCycle - 4) * 8 + 2, 8);
-                        copyValues(addressSpace, (cpuCycle - 3) * 8 + 8, (cpuCycle - 4) * 8 + 0, 2);
-                        copyValues(addressSpace, (cpuCycle - 4) * 8 + 2, (cpuCycle - 2) * 8 + 2, 6);
+                        CopyValues(addressSpace, (cpuCycle - 3) * 8 + 2, (cpuCycle - 4) * 8 + 2, 8);
+                        CopyValues(addressSpace, (cpuCycle - 3) * 8 + 8, (cpuCycle - 4) * 8 + 0, 2);
+                        CopyValues(addressSpace, (cpuCycle - 4) * 8 + 2, (cpuCycle - 2) * 8 + 2, 6);
                     }
 
                     break;
@@ -43,7 +41,7 @@ namespace CoreBoy.gpu
                 case CorruptionType.POP_2:
                     if (cpuCycle >= 5)
                     {
-                        copyValues(addressSpace, (cpuCycle - 5) * 8 + 0, (cpuCycle - 2) * 8 + 0, 8);
+                        CopyValues(addressSpace, (cpuCycle - 5) * 8 + 0, (cpuCycle - 2) * 8 + 0, 8);
                     }
 
                     break;
@@ -51,8 +49,8 @@ namespace CoreBoy.gpu
                 case CorruptionType.PUSH_1:
                     if (cpuCycle >= 4)
                     {
-                        copyValues(addressSpace, (cpuCycle - 4) * 8 + 2, (cpuCycle - 3) * 8 + 2, 8);
-                        copyValues(addressSpace, (cpuCycle - 3) * 8 + 2, (cpuCycle - 1) * 8 + 2, 6);
+                        CopyValues(addressSpace, (cpuCycle - 4) * 8 + 2, (cpuCycle - 3) * 8 + 2, 8);
+                        CopyValues(addressSpace, (cpuCycle - 3) * 8 + 2, (cpuCycle - 1) * 8 + 2, 6);
                     }
 
                     break;
@@ -60,7 +58,7 @@ namespace CoreBoy.gpu
                 case CorruptionType.PUSH_2:
                     if (cpuCycle >= 5)
                     {
-                        copyValues(addressSpace, (cpuCycle - 4) * 8 + 2, (cpuCycle - 3) * 8 + 2, 8);
+                        CopyValues(addressSpace, (cpuCycle - 4) * 8 + 2, (cpuCycle - 3) * 8 + 2, 8);
                     }
 
                     break;
@@ -68,20 +66,22 @@ namespace CoreBoy.gpu
                 case CorruptionType.LD_HL:
                     if (cpuCycle >= 4)
                     {
-                        copyValues(addressSpace, (cpuCycle - 3) * 8 + 2, (cpuCycle - 4) * 8 + 2, 8);
-                        copyValues(addressSpace, (cpuCycle - 3) * 8 + 8, (cpuCycle - 4) * 8 + 0, 2);
-                        copyValues(addressSpace, (cpuCycle - 4) * 8 + 2, (cpuCycle - 2) * 8 + 2, 6);
+                        CopyValues(addressSpace, (cpuCycle - 3) * 8 + 2, (cpuCycle - 4) * 8 + 2, 8);
+                        CopyValues(addressSpace, (cpuCycle - 3) * 8 + 8, (cpuCycle - 4) * 8 + 0, 2);
+                        CopyValues(addressSpace, (cpuCycle - 4) * 8 + 2, (cpuCycle - 2) * 8 + 2, 6);
                     }
 
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
         }
 
-        private static void copyValues(AddressSpace addressSpace, int from, int to, int length)
+        private static void CopyValues(AddressSpace addressSpace, int from, int to, int length)
         {
-            for (int i = length - 1; i >= 0; i--)
+            for (var i = length - 1; i >= 0; i--)
             {
-                int b = addressSpace.getByte(0xfe00 + from + i) % 0xff;
+                var b = addressSpace.getByte(0xfe00 + from + i) % 0xff;
                 addressSpace.setByte(0xfe00 + to + i, b);
             }
         }

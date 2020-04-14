@@ -2,49 +2,39 @@ namespace CoreBoy.gpu
 {
     public class ColorPixelFifo : IPixelFifo
     {
-        private readonly IntQueue pixels = new IntQueue(16);
-        private readonly IntQueue palettes = new IntQueue(16);
-        private readonly IntQueue priorities = new IntQueue(16);
-        private readonly Lcdc lcdc;
-        private readonly IDisplay display;
-        private readonly ColorPalette bgPalette;
-        private readonly ColorPalette oamPalette;
+        private readonly IntQueue _pixels = new IntQueue(16);
+        private readonly IntQueue _palettes = new IntQueue(16);
+        private readonly IntQueue _priorities = new IntQueue(16);
+        private readonly Lcdc _lcdc;
+        private readonly IDisplay _display;
+        private readonly ColorPalette _bgPalette;
+        private readonly ColorPalette _oamPalette;
 
         public ColorPixelFifo(Lcdc lcdc, IDisplay display, ColorPalette bgPalette, ColorPalette oamPalette)
         {
-            this.lcdc = lcdc;
-            this.display = display;
-            this.bgPalette = bgPalette;
-            this.oamPalette = oamPalette;
+            _lcdc = lcdc;
+            _display = display;
+            _bgPalette = bgPalette;
+            _oamPalette = oamPalette;
         }
 
-        public int GetLength()
+        public int GetLength() => _pixels.Size();
+        public void PutPixelToScreen() => _display.PutColorPixel(DequeuePixel());
+
+        private int DequeuePixel()
         {
-            return pixels.size();
+            return GetColor(_priorities.Dequeue(), _palettes.Dequeue(), _pixels.Dequeue());
         }
 
-        public void PutPixelToScreen()
-        {
-            display.PutColorPixel(dequeuePixel());
-        }
-
-        private int dequeuePixel()
-        {
-            return getColor(priorities.dequeue(), palettes.dequeue(), pixels.dequeue());
-        }
-
-        public void DropPixel()
-        {
-            dequeuePixel();
-        }
+        public void DropPixel() => DequeuePixel();
 
         public void Enqueue8Pixels(int[] pixelLine, TileAttributes tileAttributes)
         {
-            foreach (int p in pixelLine)
+            foreach (var p in pixelLine)
             {
-                pixels.enqueue(p);
-                palettes.enqueue(tileAttributes.getColorPaletteIndex());
-                priorities.enqueue(tileAttributes.isPriority() ? 100 : -1);
+                _pixels.Enqueue(p);
+                _palettes.Enqueue(tileAttributes.GetColorPaletteIndex());
+                _priorities.Enqueue(tileAttributes.IsPriority() ? 100 : -1);
             }
         }
 
@@ -66,19 +56,19 @@ namespace CoreBoy.gpu
 
         public void SetOverlay(int[] pixelLine, int offset, TileAttributes spriteAttr, int oamIndex)
         {
-            for (int j = offset; j < pixelLine.Length; j++)
+            for (var j = offset; j < pixelLine.Length; j++)
             {
-                int p = pixelLine[j];
-                int i = j - offset;
+                var p = pixelLine[j];
+                var i = j - offset;
                 if (p == 0)
                 {
                     continue; // color 0 is always transparent
                 }
 
-                int oldPriority = priorities.get(i);
+                var oldPriority = _priorities.Get(i);
 
-                bool put = false;
-                if ((oldPriority == -1 || oldPriority == 100) && !lcdc.isBgAndWindowDisplay())
+                var put = false;
+                if ((oldPriority == -1 || oldPriority == 100) && !_lcdc.isBgAndWindowDisplay())
                 {
                     // this one takes precedence
                     put = true;
@@ -86,14 +76,14 @@ namespace CoreBoy.gpu
                 else if (oldPriority == 100)
                 {
                     // bg with priority
-                    put = pixels.get(i) == 0;
+                    put = _pixels.Get(i) == 0;
                 }
-                else if (oldPriority == -1 && !spriteAttr.isPriority())
+                else if (oldPriority == -1 && !spriteAttr.IsPriority())
                 {
                     // bg without priority
                     put = true;
                 }
-                else if (oldPriority == -1 && spriteAttr.isPriority() && pixels.get(i) == 0)
+                else if (oldPriority == -1 && spriteAttr.IsPriority() && _pixels.Get(i) == 0)
                 {
                     // bg without priority
                     put = true;
@@ -106,31 +96,25 @@ namespace CoreBoy.gpu
 
                 if (put)
                 {
-                    pixels.set(i, p);
-                    palettes.set(i, spriteAttr.getColorPaletteIndex());
-                    priorities.set(i, oamIndex);
+                    _pixels.Set(i, p);
+                    _palettes.Set(i, spriteAttr.GetColorPaletteIndex());
+                    _priorities.Set(i, oamIndex);
                 }
             }
         }
-
-
+        
         public void Clear()
         {
-            pixels.clear();
-            palettes.clear();
-            priorities.clear();
+            _pixels.Clear();
+            _palettes.Clear();
+            _priorities.Clear();
         }
 
-        private int getColor(int priority, int palette, int color)
+        private int GetColor(int priority, int palette, int color)
         {
-            if (priority >= 0 && priority < 10)
-            {
-                return oamPalette.GetPalette(palette)[color];
-            }
-            else
-            {
-                return bgPalette.GetPalette(palette)[color];
-            }
+            return priority >= 0 && priority < 10
+                ? _oamPalette.GetPalette(palette)[color]
+                : _bgPalette.GetPalette(palette)[color];
         }
     }
 }

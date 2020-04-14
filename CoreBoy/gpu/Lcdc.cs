@@ -1,11 +1,7 @@
 namespace CoreBoy.gpu
 {
-
-//using static com.google.common.base.Preconditions.checkArgument;
-
     public class Lcdc : AddressSpace
     {
-
         private int value = 0x91;
 
         public bool isBgAndWindowDisplay()
@@ -58,26 +54,9 @@ namespace CoreBoy.gpu
             return address == 0xff40;
         }
 
-        public void setByte(int address, int value)
-        {
-            //checkArgument(address == 0xff40);
-            this.value = value;
-        }
-
-        public int getByte(int address)
-        {
-            //checkArgument(address == 0xff40);
-            return value;
-        }
-
-        public void set(int value)
-        {
-            this.value = value;
-        }
-
-        public int get()
-        {
-            return value;
-        }
+        public void setByte(int address, int value) => this.value = value;
+        public int getByte(int address) => value;
+        public void set(int value) => this.value = value;
+        public int get() => value;
     }
 }
