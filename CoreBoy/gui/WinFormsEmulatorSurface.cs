@@ -2,17 +2,13 @@
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using Timer = System.Timers.Timer;
 
 namespace CoreBoy.gui
 {
     public partial class WinFormsEmulatorSurface : Form
     {
         private readonly Action _onFormClosed;
-        public BitmapDisplay GameboyDisplay { get; set; }
-
         private readonly PictureBox _pictureBox;
-        private readonly Timer _timer;
 
         public WinFormsEmulatorSurface(Action onFormClosed)
         {
@@ -28,34 +24,20 @@ namespace CoreBoy.gui
             };
 
             Controls.Add(_pictureBox);
-
-            const int fps = 30;
-
-            _timer = new Timer(Math.Abs(1000 / fps)) { AutoReset = true };
-            _timer.Elapsed += OnInterval;
-            _timer.Start();
         }
 
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
+            if (_pictureBox == null) return;
 
-            if (_pictureBox != null)
-            {
-                _pictureBox.Width = this.Width;
-                _pictureBox.Height = this.Height;
-            }
+            _pictureBox.Width = Width;
+            _pictureBox.Height = Height;
         }
 
-        private void OnInterval(object sender, System.Timers.ElapsedEventArgs e)
+        public void UpdateDisplay(object sender, byte[] frame)
         {
-            if (GameboyDisplay == null) return;
-            if (GameboyDisplay.CurrentScreenBytes.Length == 0)
-            {
-                return;
-            }
-
-            using var memoryStream = new MemoryStream(GameboyDisplay.CurrentScreenBytes);
+            using var memoryStream = new MemoryStream(frame);
             _pictureBox.Image = Image.FromStream(memoryStream);
         }
 
@@ -63,7 +45,7 @@ namespace CoreBoy.gui
         {
             _onFormClosed();
             base.OnFormClosed(e);
-            _timer.Dispose();
+            _pictureBox.Dispose();
         }
     }
 }

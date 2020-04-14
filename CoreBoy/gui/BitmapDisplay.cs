@@ -14,13 +14,16 @@ namespace CoreBoy.gui
         public static readonly int[] Colors = { 0xe6f8da, 0x99c886, 0x437969, 0x051f2a };
 
         private readonly int[] _rgb;
-        public bool _enabled { get; set; }
+        public bool Enabled { get; set; }
         private int _scale;
         private bool _doStop;
         private bool _doRefresh;
         private int _i;
 
         private readonly object _lockObject = new object();
+        
+        public event FrameProducedEventHandler OnFrameProduced;
+        public delegate void FrameProducedEventHandler(object sender, byte[] frameData);
 
         private byte[] _currentScreenBytes = { };
         public byte[] CurrentScreenBytes
@@ -32,15 +35,13 @@ namespace CoreBoy.gui
                     return _currentScreenBytes;
                 }
             }
-
         }
         
         public BitmapDisplay(int scale)
         {
             _rgb = new int[DisplayWidth * DisplayHeight];
-            this._scale = scale;
+            _scale = scale;
         }
-
 
         public void PutDmgPixel(int color)
         {
@@ -86,19 +87,19 @@ namespace CoreBoy.gui
 
         public void EnableLcd()
         {
-            _enabled = true;
+            Enabled = true;
         }
 
         public void DisableLcd()
         {
-            _enabled = false;
+            Enabled = false;
         }
         
         public void Run()
         {
             _doStop = false;
             _doRefresh = false;
-            _enabled = true;
+            Enabled = true;
             
             while (!_doStop)
             {
@@ -133,12 +134,13 @@ namespace CoreBoy.gui
                         bytes = memoryStream.ToArray();
                     }
 
-                    lock (_currentScreenBytes)
+                    lock(_currentScreenBytes)
                     {
-                        _currentScreenBytes = new byte[bytes.Length];
-                        bytes.CopyTo(_currentScreenBytes, 0);
-                        // Ha, crap copy.
+                        _currentScreenBytes = bytes;
                     }
+
+                    OnFrameProduced?.Invoke(this, bytes);
+                    
 
                     _i = 0;
                     _doRefresh = false;

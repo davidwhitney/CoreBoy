@@ -25,7 +25,7 @@ namespace CoreBoy
 
             if (emulator.Display is BitmapDisplay display)
             {
-                ui.GameboyDisplay = display;
+                display.OnFrameProduced += ui.UpdateDisplay;
             }
             
             new Thread(emulator.Run).Start();
