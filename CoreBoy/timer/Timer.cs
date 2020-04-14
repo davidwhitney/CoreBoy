@@ -34,7 +34,7 @@ namespace CoreBoy.timer
                 ticksSinceOverflow++;
                 if (ticksSinceOverflow == 4)
                 {
-                    interruptManager.requestInterrupt(InterruptManager.InterruptType.Timer);
+                    interruptManager.RequestInterrupt(InterruptManager.InterruptType.Timer);
                 }
 
                 if (ticksSinceOverflow == 5)

@@ -51,7 +51,7 @@ namespace CoreBoy.controller
 
             public void onButtonPress(Button button)
             {
-                _interruptManager.requestInterrupt(InterruptManager.InterruptType.P10_13);
+                _interruptManager.RequestInterrupt(InterruptManager.InterruptType.P1013);
                 _buttons.Add(button);
             }
 

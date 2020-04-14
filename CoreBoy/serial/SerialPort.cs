@@ -54,7 +54,7 @@ namespace CoreBoy.serial
                     sb = 0;
                 }
 
-                interruptManager.requestInterrupt(InterruptManager.InterruptType.Serial);
+                interruptManager.RequestInterrupt(InterruptManager.InterruptType.Serial);
             }
         }
 

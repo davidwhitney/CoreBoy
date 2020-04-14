@@ -79,7 +79,7 @@ namespace CoreBoy
 
             _cpu = new Cpu(_mmu, _interruptManager, _gpu, display, _speedMode);
 
-            _interruptManager.disableInterrupts(false);
+            _interruptManager.DisableInterrupts(false);
             
             if (!options.UseBootstrap)
             {

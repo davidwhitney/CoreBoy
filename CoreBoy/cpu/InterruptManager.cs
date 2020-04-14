@@ -4,152 +4,89 @@ namespace CoreBoy.cpu
 {
     public class InterruptManager : AddressSpace
     {
-
-        public class InterruptType
-        {
-            public static InterruptType VBlank = new InterruptType(0x0040, 0);
-            public static InterruptType LCDC = new InterruptType(0x0048, 1);
-            public static InterruptType Timer = new InterruptType(0x0050, 2);
-            public static InterruptType Serial = new InterruptType(0x0058, 3);
-            public static InterruptType P10_13 = new InterruptType(0x0060, 4);
-
-            public int Ordinal { get; }
-
-            private int handler;
-
-            InterruptType(int handler, int ordinal)
-            {
-                Ordinal = ordinal;
-                this.handler = handler;
-            }
-
-            public int ordinal() => Ordinal;
-
-            public int getHandler()
-            {
-                return handler;
-            }
-
-            public static IEnumerable<InterruptType> values()
-            {
-                yield return VBlank;
-                yield return LCDC;
-                yield return Timer;
-                yield return Serial;
-                yield return P10_13;
-            }
-        }
-
-        private bool gbc;
-
-        private bool ime;
-
-        private int interruptFlag = 0xe1;
-
-        private int interruptEnabled;
-
-        private int pendingEnableInterrupts = -1;
-
-        private int pendingDisableInterrupts = -1;
+        private bool _ime;
+        private readonly bool _gbc;
+        private int _interruptFlag = 0xe1;
+        private int _interruptEnabled;
+        private int _pendingEnableInterrupts = -1;
+        private int _pendingDisableInterrupts = -1;
 
         public InterruptManager(bool gbc)
         {
-            this.gbc = gbc;
+            _gbc = gbc;
         }
 
-        public void enableInterrupts(bool withDelay)
+        public void EnableInterrupts(bool withDelay)
         {
-            pendingDisableInterrupts = -1;
+            _pendingDisableInterrupts = -1;
             if (withDelay)
             {
-                if (pendingEnableInterrupts == -1)
+                if (_pendingEnableInterrupts == -1)
                 {
-                    pendingEnableInterrupts = 1;
+                    _pendingEnableInterrupts = 1;
                 }
             }
             else
             {
-                pendingEnableInterrupts = -1;
-                ime = true;
+                _pendingEnableInterrupts = -1;
+                _ime = true;
             }
         }
 
-        public void disableInterrupts(bool withDelay)
+        public void DisableInterrupts(bool withDelay)
         {
-            pendingEnableInterrupts = -1;
-            if (withDelay && gbc)
+            _pendingEnableInterrupts = -1;
+            if (withDelay && _gbc)
             {
-                if (pendingDisableInterrupts == -1)
+                if (_pendingDisableInterrupts == -1)
                 {
-                    pendingDisableInterrupts = 1;
+                    _pendingDisableInterrupts = 1;
                 }
             }
             else
             {
-                pendingDisableInterrupts = -1;
-                ime = false;
+                _pendingDisableInterrupts = -1;
+                _ime = false;
             }
         }
 
-        public void requestInterrupt(InterruptType type)
-        {
-            interruptFlag = interruptFlag | (1 << type.Ordinal);
-        }
+        public void RequestInterrupt(InterruptType type) => _interruptFlag |= 1 << type.Ordinal;
+        public void ClearInterrupt(InterruptType type) => _interruptFlag &= ~(1 << type.Ordinal);
 
-        public void clearInterrupt(InterruptType type)
+        public void OnInstructionFinished()
         {
-            interruptFlag = interruptFlag & ~(1 << type.Ordinal);
-        }
-
-        public void onInstructionFinished()
-        {
-            if (pendingEnableInterrupts != -1)
+            if (_pendingEnableInterrupts != -1)
             {
-                if (pendingEnableInterrupts-- == 0)
+                if (_pendingEnableInterrupts-- == 0)
                 {
-                    enableInterrupts(false);
+                    EnableInterrupts(false);
                 }
             }
 
-            if (pendingDisableInterrupts != -1)
+            if (_pendingDisableInterrupts != -1)
             {
-                if (pendingDisableInterrupts-- == 0)
+                if (_pendingDisableInterrupts-- == 0)
                 {
-                    disableInterrupts(false);
+                    DisableInterrupts(false);
                 }
             }
         }
 
-        public bool isIme()
-        {
-            return ime;
-        }
-
-        public bool isInterruptRequested()
-        {
-            return (interruptFlag & interruptEnabled) != 0;
-        }
-
-        public bool isHaltBug()
-        {
-            return (interruptFlag & interruptEnabled & 0x1f) != 0 && !ime;
-        }
-
-        public bool accepts(int address)
-        {
-            return address == 0xff0f || address == 0xffff;
-        }
+        public bool IsIme() => _ime;
+        public bool IsInterruptRequested() => (_interruptFlag & _interruptEnabled) != 0;
+        public bool IsHaltBug() => (_interruptFlag & _interruptEnabled & 0x1f) != 0 && !_ime;
+        public bool accepts(int address) => address == 0xff0f || address == 0xffff;
 
         public void setByte(int address, int value)
         {
             switch (address)
             {
                 case 0xff0f:
-                    interruptFlag = value | 0xe0;
+                    _interruptFlag = value | 0xe0;
                     break;
 
                 case 0xffff:
-                    interruptEnabled = value;
+                    _interruptEnabled = value;
                     break;
             }
         }
@@ -159,13 +96,41 @@ namespace CoreBoy.cpu
             switch (address)
             {
                 case 0xff0f:
-                    return interruptFlag;
+                    return _interruptFlag;
 
                 case 0xffff:
-                    return interruptEnabled;
+                    return _interruptEnabled;
 
                 default:
                     return 0xff;
+            }
+        }
+
+        public class InterruptType
+        {
+            public static InterruptType VBlank = new InterruptType(0x0040, 0);
+            public static InterruptType Lcdc = new InterruptType(0x0048, 1);
+            public static InterruptType Timer = new InterruptType(0x0050, 2);
+            public static InterruptType Serial = new InterruptType(0x0058, 3);
+            public static InterruptType P1013 = new InterruptType(0x0060, 4);
+
+            public int Ordinal { get; }
+
+            public int Handler { get; }
+
+            private InterruptType(int handler, int ordinal)
+            {
+                Ordinal = ordinal;
+                Handler = handler;
+            }
+
+            public static IEnumerable<InterruptType> Values()
+            {
+                yield return VBlank;
+                yield return Lcdc;
+                yield return Timer;
+                yield return Serial;
+                yield return P1013;
             }
         }
     }

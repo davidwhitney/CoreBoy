@@ -202,7 +202,7 @@ namespace CoreBoy.gpu
                         {
                             _mode = Mode.VBlank;
                             _phase = _vBlankPhase.start();
-                            _interruptManager.requestInterrupt(InterruptManager.InterruptType.VBlank);
+                            _interruptManager.RequestInterrupt(InterruptManager.InterruptType.VBlank);
                             RequestLcdcInterrupt(4);
                         }
                         else
@@ -251,7 +251,7 @@ namespace CoreBoy.gpu
         {
             if ((_r.Get(GpuRegister.STAT) & (1 << statBit)) != 0)
             {
-                _interruptManager.requestInterrupt(InterruptManager.InterruptType.LCDC);
+                _interruptManager.RequestInterrupt(InterruptManager.InterruptType.Lcdc);
             }
         }
 

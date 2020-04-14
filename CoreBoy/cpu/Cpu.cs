@@ -74,7 +74,7 @@ namespace CoreBoy.cpu
 
             if (_state == State.OPCODE || _state == State.HALTED || _state == State.STOPPED)
             {
-                if (_interruptManager.isIme() && _interruptManager.isInterruptRequested())
+                if (_interruptManager.IsIme() && _interruptManager.IsInterruptRequested())
                 {
                     if (_state == State.STOPPED)
                     {
@@ -94,7 +94,7 @@ namespace CoreBoy.cpu
                 case State.IRQ_JUMP:
                     HandleInterrupt();
                     return;
-                case State.HALTED when _interruptManager.isInterruptRequested():
+                case State.HALTED when _interruptManager.IsInterruptRequested():
                     _state = State.OPCODE;
                     break;
             }
@@ -200,7 +200,7 @@ namespace CoreBoy.cpu
                         }
                         else if (_opcode1 == 0x76)
                         {
-                            if (_interruptManager.isHaltBug())
+                            if (_interruptManager.IsHaltBug())
                             {
                                 _state = State.OPCODE;
                                 _haltBugMode = true;
@@ -254,7 +254,7 @@ namespace CoreBoy.cpu
                         {
                             _state = State.OPCODE;
                             _operandIndex = 0;
-                            _interruptManager.onInstructionFinished();
+                            _interruptManager.OnInstructionFinished();
                             return;
                         }
 
@@ -279,9 +279,9 @@ namespace CoreBoy.cpu
                 case State.IRQ_READ_IE:
                     _interruptEnabled = _addressSpace.getByte(0xffff);
                     _requestedIrq = null;
-                    foreach (var irq in InterruptManager.InterruptType.values())
+                    foreach (var irq in InterruptManager.InterruptType.Values())
                     {
-                        if ((_interruptFlag & _interruptEnabled & (1 << irq.ordinal())) != 0)
+                        if ((_interruptFlag & _interruptEnabled & (1 << irq.Ordinal)) != 0)
                         {
                             _requestedIrq = irq;
                             break;
@@ -295,8 +295,8 @@ namespace CoreBoy.cpu
                     else
                     {
                         _state = State.IRQ_PUSH_1;
-                        _interruptManager.clearInterrupt(_requestedIrq);
-                        _interruptManager.disableInterrupts(false);
+                        _interruptManager.ClearInterrupt(_requestedIrq);
+                        _interruptManager.DisableInterrupts(false);
                     }
 
                     break;
@@ -314,7 +314,7 @@ namespace CoreBoy.cpu
                     break;
 
                 case State.IRQ_JUMP:
-                    _registers.setPC(_requestedIrq.getHandler());
+                    _registers.setPC(_requestedIrq.Handler);
                     _requestedIrq = null;
                     _state = State.OPCODE;
                     break;

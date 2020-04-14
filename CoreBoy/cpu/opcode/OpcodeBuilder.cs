@@ -523,11 +523,11 @@ namespace CoreBoy.cpu.opcode
             {
                 if (_enable)
                 {
-                    interruptManager.enableInterrupts(_withDelay);
+                    interruptManager.EnableInterrupts(_withDelay);
                 }
                 else
                 {
-                    interruptManager.disableInterrupts(_withDelay);
+                    interruptManager.DisableInterrupts(_withDelay);
                 }
             }
 
