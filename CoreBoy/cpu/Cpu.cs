@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using CoreBoy.cpu.op;
 using CoreBoy.cpu.opcode;
 using CoreBoy.gpu;
@@ -126,13 +127,10 @@ namespace CoreBoy.cpu
                         else
                         {
                             _state = State.OPERAND;
-                            _currentOpcode = _opcodes.COMMANDS.ContainsKey(_opcode1)
-                                ? _opcodes.COMMANDS[_opcode1]
-                                : null;
-
+                            _currentOpcode = _opcodes.COMMANDS[_opcode1];
                             if (_currentOpcode == null)
                             {
-                                throw new InvalidOperationException($"No command for {_opcode1:X2}");
+                                throw new InvalidOperationException($"No command for 0x{_opcode1:X2}");
                             }
                         }
 
@@ -162,7 +160,7 @@ namespace CoreBoy.cpu
 
                         if (_currentOpcode == null)
                         {
-                            throw new InvalidOperationException(String.Format("No command for %0xcb 0x%02x", _opcode2));
+                            throw new InvalidOperationException($"No command for {_opcode2:X}cb 0x{_opcode2:X2}");
                         }
 
                         _state = State.OPERAND;
@@ -232,7 +230,7 @@ namespace CoreBoy.cpu
                             {
                                 HandleSpriteBug(corruptionType.Value);
                             }
-
+                            
                             _opContext = op.execute(_registers, _addressSpace, _operand, _opContext);
                             op.switchInterrupts(_interruptManager);
 

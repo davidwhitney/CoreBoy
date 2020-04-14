@@ -7,8 +7,8 @@ namespace CoreBoy.cpu
 {
     public class Opcodes
     {
-        public readonly Dictionary<int, Opcode> COMMANDS;
-        public readonly Dictionary<int, Opcode> EXT_COMMANDS;
+        public readonly List<Opcode> COMMANDS;
+        public readonly List<Opcode> EXT_COMMANDS;
 
         public Opcodes()
         {
@@ -210,18 +210,11 @@ namespace CoreBoy.cpu
                 }
             }
             
-            var commands = new Dictionary<int, Opcode>(0x100);
-            var extCommands = new Dictionary<int, Opcode>(0x100);
+            var commands = new List<Opcode>(0x100);
+            var extCommands = new List<Opcode>(0x100);
 
-            foreach (var b in opcodes.Where(x => x != null))
-            {
-                commands.Add(b.getOpcode(), b.build());
-            }
-
-            foreach (var b in extOpcodes.Where(x => x != null))
-            {
-                extCommands.Add(b.getOpcode(), b.build());
-            }
+            commands.AddRange(opcodes.Select(b => b?.build()));
+            extCommands.AddRange(extOpcodes.Select(b => b?.build()));
 
             COMMANDS = commands;
             EXT_COMMANDS = extCommands;
