@@ -19,6 +19,7 @@ namespace CoreBoy
             var emulator = new Emulator(args, properties);
             var ui = new WinFormsEmulatorSurface();
 
+            emulator.Controller = ui;
             emulator.Display.OnFrameProduced += ui.UpdateDisplay;
             ui.Closed += (sender, e) => { emulator.Stop(); };
 

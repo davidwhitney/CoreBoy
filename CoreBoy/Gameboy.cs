@@ -35,7 +35,7 @@ namespace CoreBoy
 
         private readonly List<Thread> _tickListeners = new List<Thread>();
 
-        public Gameboy(GameboyOptions options, Cartridge rom, IDisplay display, Controller controller,
+        public Gameboy(GameboyOptions options, Cartridge rom, IDisplay display, IController controller,
             SoundOutput soundOutput, SerialEndpoint serialEndpoint)
         {
             _display = display;

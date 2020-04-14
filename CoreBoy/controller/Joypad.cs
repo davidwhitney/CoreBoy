@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using CoreBoy.cpu;
 
@@ -5,12 +6,12 @@ namespace CoreBoy.controller
 {
     public class Joypad : AddressSpace
     {
-        private HashSet<Button> buttons = new HashSet<Button>();
+        private ConcurrentDictionary<Button, Button> buttons = new ConcurrentDictionary<Button, Button>();
         private int p1;
 
-        public Joypad(InterruptManager interruptManager, Controller controller)
+        public Joypad(InterruptManager interruptManager, IController controller)
         {
-            controller.setButtonListener(new JoyPadButtonListener(interruptManager, buttons));
+            controller.SetButtonListener(new JoyPadButtonListener(interruptManager, buttons));
         }
 
         public bool accepts(int address)
@@ -27,7 +28,7 @@ namespace CoreBoy.controller
         public int getByte(int address)
         {
             int result = p1 | 0b11001111;
-            foreach (var b in buttons)
+            foreach (var b in buttons.Keys)
             {
                 if ((b.getLine() & p1) == 0)
                 {
@@ -36,29 +37,6 @@ namespace CoreBoy.controller
             }
 
             return result;
-        }
-        
-        private class JoyPadButtonListener : ButtonListener
-        {
-            private readonly InterruptManager _interruptManager;
-            private readonly HashSet<Button> _buttons;
-
-            public JoyPadButtonListener(InterruptManager interruptManager, HashSet<Button> buttons)
-            {
-                _interruptManager = interruptManager;
-                _buttons = buttons;
-            }
-
-            public void onButtonPress(Button button)
-            {
-                _interruptManager.RequestInterrupt(InterruptManager.InterruptType.P1013);
-                _buttons.Add(button);
-            }
-
-            public void onButtonRelease(Button button)
-            {
-                _buttons.Remove(button);
-            }
         }
     }
 }

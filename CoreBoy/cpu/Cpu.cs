@@ -126,10 +126,13 @@ namespace CoreBoy.cpu
                         else
                         {
                             _state = State.OPERAND;
-                            _currentOpcode = _opcodes.COMMANDS[_opcode1];
+                            _currentOpcode = _opcodes.COMMANDS.ContainsKey(_opcode1)
+                                ? _opcodes.COMMANDS[_opcode1]
+                                : null;
+
                             if (_currentOpcode == null)
                             {
-                                throw new InvalidOperationException(String.Format("No command for 0x%02x", _opcode1));
+                                throw new InvalidOperationException($"No command for {_opcode1:X2}");
                             }
                         }
 

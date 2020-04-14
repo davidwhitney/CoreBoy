@@ -14,40 +14,19 @@ namespace CoreBoy.gui
     {
         private const int Scale = 2;
 
-        public Gameboy Gameboy { get; }
-        public IDisplay Display { get; }
-        public GameboyOptions Options { get; }
-
+        public Gameboy Gameboy { get; set; }
+        public IDisplay Display { get; set; } = new BitmapDisplay(Scale);
+        public IController Controller { get; set; } = new NullController();
+        public SerialEndpoint SerialEndpoint { get; set; } = new NullSerialEndpoint();
+        public GameboyOptions Options { get; set; }
         private readonly List<Thread> _runnables;
 
         public Emulator(string[] args, string properties)
         {
             _runnables = new List<Thread>();
             Options = ParseArgs(args);
-            var rom = new Cartridge(Options);
-
-            SerialEndpoint serialEndpoint = new NullSerialEndpoint();
-            var console = Options.Debug ? Console.Out : null;
-
-
-            if (Options.Headless)
-            {
-                Gameboy = new Gameboy(Options, rom, (IDisplay) new NullDisplay(), (Controller) new NullController(), (SoundOutput) new NullSoundOutput(), serialEndpoint);
-            }
-            else
-            {
-                // TODO: Make real things work
-                // throw new NotImplementedException("Not implemented not headless.");
-                //sound = new AudioSystemSoundOutput();
-                //display = new SwingDisplay(SCALE);
-                //controller = new SwingController(properties);
-                //gameboy = new Gameboy(options, rom, display, controller, sound, serialEndpoint, console);
-                
-                Display = new BitmapDisplay(Scale);
-                Gameboy = new Gameboy(Options, rom, Display, (Controller) new NullController(), (SoundOutput) new NullSoundOutput(), serialEndpoint);
-            }
         }
-
+        
         private static GameboyOptions ParseArgs(string[] args)
         {
             if (args.Length == 0)
@@ -109,6 +88,9 @@ namespace CoreBoy.gui
 
         public void Run()
         {
+            var rom = new Cartridge(Options);
+            Gameboy = CreateGameboy(rom);
+
             if (Options.Headless)
             {
                 Gameboy.Run();
@@ -129,30 +111,22 @@ namespace CoreBoy.gui
             //_runnables.ForEach(t => t.Abort());
         }
 
-        /*
-        private void startGui() {
-            display.setPreferredSize(new Dimension(160 * SCALE, 144 * SCALE));
-    
-            mainWindow = new JFrame("Coffee GB: " + rom.getTitle());
-            mainWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            mainWindow.setLocationRelativeTo(null);
-    
-            mainWindow.setContentPane(display);
-            mainWindow.setResizable(false);
-            mainWindow.setVisible(true);
-            mainWindow.pack();
-    
-            mainWindow.addKeyListener(controller);
-    
-            new Thread(display).start();
-            new Thread(gameboy).start();
+        private Gameboy CreateGameboy(Cartridge rom)
+        {
+            if (Options.Headless)
+            {
+                return new Gameboy(Options, rom, new NullDisplay(), new NullController(), new NullSoundOutput(), new NullSerialEndpoint());
+            }
+
+            // TODO: Make real things work
+            // throw new NotImplementedException("Not implemented not headless.");
+            //sound = new AudioSystemSoundOutput();
+            //display = new SwingDisplay(SCALE);
+            //controller = new SwingController(properties);
+            //gameboy = new Gameboy(options, rom, display, controller, sound, serialEndpoint, console);
+
+            return new Gameboy(Options, rom, Display, Controller, new NullSoundOutput(), SerialEndpoint);
         }
-    
-        private void stopGui() {
-            display.stop();
-            gameboy.stop();
-            mainWindow.dispose();
-        }*/
     }
 
 }

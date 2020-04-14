@@ -31,11 +31,4 @@ namespace CoreBoy.controller
             return line;
         }
     }
-
-    public interface ButtonListener
-    {
-        void onButtonPress(Button button);
-
-        void onButtonRelease(Button button);
-    }
 }
