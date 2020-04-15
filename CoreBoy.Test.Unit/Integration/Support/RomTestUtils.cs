@@ -30,7 +30,8 @@ namespace CoreBoy.Test.Unit.Integration.Support
         {
             Console.WriteLine($"\n### Running test rom {romFileInfoInfo.FullName} ###");
             var runner = new MooneyeTestRunner(romFileInfoInfo, Console.Out);
-            Assert.True(runner.runTest());
+            var result = runner.runTest();
+            Assert.True(result);
         }
     }
 }

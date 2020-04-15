@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using CoreBoy.controller;
 using CoreBoy.cpu;
 using CoreBoy.gpu;
@@ -12,19 +13,17 @@ namespace CoreBoy.Test.Unit.Integration.Support
 {
     public class MooneyeTestRunner
     {
-
         private readonly Gameboy gb;
-
         private readonly Cpu cpu;
-
         private readonly AddressSpace mem;
-
         private readonly Registers regs;
-
         private readonly TextWriter os;
+        private readonly ITracer _tracer;
 
-        public MooneyeTestRunner(FileInfo romFileInfo, TextWriter os)
+        public MooneyeTestRunner(FileInfo romFileInfo, TextWriter os, bool trace = false)
         {
+            _tracer = trace ? (ITracer) new Tracer($"{romFileInfo.Name}.log") : new NullTracer();
+
             var opts = new List<string>();
             if (romFileInfo.ToString().EndsWith("-C.gb") || romFileInfo.ToString().EndsWith("-cgb.gb"))
             {
@@ -61,7 +60,11 @@ namespace CoreBoy.Test.Unit.Integration.Support
                     displayProgress();
                     divider = 0;
                 }
+
+                _tracer.Collect(gb.Cpu.Registers);
             }
+            
+            _tracer.Save();
 
             return regs.A == 0 
                    && regs.B == 3 
@@ -104,6 +107,11 @@ namespace CoreBoy.Test.Unit.Integration.Support
                     found = false;
                     break;
                 }
+            }
+
+            if (found)
+            {
+                Console.WriteLine("Ending test.");
             }
 
             return found;
