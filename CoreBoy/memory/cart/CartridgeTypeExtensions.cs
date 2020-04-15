@@ -24,9 +24,7 @@ namespace CoreBoy.memory.cart
         public static bool IsRumble(this CartridgeType src) => src.NameContainsSegment("RUMBLE");
         private static bool NameContainsSegment(this CartridgeType src, string segment)
         {
-            var regex = new Regex("(^|_)" + Regex.Escape(segment) + "($|_)");
-            return regex.IsMatch(src.ToString());
-            //return src.ToString().Contains($"_{segment}_");
+            return new Regex("(^|_)" + Regex.Escape(segment) + "($|_)").IsMatch(src.ToString());
         }
 
         public static CartridgeType GetById(int id) => (CartridgeType) id;

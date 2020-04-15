@@ -46,8 +46,8 @@ namespace CoreBoy.memory.cart
             Battery battery = new NullBattery();
             if (type.IsBattery() && options.IsSupportBatterySaves())
             {
-                throw new NotImplementedException("Implement battery loading");
-                // battery = new FileBattery(file.getParentFile(), FilenameUtils.removeExtension(file.getName()));
+                //throw new NotImplementedException("Implement battery loading");
+                battery = new FileBattery(file.Name);
             }
 
             if (type.IsMbc1())
