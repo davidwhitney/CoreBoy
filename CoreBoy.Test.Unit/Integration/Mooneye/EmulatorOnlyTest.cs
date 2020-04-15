@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace CoreBoy.Test.Unit.Integration.Mooneye
 {
-    [TestFixture, Timeout(1000 * 60)]
+    [TestFixture, /*Timeout(1000 * 60)*/]
     public class EmulatorOnlyTest
     {
         public static object[] RomsFrom => ParametersProvider.getParameters("mooneye/emulator-only", SearchOption.AllDirectories);

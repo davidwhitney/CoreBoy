@@ -20,9 +20,9 @@ namespace CoreBoy.Test.Unit.Integration.Support
         private readonly TextWriter os;
         private readonly ITracer _tracer;
 
-        public MooneyeTestRunner(FileInfo romFileInfo, TextWriter os, bool trace = false)
+        public MooneyeTestRunner(FileInfo romFileInfo, TextWriter os, bool trace)
         {
-            _tracer = trace ? (ITracer) new Tracer($"{romFileInfo.Name}.log") : new NullTracer();
+            _tracer = trace ? (ITracer) new Tracer(romFileInfo.Name) : new NullTracer();
 
             var opts = new List<string>();
             if (romFileInfo.ToString().EndsWith("-C.gb") || romFileInfo.ToString().EndsWith("-cgb.gb"))

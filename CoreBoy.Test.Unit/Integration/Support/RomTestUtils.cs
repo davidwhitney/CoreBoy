@@ -26,10 +26,10 @@ namespace CoreBoy.Test.Unit.Integration.Support
             Assert.True(result.Contains("Passed"));
         }
 
-        public static void testMooneyeRom(FileInfo romFileInfoInfo)
+        public static void testMooneyeRom(FileInfo romFileInfoInfo, bool trace = false)
         {
             Console.WriteLine($"\n### Running test rom {romFileInfoInfo.FullName} ###");
-            var runner = new MooneyeTestRunner(romFileInfoInfo, Console.Out);
+            var runner = new MooneyeTestRunner(romFileInfoInfo, Console.Out, trace);
             var result = runner.runTest();
             Assert.True(result);
         }

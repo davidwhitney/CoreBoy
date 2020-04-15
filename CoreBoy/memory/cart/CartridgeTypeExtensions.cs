@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace CoreBoy.memory.cart
 {
@@ -21,7 +22,13 @@ namespace CoreBoy.memory.cart
         public static bool IsTimer(this CartridgeType src) => src.NameContainsSegment("TIMER");
         public static bool IsBattery(this CartridgeType src) => src.NameContainsSegment("BATTERY");
         public static bool IsRumble(this CartridgeType src) => src.NameContainsSegment("RUMBLE");
-        private static bool NameContainsSegment(this CartridgeType src, string segment) => src.ToString().Contains($"_{segment}_");
+        private static bool NameContainsSegment(this CartridgeType src, string segment)
+        {
+            var regex = new Regex("(^|_)" + Regex.Escape(segment) + "($|_)");
+            return regex.IsMatch(src.ToString());
+            //return src.ToString().Contains($"_{segment}_");
+        }
+
         public static CartridgeType GetById(int id) => (CartridgeType) id;
     }
 }
