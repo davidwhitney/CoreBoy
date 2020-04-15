@@ -3,6 +3,7 @@ using NUnit.Framework;
 
 namespace CoreBoy.Test.Unit.Sound
 {
+    [TestFixture]
     public class LfsrTest
     {
 
