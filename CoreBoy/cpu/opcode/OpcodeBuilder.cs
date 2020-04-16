@@ -48,20 +48,20 @@ namespace CoreBoy.cpu.opcode
         {
             private readonly Argument _arg;
             public LoadOp(Argument arg) => _arg = arg;
-            public override bool readsMemory() => _arg.isMemory();
-            public override int operandLength() => _arg.getOperandLength();
+            public override bool readsMemory() => _arg.IsMemory;
+            public override int operandLength() => _arg.OperandLength;
 
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context) =>
-                _arg.read(registers, addressSpace, args);
+                _arg.Read(registers, addressSpace, args);
 
             public override string ToString() =>
-                string.Format(_arg.getDataType() == DataType.D16 ? "{0} → [__]" : "{0} → [_]", _arg.getLabel());
+                string.Format(_arg.DataType == DataType.D16 ? "{0} → [__]" : "{0} → [_]", _arg.Label);
         }
 
         public OpcodeBuilder load(string source)
         {
-            var arg = Argument.parse(source);
-            _lastDataType = arg.getDataType();
+            var arg = Argument.Parse(source);
+            _lastDataType = arg.DataType;
             _ops.Add(new LoadOp(arg));
             return this;
         }
@@ -89,8 +89,8 @@ namespace CoreBoy.cpu.opcode
         {
             private readonly Argument _arg;
             public Store_a16_Op1(Argument arg) => _arg = arg;
-            public override bool writesMemory() => _arg.isMemory();
-            public override int operandLength() => _arg.getOperandLength();
+            public override bool writesMemory() => _arg.IsMemory;
+            public override int operandLength() => _arg.OperandLength;
 
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
@@ -98,15 +98,15 @@ namespace CoreBoy.cpu.opcode
                 return context;
             }
 
-            public override string ToString() => $"[ _] → {_arg.getLabel()}";
+            public override string ToString() => $"[ _] → {_arg.Label}";
         }
 
         private class Store_a16_Op2 : Op
         {
             private readonly Argument _arg;
             public Store_a16_Op2(Argument arg) => _arg = arg;
-            public override bool writesMemory() => _arg.isMemory();
-            public override int operandLength() => _arg.getOperandLength();
+            public override bool writesMemory() => _arg.IsMemory;
+            public override int operandLength() => _arg.OperandLength;
 
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
@@ -114,38 +114,38 @@ namespace CoreBoy.cpu.opcode
                 return context;
             }
 
-            public override string ToString() => $"[_ ] → {_arg.getLabel()}";
+            public override string ToString() => $"[_ ] → {_arg.Label}";
         }
 
         private class Store_LastDataType : Op
         {
             private readonly Argument _arg;
             public Store_LastDataType(Argument arg) => _arg = arg;
-            public override bool writesMemory() => _arg.isMemory();
-            public override int operandLength() => _arg.getOperandLength();
+            public override bool writesMemory() => _arg.IsMemory;
+            public override int operandLength() => _arg.OperandLength;
 
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
             {
-                _arg.write(registers, addressSpace, args, context);
+                _arg.Write(registers, addressSpace, args, context);
                 return context;
             }
 
             public override string ToString() =>
-                string.Format(_arg.getDataType() == DataType.D16 ? "[__] → {0}" : "[_] → {0}", _arg.getLabel());
+                string.Format(_arg.DataType == DataType.D16 ? "[__] → {0}" : "[_] → {0}", _arg.Label);
         }
 
 
         public OpcodeBuilder store(string target)
         {
-            var arg = Argument.parse(target);
+            var arg = Argument.Parse(target);
 
-            if (_lastDataType == DataType.D16 && arg.getLabel() == "(a16)")
+            if (_lastDataType == DataType.D16 && arg.Label == "(a16)")
             {
                 _ops.Add(new Store_a16_Op1(arg));
                 _ops.Add(new Store_a16_Op2(arg));
 
             }
-            else if (_lastDataType == arg.getDataType())
+            else if (_lastDataType == arg.DataType)
             {
                 _ops.Add(new Store_LastDataType(arg));
             }
@@ -323,19 +323,19 @@ namespace CoreBoy.cpu.opcode
 
             public override bool readsMemory()
             {
-                return _arg2.isMemory();
+                return _arg2.IsMemory;
             }
 
 
             public override int operandLength()
             {
-                return _arg2.getOperandLength();
+                return _arg2.OperandLength;
             }
 
 
             public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int v1)
             {
-                var v2 = _arg2.read(registers, addressSpace, args);
+                var v2 = _arg2.Read(registers, addressSpace, args);
                 return _func(registers.Flags, v1, v2);
             }
 
@@ -353,8 +353,8 @@ namespace CoreBoy.cpu.opcode
 
         public OpcodeBuilder alu(string operation, string argument2)
         {
-            var arg2 = Argument.parse(argument2);
-            var func = Alu.GetFunction(operation, _lastDataType, arg2.getDataType());
+            var arg2 = Argument.Parse(argument2);
+            var func = Alu.GetFunction(operation, _lastDataType, arg2.DataType);
             _ops.Add(new Alu1(func, arg2, operation, _lastDataType));
 
             if (_lastDataType == DataType.D16)

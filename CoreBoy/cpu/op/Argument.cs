@@ -5,20 +5,15 @@ namespace CoreBoy.cpu.op
 {
 	public class Argument
     {
-        private readonly string label;
+        public string Label { get; }
+        public int OperandLength { get; }
+        public bool IsMemory { get; }
+        public DataType DataType { get; }
+        public static List<Argument> Values { get; }
 
-        private readonly int operandLength;
-
-        private readonly bool memory;
-
-        private readonly DataType dataType;
-
-        private static readonly List<Argument> _values;
-        
-        public static List<Argument> values() => _values;
         static Argument()
         {
-            _values = new List<Argument>
+            Values = new List<Argument>
             {
                 new Argument("A").Handle((r, a, args) => r.A, (r, a, i1, value) => r.A = value),
                 new Argument("B").Handle((r, a, args) => r.B, (r, a, i1, value) => r.B = value),
@@ -87,16 +82,17 @@ namespace CoreBoy.cpu.op
         private Func<Registers, AddressSpace, int[], int> _readFunc;
         private Action<Registers, AddressSpace, int[], int> _writeAction;
 
-        public Argument(string label) : this(label, 0, false, DataType.D8)
+        public Argument(string label) 
+            : this(label, 0, false, DataType.D8)
         {
         }
 
-        public Argument(string label, int operandLength, bool memory, DataType dataType)
+        public Argument(string label, int operandLength, bool isMemory, DataType dataType)
         {
-            this.label = label;
-            this.operandLength = operandLength;
-            this.memory = memory;
-            this.dataType = dataType;
+            Label = label;
+            OperandLength = operandLength;
+            IsMemory = isMemory;
+            DataType = dataType;
         }
 
 		public Argument Handle(Func<Registers, AddressSpace, int[], int> readFunc, Action<Registers, AddressSpace, int[], int> writeAction)
@@ -106,40 +102,20 @@ namespace CoreBoy.cpu.op
             return this;
         }
 
-        public int getOperandLength()
-        {
-            return operandLength;
-        }
+        public int Read(Registers registers, AddressSpace addressSpace, int[] args) => _readFunc(registers, addressSpace, args);
+        public void Write(Registers registers, AddressSpace addressSpace, int[] args, int value) => _writeAction(registers, addressSpace, args, value);
 
-        public bool isMemory()
+        public static Argument Parse(string @string)
         {
-            return memory;
-        }
-
-		public int read(Registers registers, AddressSpace addressSpace, int[] args) => _readFunc(registers, addressSpace, args);
-        public void write(Registers registers, AddressSpace addressSpace, int[] args, int value) => _writeAction(registers, addressSpace, args, value);
-
-        public DataType getDataType()
-        {
-            return dataType;
-        }
-
-        public static Argument parse(string @string)
-        {
-            foreach (var a in values())
+            foreach (var a in Values)
             {
-                if (a.label.Equals(@string))
+                if (a.Label.Equals(@string))
                 {
                     return a;
                 }
             }
 
             throw new ArgumentException("Unknown argument: " + @string);
-        }
-
-        public string getLabel()
-        {
-            return label;
         }
     }
 }
