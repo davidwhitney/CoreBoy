@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace CoreBoy.Test.Integration.Blargg.Individual
 {
-    [TestFixture, Timeout(1000 * 60 * 1)]
+    [TestFixture, Timeout(1000 * 60 * 3)]
     public class OamBug2Test
     {
         public static object[] RomsFrom => ParametersProvider.getParameters("blargg/oam_bug-2");

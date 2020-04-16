@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace CoreBoy.Test.Integration.Mooneye
 {
+    [Ignore("JVMFailed")]
     [TestFixture, Timeout(1000 * 60)]
     public class InterruptsTest
     {

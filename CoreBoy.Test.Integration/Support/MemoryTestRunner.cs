@@ -11,42 +11,51 @@ namespace CoreBoy.Test.Integration.Support
 {
     public class MemoryTestRunner
     {
-        private readonly Gameboy gb;
-        private readonly StringBuilder text;
-        private readonly TextWriter os;
-        private bool testStarted;
+        private readonly Gameboy _gb;
+        private readonly StringBuilder _text;
+        private readonly TextWriter _os;
+        private bool _testStarted;
+        private ITracer _tracer;
 
-        public MemoryTestRunner(FileInfo romFileInfo, TextWriter os)
+        public MemoryTestRunner(FileInfo romFileInfo, TextWriter os, bool trace = false)
         {
+            _tracer = trace ? (ITracer)new Tracer(romFileInfo.Name) : new NullTracer();
+
             var options = new GameboyOptions(romFileInfo);
             var cart = new Cartridge(options);
-            gb = new Gameboy(options, cart, new NullDisplay(), new NullController(), new NullSoundOutput(),
+            _gb = new Gameboy(options, cart, new NullDisplay(), new NullController(), new NullSoundOutput(),
                 new NullSerialEndpoint());
-            text = new StringBuilder();
-            this.os = os;
+            _text = new StringBuilder();
+            this._os = os;
         }
 
-        public TestResult runTest()
+        public TestResult RunTest()
         {
+            _tracer.Collect(_gb.Cpu.Registers);
+
             int status = 0x80;
             int divider = 0;
-            while (status == 0x80 && !SerialTestRunner.IsInfiniteLoop(gb))
+            while (status == 0x80 && !SerialTestRunner.IsInfiniteLoop(_gb))
             {
-                gb.Tick();
-                if (++divider >= (gb.SpeedMode.GetSpeedMode() == 2 ? 1 : 4))
+                _gb.Tick();
+                if (++divider >= (_gb.SpeedMode.GetSpeedMode() == 2 ? 1 : 4))
                 {
-                    status = getTestResult(gb);
+                    status = GetTestResult(_gb);
                     divider = 0;
                 }
+                
+                _tracer.Collect(_gb.Cpu.Registers);
             }
 
-            return new TestResult(status, text.ToString());
+            _tracer.Save();
+
+            return new TestResult(status, _text.ToString());
         }
 
-        private int getTestResult(Gameboy gb)
+        private int GetTestResult(Gameboy gb)
         {
             IAddressSpace mem = gb.Mmu;
-            if (!testStarted)
+            if (!_testStarted)
             {
                 var i = 0xa000;
                 foreach (var v in new[] {0x80, 0xde, 0xb0, 0x61})
@@ -57,7 +66,7 @@ namespace CoreBoy.Test.Integration.Support
                     }
                 }
 
-                testStarted = true;
+                _testStarted = true;
             }
 
             int status = mem.GetByte(0xa000);
@@ -79,8 +88,8 @@ namespace CoreBoy.Test.Integration.Support
             }
 
             var c = (char) reg.A;
-            text.Append(c);
-            os?.Write(c);
+            _text.Append(c);
+            _os?.Write(c);
 
             reg.PC += 0x19;
             return status;
@@ -89,24 +98,24 @@ namespace CoreBoy.Test.Integration.Support
         public class TestResult
         {
 
-            private readonly int status;
+            private readonly int _status;
 
-            private readonly string text;
+            private readonly string _text;
 
             public TestResult(int status, string text)
             {
-                this.status = status;
-                this.text = text;
+                this._status = status;
+                this._text = text;
             }
 
-            public int getStatus()
+            public int GetStatus()
             {
-                return status;
+                return _status;
             }
 
-            public string getText()
+            public string GetText()
             {
-                return text;
+                return _text;
             }
         }
     }

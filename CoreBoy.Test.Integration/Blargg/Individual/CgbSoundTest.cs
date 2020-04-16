@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace CoreBoy.Test.Integration.Blargg.Individual
 {
-    [TestFixture, Timeout(1000 * 60)]
+    [TestFixture, Timeout(1000 * 60 * 5)]
     public class CgbSoundTest
     {
         public static object[] RomsFrom => ParametersProvider.getParameters("blargg\\cgb_sound");

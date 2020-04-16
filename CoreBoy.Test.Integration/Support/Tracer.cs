@@ -7,21 +7,27 @@ namespace CoreBoy.Test.Integration.Support
     public class Tracer : ITracer
     {
         private int Counter { set; get; }
-        private readonly string _filename;
         private readonly StringBuilder _log;
+        private readonly StreamWriter _outputFile;
 
         public Tracer(string filename)
         {
-            _filename = filename;
             _log = new StringBuilder();
+            _outputFile = new StreamWriter($"{filename}.csharp.log") {AutoFlush = true};
         }
 
         public void Collect(Registers state)
         {
+            _outputFile.WriteLine(state.ToString());
+
+            if (Counter % 10000 == 0)
+            {
+                _outputFile.Flush();
+            }
+
             Counter++;
-            _log.AppendLine(state.ToString());
         }
 
-        public void Save() => File.WriteAllText(_filename + ".csharp.log", _log.ToString());
+        public void Save() => _outputFile.Flush();
     }
 }

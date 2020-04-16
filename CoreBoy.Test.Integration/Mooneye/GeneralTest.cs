@@ -13,6 +13,8 @@ namespace CoreBoy.Test.Integration.Mooneye
         [TestCaseSource(nameof(RomsFrom))]
         public void Execute(string filePath)
         {
+            // 9 JVM failures.
+
             var rom = new FileInfo(filePath);
             RomTestUtils.testMooneyeRom(rom);
         }

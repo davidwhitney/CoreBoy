@@ -6,14 +6,14 @@ namespace CoreBoy.Test.Integration.Support
 {
     public class RomTestUtils
     {
-        public static void testRomWithMemory(FileInfo romFileInfoInfo)
+        public static void testRomWithMemory(FileInfo romFileInfoInfo, bool trace = false)
         {
             Console.WriteLine($"\n### Running test rom {romFileInfoInfo.FullName} ###");
-            var runner = new MemoryTestRunner(romFileInfoInfo, Console.Out);
+            var runner = new MemoryTestRunner(romFileInfoInfo, Console.Out, trace);
 
-            var result = runner.runTest();
+            var result = runner.RunTest();
 
-            Assert.AreEqual(0, result.getStatus(), "Non-zero return value");
+            Assert.AreEqual(0, result.GetStatus(), "Non-zero return value");
         }
 
         public static void testRomWithSerial(FileInfo romFileInfoInfo, bool trace = false)
