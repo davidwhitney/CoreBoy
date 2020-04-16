@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace CoreBoy.Test.Unit.GPU
 {
-    [TestFixture]
+    [TestFixture, Parallelizable(ParallelScope.None)]
     public class PixelFifoTest
     {
         private DmgPixelFifo _fifo; 

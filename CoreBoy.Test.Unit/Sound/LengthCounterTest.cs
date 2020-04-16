@@ -2,6 +2,7 @@
 
 namespace CoreBoy.Test.Unit.Sound
 {
+    [TestFixture, Parallelizable(ParallelScope.None)]
     public class LengthCounterTest : AbstractLengthCounterTest
     {
 

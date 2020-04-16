@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace CoreBoy.Test.Unit.Memory.Cart.Rtc
 {
+    [TestFixture, Parallelizable(ParallelScope.None)]
     public class RealTimeClockTest
     {
         private RealTimeClock _rtc;

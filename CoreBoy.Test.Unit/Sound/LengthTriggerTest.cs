@@ -1,7 +1,9 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 
 namespace CoreBoy.Test.Unit.Sound
 {
+    [TestFixture, Parallelizable(ParallelScope.None)]
     public class LengthTriggerTest : AbstractLengthCounterTest
     {
 
