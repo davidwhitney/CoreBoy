@@ -1,8 +1,10 @@
+using CoreBoy.gui;
+
 namespace CoreBoy.gpu
 {
     public delegate void FrameProducedEventHandler(object sender, byte[] frameData);
 
-    public interface IDisplay
+    public interface IDisplay : IRunnable
     {
         event FrameProducedEventHandler OnFrameProduced;
 

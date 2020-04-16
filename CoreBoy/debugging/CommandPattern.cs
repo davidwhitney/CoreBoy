@@ -128,7 +128,7 @@ public class CommandPattern {
         return split;*/
     }
 
-    public String ToString() {
+    public override String ToString() {
         return String.Format("CommandPattern[%s]", commandNames.ToString());
     }
 

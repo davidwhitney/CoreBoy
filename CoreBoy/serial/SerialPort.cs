@@ -1,98 +1,81 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using CoreBoy.cpu;
 
 namespace CoreBoy.serial
 {
-
-
     public class SerialPort : AddressSpace
     {
-
-        // private static readonly Logger LOG = LoggerFactory.getLogger(SerialPort.class);
-
-        private readonly SerialEndpoint serialEndpoint;
-
-        private readonly InterruptManager interruptManager;
-
-        private readonly SpeedMode speedMode;
-
-        private int sb;
-
-        private int sc;
-
-        private bool transferInProgress;
-
-        private int divider;
+        private readonly SerialEndpoint _serialEndpoint;
+        private readonly InterruptManager _interruptManager;
+        private readonly SpeedMode _speedMode;
+        private int _sb;
+        private int _sc;
+        private bool _transferInProgress;
+        private int _divider;
 
         public SerialPort(InterruptManager interruptManager, SerialEndpoint serialEndpoint, SpeedMode speedMode)
         {
-            this.interruptManager = interruptManager;
-            this.serialEndpoint = serialEndpoint;
-            this.speedMode = speedMode;
+            _interruptManager = interruptManager;
+            _serialEndpoint = serialEndpoint;
+            _speedMode = speedMode;
         }
 
-        public void tick()
+        public void Tick()
         {
-            if (!transferInProgress)
+            if (!_transferInProgress)
             {
                 return;
             }
             
-            //if (++divider >= Gameboy.TICKS_PER_SEC / 8192 / speedMode.getSpeedMode())
-            int TICKS_PER_SEC = 4_194_304;
-            if (++divider >= TICKS_PER_SEC / 8192 / speedMode.GetSpeedMode())
+            if (++_divider >= Gameboy.TicksPerSec / 8192 / _speedMode.GetSpeedMode())
             {
-                transferInProgress = false;
+                _transferInProgress = false;
                 try
                 {
-                    sb = serialEndpoint.transfer(sb);
+                    _sb = _serialEndpoint.transfer(_sb);
                 }
                 catch (IOException e)
                 {
-                    //LOG.error("Can't transfer byte", e);
-                    sb = 0;
+                    Debug.WriteLine($"Can't transfer byte {e}");
+                    _sb = 0;
                 }
 
-                interruptManager.RequestInterrupt(InterruptManager.InterruptType.Serial);
+                _interruptManager.RequestInterrupt(InterruptManager.InterruptType.Serial);
             }
         }
-
 
         public bool accepts(int address)
         {
             return address == 0xff01 || address == 0xff02;
         }
-
         
-
         public void setByte(int address, int value)
         {
             if (address == 0xff01)
             {
-                sb = value;
+                _sb = value;
             }
             else if (address == 0xff02)
             {
-                sc = value;
-                if ((sc & (1 << 7)) != 0)
+                _sc = value;
+                if ((_sc & (1 << 7)) != 0)
                 {
-                    startTransfer();
+                    StartTransfer();
                 }
             }
         }
-
-        
 
         public int getByte(int address)
         {
             if (address == 0xff01)
             {
-                return sb;
+                return _sb;
             }
             else if (address == 0xff02)
             {
-                return sc | 0b01111110;
+                return _sc | 0b01111110;
             }
             else
             {
@@ -100,10 +83,10 @@ namespace CoreBoy.serial
             }
         }
 
-        private void startTransfer()
+        private void StartTransfer()
         {
-            transferInProgress = true;
-            divider = 0;
+            _transferInProgress = true;
+            _divider = 0;
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using CoreBoy.controller;
 using CoreBoy.gpu;
 using CoreBoy.memory.cart;
@@ -19,11 +20,12 @@ namespace CoreBoy.gui
         public IController Controller { get; set; } = new NullController();
         public SerialEndpoint SerialEndpoint { get; set; } = new NullSerialEndpoint();
         public GameboyOptions Options { get; set; }
-        private readonly List<Thread> _runnables;
+
+        private readonly List<Task> _runnables;
 
         public Emulator(string[] args, string properties)
         {
-            _runnables = new List<Thread>();
+            _runnables = new List<Task>();
             Options = ParseArgs(args);
         }
         
@@ -86,29 +88,30 @@ namespace CoreBoy.gui
             return new GameboyOptions(romFile, longParams, shortParams);
         }
 
-        public void Run()
+        public void Run(CancellationToken token)
         {
             var rom = new Cartridge(Options);
             Gameboy = CreateGameboy(rom);
 
             if (Options.Headless)
             {
-                Gameboy.Run();
+                Gameboy.Run(token);
                 return;
             }
+
             
             if (Display is IRunnable runnableDisplay)
             {
-                _runnables.Add(new Thread(() => runnableDisplay.Run()));
+                _runnables.Add(new Task(()=>runnableDisplay.Run(token), token, TaskCreationOptions.LongRunning));
             }
 
-            _runnables.Add(new Thread(() => Gameboy.Run()));
-            _runnables.ForEach(t => t.Start());
-        }
+            _runnables.Add(
+                new Task(() => Gameboy.Run(token),
+                    token,
+                    TaskCreationOptions.LongRunning)
+            );
 
-        public void Stop()
-        {
-            //_runnables.ForEach(t => t.Abort());
+            _runnables.ForEach(t => t.Start());
         }
 
         private Gameboy CreateGameboy(Cartridge rom)

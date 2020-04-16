@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using CoreBoy.controller;
 using CoreBoy.cpu;
@@ -18,6 +18,8 @@ namespace CoreBoy
 
         public Mmu Mmu { get; }
         public Cpu Cpu { get; }
+        public SpeedMode SpeedMode { get; }
+
         private readonly Gpu _gpu;
         private readonly Timer _timer;
         private readonly Dma _dma;
@@ -25,35 +27,38 @@ namespace CoreBoy
         private readonly IDisplay _display;
         private readonly Sound _sound;
         private readonly SerialPort _serialPort;
+        private readonly InterruptManager _interruptManager;
 
         private readonly bool _gbc;
-        public SpeedMode SpeedMode { get; }
 
-        private volatile bool _doStop;
-
-        private readonly List<Thread> _tickListeners = new List<Thread>();
-
-        public Gameboy(GameboyOptions options, Cartridge rom, IDisplay display, IController controller,
-            SoundOutput soundOutput, SerialEndpoint serialEndpoint)
+        public Gameboy(
+            GameboyOptions options, 
+            Cartridge rom, 
+            IDisplay display, 
+            IController controller,
+            SoundOutput soundOutput,
+            SerialEndpoint serialEndpoint)
         {
             _display = display;
             _gbc = rom.Gbc;
             SpeedMode = new SpeedMode();
-            var interruptManager = new InterruptManager(_gbc);
-            _timer = new Timer(interruptManager, SpeedMode);
+
+            _interruptManager = new InterruptManager(_gbc);
+            _timer = new Timer(_interruptManager, SpeedMode);
             Mmu = new Mmu();
 
             var oamRam = new Ram(0xfe00, 0x00a0);
 
             _dma = new Dma(Mmu, oamRam, SpeedMode);
-            _gpu = new Gpu(display, interruptManager, _dma, oamRam, _gbc);
+            _gpu = new Gpu(display, _interruptManager, _dma, oamRam, _gbc);
             _hdma = new Hdma(Mmu);
             _sound = new Sound(soundOutput, _gbc);
-            _serialPort = new SerialPort(interruptManager, serialEndpoint, SpeedMode);
+            _serialPort = new SerialPort(_interruptManager, serialEndpoint, SpeedMode);
+
             Mmu.addAddressSpace(rom);
             Mmu.addAddressSpace(_gpu);
-            Mmu.addAddressSpace(new Joypad(interruptManager, controller));
-            Mmu.addAddressSpace(interruptManager);
+            Mmu.addAddressSpace(new Joypad(_interruptManager, controller));
+            Mmu.addAddressSpace(_interruptManager);
             Mmu.addAddressSpace(_serialPort);
             Mmu.addAddressSpace(_timer);
             Mmu.addAddressSpace(_dma);
@@ -75,9 +80,9 @@ namespace CoreBoy
             Mmu.addAddressSpace(new Ram(0xff80, 0x7f));
             Mmu.addAddressSpace(new ShadowAddressSpace(Mmu, 0xe000, 0xc000, 0x1e00));
 
-            Cpu = new Cpu(Mmu, interruptManager, _gpu, display, SpeedMode);
+            Cpu = new Cpu(Mmu, _interruptManager, _gpu, display, SpeedMode);
 
-            interruptManager.DisableInterrupts(false);
+            _interruptManager.DisableInterrupts(false);
             
             if (!options.UseBootstrap)
             {
@@ -102,12 +107,12 @@ namespace CoreBoy
             registers.PC = 0x0100;
         }
 
-        public void Run()
+        public void Run(CancellationToken token)
         {
             var requestedScreenRefresh = false;
             var lcdDisabled = false;
-            _doStop = false;
-            while (!_doStop)
+            
+            while (!token.IsCancellationRequested)
             {
                 var newMode = Tick();
                 if (newMode.HasValue)
@@ -138,14 +143,7 @@ namespace CoreBoy
                     requestedScreenRefresh = false;
                     _display.WaitForRefresh();
                 }
-
-                _tickListeners.ForEach(thread => thread.Start());
             }
-        }
-
-        public void Stop()
-        {
-            _doStop = true;
         }
 
         public Gpu.Mode? Tick()
@@ -162,7 +160,7 @@ namespace CoreBoy
 
             _dma.Tick();
             _sound.tick();
-            _serialPort.tick();
+            _serialPort.Tick();
             return _gpu.Tick();
         }
     }

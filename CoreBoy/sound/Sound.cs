@@ -46,16 +46,17 @@ namespace CoreBoy.sound
                 return;
             }
 
-            for (int i = 0; i < allModes.Length; i++)
+            for (var i = 0; i < allModes.Length; i++)
             {
-                AbstractSoundMode m = allModes[i];
-                channels[i] = m.tick();
+                var abstractSoundMode = allModes[i];
+                var channel = abstractSoundMode.tick();
+                channels[i] = channel;
             }
 
-            int selection = r.getByte(0xff25);
-            int left = 0;
-            int right = 0;
-            for (int i = 0; i < 4; i++)
+            var selection = r.getByte(0xff25);
+            var left = 0;
+            var right = 0;
+            for (var i = 0; i < 4; i++)
             {
                 if (!overridenEnabled[i])
                 {
@@ -76,7 +77,7 @@ namespace CoreBoy.sound
             left /= 4;
             right /= 4;
 
-            int volumes = r.getByte(0xff24);
+            var volumes = r.getByte(0xff24);
             left *= ((volumes >> 4) & 0b111);
             right *= (volumes & 0b111);
 

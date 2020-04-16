@@ -10,7 +10,8 @@ namespace CoreBoy.sound
         // Replace with eu.rekawek.coffeegb.Gameboy.TICKS_PER_SEC...
         public static readonly int TICKS_PER_SEC = 4_194_304;
 
-        private int DIVIDER = TICKS_PER_SEC / 256;
+        //private int DIVIDER = TICKS_PER_SEC / 256;
+        private int DIVIDER = 16_384;
 
         private int fullLength;
 

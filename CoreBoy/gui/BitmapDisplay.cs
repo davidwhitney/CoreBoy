@@ -16,7 +16,6 @@ namespace CoreBoy.gui
         private readonly int[] _rgb;
         public bool Enabled { get; set; }
         private int _scale;
-        private bool _doStop;
         private bool _doRefresh;
         private int _i;
 
@@ -94,15 +93,18 @@ namespace CoreBoy.gui
             Enabled = false;
         }
         
-        public void Run()
+        public void Run(CancellationToken token)
         {
-            _doStop = false;
             _doRefresh = false;
             Enabled = true;
             
-            while (!_doStop)
+            while (!token.IsCancellationRequested)
             {
-                if (!_doRefresh) continue;
+                if (!_doRefresh)
+                {
+                    Thread.Sleep(10);
+                    continue;
+                }
 
                 var pixels = new Image<Rgba32>(DisplayWidth, DisplayHeight);
 
@@ -145,11 +147,6 @@ namespace CoreBoy.gui
                     _doRefresh = false;
                 }
             }
-        }
-
-        public void Stop()
-        {
-            _doStop = true;
         }
     }
 }

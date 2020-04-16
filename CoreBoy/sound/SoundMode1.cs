@@ -60,19 +60,19 @@ namespace CoreBoy.sound
             return lastOutput * volumeEnvelope.getVolume();
         }
 
-        protected void setNr0(int value)
+        protected override void setNr0(int value)
         {
             base.setNr0(value);
             frequencySweep.setNr10(value);
         }
 
-        protected void setNr1(int value)
+        protected override void setNr1(int value)
         {
             base.setNr1(value);
             length.setLength(64 - (value & 0b00111111));
         }
 
-        protected void setNr2(int value)
+        protected override void setNr2(int value)
         {
             base.setNr2(value);
             volumeEnvelope.setNr2(value);
@@ -80,13 +80,13 @@ namespace CoreBoy.sound
             channelEnabled &= dacEnabled;
         }
 
-        protected void setNr3(int value)
+        protected override void setNr3(int value)
         {
             base.setNr3(value);
             frequencySweep.setNr13(value);
         }
 
-        protected void setNr4(int value)
+        protected override void setNr4(int value)
         {
             base.setNr4(value);
             frequencySweep.setNr14(value);

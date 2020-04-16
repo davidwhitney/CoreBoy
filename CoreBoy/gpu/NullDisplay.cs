@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace CoreBoy.gpu
 {
     public class NullDisplay : IDisplay
@@ -25,6 +27,10 @@ namespace CoreBoy.gpu
         }
 
         public void DisableLcd()
+        {
+        }
+
+        public void Run(CancellationToken token)
         {
         }
     }

@@ -15,16 +15,21 @@ namespace CoreBoy
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
 
+            var cancellationTokenSource = new CancellationTokenSource();
+            var token = cancellationTokenSource.Token;
+
             var properties = LoadProperties();
             var emulator = new Emulator(args, properties);
             var ui = new WinFormsEmulatorSurface();
 
             emulator.Controller = ui;
             emulator.Display.OnFrameProduced += ui.UpdateDisplay;
-            ui.Closed += (sender, e) => { emulator.Stop(); };
+            ui.Closed += (sender, e) =>
+            {
+                cancellationTokenSource.Cancel();
+            };
 
-
-            new Thread(emulator.Run).Start();
+            emulator.Run(token);
             Application.Run(ui);
         }
 
