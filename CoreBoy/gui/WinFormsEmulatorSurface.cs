@@ -28,14 +28,14 @@ namespace CoreBoy.gui
 
             _controls = new Dictionary<Keys, Button>
             {
-                {Keys.Left, Button.LEFT},
-                {Keys.Right, Button.RIGHT},
-                {Keys.Up, Button.UP},
-                {Keys.Down, Button.DOWN},
+                {Keys.Left, Button.Left},
+                {Keys.Right, Button.Right},
+                {Keys.Up, Button.Up},
+                {Keys.Down, Button.Down},
                 {Keys.Z, Button.A},
                 {Keys.X, Button.B},
-                {Keys.Enter, Button.START},
-                {Keys.Back, Button.SELECT}
+                {Keys.Enter, Button.Start},
+                {Keys.Back, Button.Select}
             };
 
             KeyDown += WinFormsEmulatorSurface_KeyDown;

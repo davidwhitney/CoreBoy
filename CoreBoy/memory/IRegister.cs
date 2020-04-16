@@ -2,7 +2,7 @@ namespace CoreBoy.memory
 {
     public interface IRegister
     {
-        int GetAddress();
-        RegisterType GetRegisterType();
+        int Address { get; }
+        RegisterType Type { get; }
     }
 }

@@ -30,9 +30,9 @@ namespace CoreBoy.controller
             int result = p1 | 0b11001111;
             foreach (var b in buttons.Keys)
             {
-                if ((b.getLine() & p1) == 0)
+                if ((b.Line & p1) == 0)
                 {
-                    result &= 0xff & ~b.getMask();
+                    result &= 0xff & ~b.Mask;
                 }
             }
 

@@ -18,17 +18,14 @@ namespace CoreBoy.gpu
         public static GpuRegister VBK = new GpuRegister(0xff4f, RegisterType.W);
 
         public int Address { get; }
-        public RegisterType Type { get;  }
+        public RegisterType Type { get; }
 
         public GpuRegister(int address, RegisterType type)
         {
             Address = address;
             Type = type;
         }
-
-        public int GetAddress() => Address;
-        public RegisterType GetRegisterType() => Type;
-
+        
         public static IEnumerable<IRegister> Values()
         {
             yield return STAT;

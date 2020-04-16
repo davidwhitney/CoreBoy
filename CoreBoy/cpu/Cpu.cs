@@ -331,7 +331,7 @@ namespace CoreBoy.cpu
                 return;
             }
 
-            var stat = _addressSpace.getByte(GpuRegister.STAT.GetAddress());
+            var stat = _addressSpace.getByte(GpuRegister.STAT.Address);
             if ((stat & 0b11) == (int) Gpu.Mode.OamSearch && _gpu.GetTicksInLine() < 79)
             {
                 SpriteBug.CorruptOam(_addressSpace, type, _gpu.GetTicksInLine());

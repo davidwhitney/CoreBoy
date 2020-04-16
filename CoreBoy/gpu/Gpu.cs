@@ -114,7 +114,7 @@ namespace CoreBoy.gpu
 
         public void setByte(int address, int value)
         {
-            if (address == GpuRegister.STAT.GetAddress())
+            if (address == GpuRegister.STAT.Address)
             {
                 SetStat(value);
                 return;
@@ -132,7 +132,7 @@ namespace CoreBoy.gpu
 
         public int getByte(int address)
         {
-            if (address == GpuRegister.STAT.GetAddress())
+            if (address == GpuRegister.STAT.Address)
             {
                 return GetStat();
             }
@@ -143,7 +143,7 @@ namespace CoreBoy.gpu
                 return 0xff;
             }
 
-            if (address == GpuRegister.VBK.GetAddress())
+            if (address == GpuRegister.VBK.Address)
             {
                 return _gbc ? 0xfe : 0xff;
             }
