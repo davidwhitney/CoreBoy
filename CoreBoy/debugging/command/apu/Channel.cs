@@ -3,32 +3,31 @@ using CoreBoy.sound;
 
 namespace CoreBoy.debugging.command.apu
 {
-    public class Channel : Command
+    public class Channel : ICommand
     {
-
-        private static readonly CommandPattern PATTERN = CommandPattern.Builder
+        private static readonly CommandPattern Pattern = CommandPattern.Builder
             .Create("apu chan")
             .WithDescription("enable given channels (1-4)")
             .Build();
 
-        private readonly Sound sound;
+        private readonly Sound _sound;
 
         public Channel(Sound sound)
         {
-            this.sound = sound;
+            _sound = sound;
         }
 
-        public CommandPattern getPattern()
+        public CommandPattern GetPattern()
         {
-            return PATTERN;
+            return Pattern;
         }
 
-        public void run(CommandPattern.ParsedCommandLine commandLine)
+        public void Run(CommandPattern.ParsedCommandLine commandLine)
         {
             var channels = new HashSet<string>(commandLine.GetRemainingArguments());
             for (var i = 1; i <= 4; i++)
             {
-                sound.enableChannel(i - 1, channels.Contains(i.ToString()));
+                _sound.EnableChannel(i - 1, channels.Contains(i.ToString()));
             }
         }
     }

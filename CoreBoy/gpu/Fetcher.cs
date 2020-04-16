@@ -110,7 +110,7 @@ namespace CoreBoy.gpu
         {
             _sprite = sprite;
             _state = State.ReadSpriteTileId;
-            _spriteTileLine = _r.Get(LY) + 16 - sprite.getY();
+            _spriteTileLine = _r.Get(Ly) + 16 - sprite.GetY();
             _spriteOffset = offset;
             _spriteOamIndex = oamIndex;
         }
@@ -171,12 +171,12 @@ namespace CoreBoy.gpu
                     break;
 
                 case State.ReadSpriteTileId:
-                    _tileId = _oemRam.GetByte(_sprite.getAddress() + 2);
+                    _tileId = _oemRam.GetByte(_sprite.GetAddress() + 2);
                     _state = State.ReadSpriteFlags;
                     break;
 
                 case State.ReadSpriteFlags:
-                    _spriteAttributes = TileAttributes.ValueOf(_oemRam.GetByte(_sprite.getAddress() + 3));
+                    _spriteAttributes = TileAttributes.ValueOf(_oemRam.GetByte(_sprite.GetAddress() + 3));
                     _state = State.ReadSpriteData1;
                     break;
 

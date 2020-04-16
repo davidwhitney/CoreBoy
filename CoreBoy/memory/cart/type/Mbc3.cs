@@ -9,14 +9,14 @@ namespace CoreBoy.memory.cart.type
         private readonly int[] _cartridge;
         private readonly int[] _ram;
         private readonly RealTimeClock _clock;
-        private readonly Battery _battery;
+        private readonly IBattery _battery;
         private int _selectedRamBank;
         private int _selectedRomBank = 1;
         private bool _ramWriteEnabled;
         private int _latchClockReg = 0xff;
         private bool _clockLatched;
 
-        public Mbc3(int[] cartridge, CartridgeType type, Battery battery, int romBanks, int ramBanks)
+        public Mbc3(int[] cartridge, CartridgeType type, IBattery battery, int romBanks, int ramBanks)
         {
             _cartridge = cartridge;
             _ram = new int[0x2000 * Math.Max(ramBanks, 1)];
@@ -25,12 +25,12 @@ namespace CoreBoy.memory.cart.type
                 _ram[i] = 0xff;
             }
 
-            _clock = new RealTimeClock(Clock.SYSTEM_CLOCK);
+            _clock = new RealTimeClock(Clock.SystemClock);
             _battery = battery;
 
             var clockData = new long[12];
-            battery.loadRamWithClock(_ram, clockData);
-            _clock.deserialize(clockData);
+            battery.LoadRamWithClock(_ram, clockData);
+            _clock.Deserialize(clockData);
         }
 
 
@@ -48,7 +48,7 @@ namespace CoreBoy.memory.cart.type
                 _ramWriteEnabled = (value & 0b1010) != 0;
                 if (!_ramWriteEnabled)
                 {
-                    _battery.saveRamWithClock(_ram, _clock.serialize());
+                    _battery.SaveRamWithClock(_ram, _clock.Serialize());
                 }
             }
             else if (address >= 0x2000 && address < 0x4000)
@@ -66,12 +66,12 @@ namespace CoreBoy.memory.cart.type
                 {
                     if (_clockLatched)
                     {
-                        _clock.unlatch();
+                        _clock.Unlatch();
                         _clockLatched = false;
                     }
                     else
                     {
-                        _clock.latch();
+                        _clock.Latch();
                         _clockLatched = true;
                     }
                 }
@@ -158,21 +158,21 @@ namespace CoreBoy.memory.cart.type
             switch (_selectedRamBank)
             {
                 case 0x08:
-                    return _clock.getSeconds();
+                    return _clock.GetSeconds();
 
                 case 0x09:
-                    return _clock.getMinutes();
+                    return _clock.GetMinutes();
 
                 case 0x0a:
-                    return _clock.getHours();
+                    return _clock.GetHours();
 
                 case 0x0b:
-                    return _clock.getDayCounter() & 0xff;
+                    return _clock.GetDayCounter() & 0xff;
 
                 case 0x0c:
-                    var result = ((_clock.getDayCounter() & 0x100) >> 8);
-                    result |= _clock.isHalt() ? (1 << 6) : 0;
-                    result |= _clock.isCounterOverflow() ? (1 << 7) : 0;
+                    var result = ((_clock.GetDayCounter() & 0x100) >> 8);
+                    result |= _clock.IsHalt() ? (1 << 6) : 0;
+                    result |= _clock.IsCounterOverflow() ? (1 << 7) : 0;
                     return result;
             }
 
@@ -181,31 +181,31 @@ namespace CoreBoy.memory.cart.type
 
         private void SetTimer(int value)
         {
-            var dayCounter = _clock.getDayCounter();
+            var dayCounter = _clock.GetDayCounter();
             switch (_selectedRamBank)
             {
                 case 0x08:
-                    _clock.setSeconds(value);
+                    _clock.SetSeconds(value);
                     break;
 
                 case 0x09:
-                    _clock.setMinutes(value);
+                    _clock.SetMinutes(value);
                     break;
 
                 case 0x0a:
-                    _clock.setHours(value);
+                    _clock.SetHours(value);
                     break;
 
                 case 0x0b:
-                    _clock.setDayCounter((dayCounter & 0x100) | (value & 0xff));
+                    _clock.SetDayCounter((dayCounter & 0x100) | (value & 0xff));
                     break;
 
                 case 0x0c:
-                    _clock.setDayCounter((dayCounter & 0xff) | ((value & 1) << 8));
-                    _clock.setHalt((value & (1 << 6)) != 0);
+                    _clock.SetDayCounter((dayCounter & 0xff) | ((value & 1) << 8));
+                    _clock.SetHalt((value & (1 << 6)) != 0);
                     if ((value & (1 << 7)) == 0)
                     {
-                        _clock.clearCounterOverflow();
+                        _clock.ClearCounterOverflow();
                     }
 
                     break;

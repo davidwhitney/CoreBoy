@@ -6,7 +6,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace CoreBoy.gui
 {
-    public class BitmapDisplay : IDisplay, IRunnable
+    public class BitmapDisplay : IDisplay
     {
         public static readonly int DisplayWidth = 160;
         public static readonly int DisplayHeight = 144;
@@ -23,18 +23,8 @@ namespace CoreBoy.gui
         public event FrameProducedEventHandler OnFrameProduced;
 
         private byte[] _currentScreenBytes = { };
-        public byte[] CurrentScreenBytes
-        {
-            get
-            {
-                lock (_currentScreenBytes)
-                {
-                    return _currentScreenBytes;
-                }
-            }
-        }
         
-        public BitmapDisplay(int scale)
+        public BitmapDisplay()
         {
             _rgb = new int[DisplayWidth * DisplayHeight];
         }
@@ -44,8 +34,7 @@ namespace CoreBoy.gui
             _rgb[_i++] = Colors[color];
             _i = _i % _rgb.Length;
         }
-
-
+        
         public void PutColorPixel(int gbcRgb)
         {
             _rgb[_i++] = TranslateGbcRgb(gbcRgb);

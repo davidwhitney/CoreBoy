@@ -7,8 +7,8 @@ namespace CoreBoy.cpu
 {
     public class Opcodes
     {
-        public readonly List<Opcode> COMMANDS;
-        public readonly List<Opcode> EXT_COMMANDS;
+        public List<Opcode> Commands { get; }
+        public List<Opcode> ExtCommands { get; }
 
         public Opcodes()
         {
@@ -216,8 +216,8 @@ namespace CoreBoy.cpu
             commands.AddRange(opcodes.Select(b => b?.Build()));
             extCommands.AddRange(extOpcodes.Select(b => b?.Build()));
 
-            COMMANDS = commands;
-            EXT_COMMANDS = extCommands;
+            Commands = commands;
+            ExtCommands = extCommands;
         }
 
         private static OpcodeBuilder RegLoad(IList<OpcodeBuilder> commands, int opcode, string target, string source)

@@ -22,11 +22,11 @@ namespace CoreBoy.sound
             i = 0;
             if (gbc)
             {
-                length.reset();
+                length.Reset();
             }
 
-            length.start();
-            frequencySweep.start();
+            length.Start();
+            frequencySweep.Start();
             volumeEnvelope.start();
         }
 
@@ -62,13 +62,13 @@ namespace CoreBoy.sound
         protected override void setNr0(int value)
         {
             base.setNr0(value);
-            frequencySweep.setNr10(value);
+            frequencySweep.SetNr10(value);
         }
 
         protected override void setNr1(int value)
         {
             base.setNr1(value);
-            length.setLength(64 - (value & 0b00111111));
+            length.SetLength(64 - (value & 0b00111111));
         }
 
         protected override void setNr2(int value)
@@ -82,23 +82,23 @@ namespace CoreBoy.sound
         protected override void setNr3(int value)
         {
             base.setNr3(value);
-            frequencySweep.setNr13(value);
+            frequencySweep.SetNr13(value);
         }
 
         protected override void setNr4(int value)
         {
             base.setNr4(value);
-            frequencySweep.setNr14(value);
+            frequencySweep.SetNr14(value);
         }
 
         protected override int getNr3()
         {
-            return frequencySweep.getNr13();
+            return frequencySweep.GetNr13();
         }
 
         protected override int getNr4()
         {
-            return (base.getNr4() & 0b11111000) | (frequencySweep.getNr14() & 0b00000111);
+            return (base.getNr4() & 0b11111000) | (frequencySweep.GetNr14() & 0b00000111);
         }
 
         private int getDuty()
@@ -125,8 +125,8 @@ namespace CoreBoy.sound
 
         protected bool updateSweep()
         {
-            frequencySweep.tick();
-            if (channelEnabled && !frequencySweep.isEnabled())
+            frequencySweep.Tick();
+            if (channelEnabled && !frequencySweep.IsEnabled())
             {
                 channelEnabled = false;
             }

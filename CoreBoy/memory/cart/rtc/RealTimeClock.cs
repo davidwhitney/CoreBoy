@@ -2,145 +2,137 @@ namespace CoreBoy.memory.cart.rtc
 {
     public class RealTimeClock
     {
-        private readonly IClock clock;
-
-        private long offsetSec;
-
-        private long clockStart;
-
-        private bool halt;
-
-        private long latchStart;
-
-        private int haltSeconds;
-
-        private int haltMinutes;
-
-        private int haltHours;
-
-        private int haltDays;
+        private readonly IClock _clock;
+        private long _offsetSec;
+        private long _clockStart;
+        private bool _halt;
+        private long _latchStart;
+        private int _haltSeconds;
+        private int _haltMinutes;
+        private int _haltHours;
+        private int _haltDays;
 
         public RealTimeClock(IClock clock)
         {
-            this.clock = clock;
-            clockStart = clock.currentTimeMillis();
+            _clock = clock;
+            _clockStart = clock.CurrentTimeMillis();
         }
 
-        public void latch()
+        public void Latch()
         {
-            latchStart = clock.currentTimeMillis();
+            _latchStart = _clock.CurrentTimeMillis();
         }
 
-        public void unlatch()
+        public void Unlatch()
         {
-            latchStart = 0;
+            _latchStart = 0;
         }
 
-        public int getSeconds()
+        public int GetSeconds()
         {
-            return (int) (clockTimeInSec() % 60);
+            return (int) (ClockTimeInSec() % 60);
         }
 
-        public int getMinutes()
+        public int GetMinutes()
         {
-            return (int) ((clockTimeInSec() % (60 * 60)) / 60);
+            return (int) ((ClockTimeInSec() % (60 * 60)) / 60);
         }
 
-        public int getHours()
+        public int GetHours()
         {
-            return (int) ((clockTimeInSec() % (60 * 60 * 24)) / (60 * 60));
+            return (int) ((ClockTimeInSec() % (60 * 60 * 24)) / (60 * 60));
         }
 
-        public int getDayCounter()
+        public int GetDayCounter()
         {
-            return (int) (clockTimeInSec() % (60 * 60 * 24 * 512) / (60 * 60 * 24));
+            return (int) (ClockTimeInSec() % (60 * 60 * 24 * 512) / (60 * 60 * 24));
         }
 
-        public bool isHalt()
+        public bool IsHalt()
         {
-            return halt;
+            return _halt;
         }
 
-        public bool isCounterOverflow()
+        public bool IsCounterOverflow()
         {
-            return clockTimeInSec() >= 60 * 60 * 24 * 512;
+            return ClockTimeInSec() >= 60 * 60 * 24 * 512;
         }
 
-        public void setSeconds(int seconds)
+        public void SetSeconds(int seconds)
         {
-            if (!halt)
+            if (!_halt)
             {
                 return;
             }
 
-            haltSeconds = seconds;
+            _haltSeconds = seconds;
         }
 
-        public void setMinutes(int minutes)
+        public void SetMinutes(int minutes)
         {
-            if (!halt)
+            if (!_halt)
             {
                 return;
             }
 
-            haltMinutes = minutes;
+            _haltMinutes = minutes;
         }
 
-        public void setHours(int hours)
+        public void SetHours(int hours)
         {
-            if (!halt)
+            if (!_halt)
             {
                 return;
             }
 
-            haltHours = hours;
+            _haltHours = hours;
         }
 
-        public void setDayCounter(int dayCounter)
+        public void SetDayCounter(int dayCounter)
         {
-            if (!halt)
+            if (!_halt)
             {
                 return;
             }
 
-            haltDays = dayCounter;
+            _haltDays = dayCounter;
         }
 
-        public void setHalt(bool halt)
+        public void SetHalt(bool halt)
         {
-            if (halt && !this.halt)
+            if (halt && !_halt)
             {
-                latch();
-                haltSeconds = getSeconds();
-                haltMinutes = getMinutes();
-                haltHours = getHours();
-                haltDays = getDayCounter();
-                unlatch();
+                Latch();
+                _haltSeconds = GetSeconds();
+                _haltMinutes = GetMinutes();
+                _haltHours = GetHours();
+                _haltDays = GetDayCounter();
+                Unlatch();
             }
-            else if (!halt && this.halt)
+            else if (!halt && _halt)
             {
-                offsetSec = haltSeconds + haltMinutes * 60 + haltHours * 60 * 60 + haltDays * 60 * 60 * 24;
-                clockStart = clock.currentTimeMillis();
+                _offsetSec = _haltSeconds + _haltMinutes * 60 + _haltHours * 60 * 60 + _haltDays * 60 * 60 * 24;
+                _clockStart = _clock.CurrentTimeMillis();
             }
 
-            this.halt = halt;
+            _halt = halt;
         }
 
-        public void clearCounterOverflow()
+        public void ClearCounterOverflow()
         {
-            while (isCounterOverflow())
+            while (IsCounterOverflow())
             {
-                offsetSec -= 60 * 60 * 24 * 512;
+                _offsetSec -= 60 * 60 * 24 * 512;
             }
         }
 
-        private long clockTimeInSec()
+        private long ClockTimeInSec()
         {
-            var now = latchStart == 0 ? clock.currentTimeMillis() : latchStart;
-            return (now - clockStart) / 1000 + offsetSec;
+            var now = _latchStart == 0 ? _clock.CurrentTimeMillis() : _latchStart;
+            return (now - _clockStart) / 1000 + _offsetSec;
         }
 
-        public void deserialize(long[] clockData)
+        public void Deserialize(long[] clockData)
         {
             var seconds = clockData[0];
             var minutes = clockData[1];
@@ -149,22 +141,22 @@ namespace CoreBoy.memory.cart.rtc
             var daysHigh = clockData[4];
             var timestamp = clockData[10];
 
-            clockStart = timestamp * 1000;
-            offsetSec = seconds + minutes * 60 + hours * 60 * 60 + days * 24 * 60 * 60 +
+            _clockStart = timestamp * 1000;
+            _offsetSec = seconds + minutes * 60 + hours * 60 * 60 + days * 24 * 60 * 60 +
                              daysHigh * 256 * 24 * 60 * 60;
         }
 
-        public long[] serialize()
+        public long[] Serialize()
         {
             var clockData = new long[11];
-            latch();
-            clockData[0] = clockData[5] = getSeconds();
-            clockData[1] = clockData[6] = getMinutes();
-            clockData[2] = clockData[7] = getHours();
-            clockData[3] = clockData[8] = getDayCounter() % 256;
-            clockData[4] = clockData[9] = getDayCounter() / 256;
-            clockData[10] = latchStart / 1000;
-            unlatch();
+            Latch();
+            clockData[0] = clockData[5] = GetSeconds();
+            clockData[1] = clockData[6] = GetMinutes();
+            clockData[2] = clockData[7] = GetHours();
+            clockData[3] = clockData[8] = GetDayCounter() % 256;
+            clockData[4] = clockData[9] = GetDayCounter() / 256;
+            clockData[10] = _latchStart / 1000;
+            Unlatch();
             return clockData;
         }
     }

@@ -29,12 +29,12 @@ namespace CoreBoy.Test.Unit.Memory.Cart.Rtc
         {
             _clock.Forward(new TimeSpan(5, 8, 12, 2));
 
-            _rtc.latch();
+            _rtc.Latch();
             _clock.Forward(new TimeSpan(10, 5, 19, 4));
 
             AssertClockEquals(5, 8, 12, 2);
 
-            _rtc.unlatch();
+            _rtc.Unlatch();
 
             AssertClockEquals(5 + 10, 8 + 5, 12 + 19, 2 + 4);
         }
@@ -44,22 +44,22 @@ namespace CoreBoy.Test.Unit.Memory.Cart.Rtc
         {
             _clock.Forward(new TimeSpan(511, 23, 59, 59));
 
-            Assert.False(_rtc.isCounterOverflow());
+            Assert.False(_rtc.IsCounterOverflow());
 
             _clock.Forward(TimeSpan.FromSeconds(1));
 
             AssertClockEquals(0, 0, 0, 0);
-            Assert.True(_rtc.isCounterOverflow());
+            Assert.True(_rtc.IsCounterOverflow());
 
             _clock.Forward(new TimeSpan(10, 5, 19, 4));
 
             AssertClockEquals(10, 5, 19, 4);
-            Assert.True(_rtc.isCounterOverflow());
+            Assert.True(_rtc.IsCounterOverflow());
 
-            _rtc.clearCounterOverflow();
+            _rtc.ClearCounterOverflow();
 
             AssertClockEquals(10, 5, 19, 4);
-            Assert.False(_rtc.isCounterOverflow());
+            Assert.False(_rtc.IsCounterOverflow());
         }
 
         [Test]
@@ -69,19 +69,19 @@ namespace CoreBoy.Test.Unit.Memory.Cart.Rtc
 
             AssertClockEquals(10, 5, 19, 4);
 
-            _rtc.setHalt(true);
+            _rtc.SetHalt(true);
 
-            Assert.True(_rtc.isHalt());
+            Assert.True(_rtc.IsHalt());
 
-            _rtc.setDayCounter(10);
-            _rtc.setHours(16);
-            _rtc.setMinutes(21);
-            _rtc.setSeconds(32);
+            _rtc.SetDayCounter(10);
+            _rtc.SetHours(16);
+            _rtc.SetMinutes(21);
+            _rtc.SetSeconds(32);
 
             _clock.Forward(new TimeSpan(1, 1, 1, 1)); // should be ignored after unhalt
-            _rtc.setHalt(false);
+            _rtc.SetHalt(false);
 
-            Assert.False(_rtc.isHalt());
+            Assert.False(_rtc.IsHalt());
 
             AssertClockEquals(10, 16, 21, 32);
 
@@ -92,10 +92,10 @@ namespace CoreBoy.Test.Unit.Memory.Cart.Rtc
 
         private void AssertClockEquals(int days, int hours, int minutes, int seconds)
         {
-            Assert.AreEqual(days, _rtc.getDayCounter());
-            Assert.AreEqual(hours, _rtc.getHours());
-            Assert.AreEqual(minutes, _rtc.getMinutes());
-            Assert.AreEqual(seconds, _rtc.getSeconds());
+            Assert.AreEqual(days, _rtc.GetDayCounter());
+            Assert.AreEqual(hours, _rtc.GetHours());
+            Assert.AreEqual(minutes, _rtc.GetMinutes());
+            Assert.AreEqual(seconds, _rtc.GetSeconds());
         }
     }
 }

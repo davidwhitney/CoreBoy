@@ -1,143 +1,123 @@
 namespace CoreBoy.sound
 {
-
-
     public class FrequencySweep
     {
 
-        private static readonly int DIVIDER = Gameboy.TicksPerSec / 128;
+        private static readonly int Divider = Gameboy.TicksPerSec / 128;
 
         // sweep parameters
-        private int period;
-
-        private bool negate;
-
-        private int shift;
+        private int _period;
+        private bool _negate;
+        private int _shift;
 
         // current process variables
-        private int timer;
+        private int _timer;
+        private int _shadowFreq;
+        private int _nr13;
+        private int _nr14;
+        private int _i;
+        private bool _overflow;
+        private bool _counterEnabled;
+        private bool _negging;
 
-        private int shadowFreq;
-
-        private int nr13, nr14;
-
-        private int i;
-
-        private bool overflow;
-
-        private bool counterEnabled;
-
-        private bool negging;
-
-        public void start()
+        public void Start()
         {
-            counterEnabled = false;
-            i = 8192;
+            _counterEnabled = false;
+            _i = 8192;
         }
 
-        public void trigger()
+        public void Trigger()
         {
-            negging = false;
-            overflow = false;
+            _negging = false;
+            _overflow = false;
 
-            shadowFreq = nr13 | ((nr14 & 0b111) << 8);
-            timer = period == 0 ? 8 : period;
-            counterEnabled = period != 0 || shift != 0;
+            _shadowFreq = _nr13 | ((_nr14 & 0b111) << 8);
+            _timer = _period == 0 ? 8 : _period;
+            _counterEnabled = _period != 0 || _shift != 0;
 
-            if (shift > 0)
+            if (_shift > 0)
             {
-                calculate();
+                Calculate();
             }
         }
 
-        public void setNr10(int value)
+        public void SetNr10(int value)
         {
-            period = (value >> 4) & 0b111;
-            negate = (value & (1 << 3)) != 0;
-            shift = value & 0b111;
-            if (negging && !negate)
+            _period = (value >> 4) & 0b111;
+            _negate = (value & (1 << 3)) != 0;
+            _shift = value & 0b111;
+            if (_negging && !_negate)
             {
-                overflow = true;
+                _overflow = true;
             }
         }
 
-        public void setNr13(int value)
+        public void SetNr13(int value)
         {
-            nr13 = value;
+            _nr13 = value;
         }
 
-        public void setNr14(int value)
+        public void SetNr14(int value)
         {
-            nr14 = value;
+            _nr14 = value;
             if ((value & (1 << 7)) != 0)
             {
-                trigger();
+                Trigger();
             }
         }
 
-        public int getNr13()
-        {
-            return nr13;
-        }
+        public int GetNr13() => _nr13;
+        public int GetNr14() => _nr14;
 
-        public int getNr14()
+        public void Tick()
         {
-            return nr14;
-        }
-
-        public void tick()
-        {
-            if (++i == DIVIDER)
+            if (++_i == Divider)
             {
-                i = 0;
-                if (!counterEnabled)
+                _i = 0;
+                if (!_counterEnabled)
                 {
                     return;
                 }
 
-                if (--timer == 0)
+                if (--_timer == 0)
                 {
-                    timer = period == 0 ? 8 : period;
-                    if (period != 0)
+                    _timer = _period == 0 ? 8 : _period;
+                    if (_period != 0)
                     {
-                        int newFreq = calculate();
-                        if (!overflow && shift != 0)
+                        int newFreq = Calculate();
+                        if (!_overflow && _shift != 0)
                         {
-                            shadowFreq = newFreq;
-                            nr13 = shadowFreq & 0xff;
-                            nr14 = (shadowFreq & 0x700) >> 8;
-                            calculate();
+                            _shadowFreq = newFreq;
+                            _nr13 = _shadowFreq & 0xff;
+                            _nr14 = (_shadowFreq & 0x700) >> 8;
+                            Calculate();
                         }
                     }
                 }
             }
         }
 
-        private int calculate()
+        private int Calculate()
         {
-            int freq = shadowFreq >> shift;
-            if (negate)
+            int freq = _shadowFreq >> _shift;
+            if (_negate)
             {
-                freq = shadowFreq - freq;
-                negging = true;
+                freq = _shadowFreq - freq;
+                _negging = true;
             }
             else
             {
-                freq = shadowFreq + freq;
+                freq = _shadowFreq + freq;
             }
 
             if (freq > 2047)
             {
-                overflow = true;
+                _overflow = true;
             }
 
             return freq;
         }
 
-        public bool isEnabled()
-        {
-            return !overflow;
-        }
+        public bool IsEnabled() => !_overflow;
     }
-
 }

@@ -1,10 +1,8 @@
 namespace CoreBoy.debugging
 {
-
-    public interface Command
+    public interface ICommand
     {
-        CommandPattern getPattern();
-
-        void run(CommandPattern.ParsedCommandLine commandLine);
+        CommandPattern GetPattern();
+        void Run(CommandPattern.ParsedCommandLine commandLine);
     }
 }

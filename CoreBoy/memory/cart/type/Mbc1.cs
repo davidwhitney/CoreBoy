@@ -16,7 +16,7 @@ namespace CoreBoy.memory.cart.type
         private readonly int _ramBanks;
         private readonly int[] _cartridge;
         private readonly int[] _ram;
-        private readonly Battery _battery;
+        private readonly IBattery _battery;
         private readonly bool _multicart;
         private int _selectedRamBank;
         private int _selectedRomBank = 1;
@@ -25,7 +25,7 @@ namespace CoreBoy.memory.cart.type
         private int _cachedRomBankFor0X0000 = -1;
         private int _cachedRomBankFor0X4000 = -1;
 
-        public Mbc1(int[] cartridge, CartridgeType type, Battery battery, int romBanks, int ramBanks)
+        public Mbc1(int[] cartridge, CartridgeType type, IBattery battery, int romBanks, int ramBanks)
         {
             _multicart = romBanks == 64 && IsMulticart(cartridge);
             _cartridge = cartridge;
@@ -38,7 +38,7 @@ namespace CoreBoy.memory.cart.type
             }
 
             _battery = battery;
-            battery.loadRam(_ram);
+            battery.LoadRam(_ram);
         }
 
         public bool Accepts(int address)
@@ -54,7 +54,7 @@ namespace CoreBoy.memory.cart.type
                 _ramWriteEnabled = (value & 0b1111) == 0b1010;
                 if (!_ramWriteEnabled)
                 {
-                    _battery.saveRam(_ram);
+                    _battery.SaveRam(_ram);
                 }
 
                 // LOG.trace("RAM write: {}", ramWriteEnabled);

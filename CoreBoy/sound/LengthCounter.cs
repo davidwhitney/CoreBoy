@@ -1,115 +1,102 @@
 namespace CoreBoy.sound
 {
-
-    //using static eu.rekawek.coffeegb.Gameboy.TICKS_PER_SEC;
-
     public class LengthCounter
     {
-        // Replace with eu.rekawek.coffeegb.Gameboy.TICKS_PER_SEC...
-        public static readonly int TICKS_PER_SEC = 4_194_304;
-
-        //private int DIVIDER = TICKS_PER_SEC / 256;
-        private int DIVIDER = 16_384;
-
-        private int fullLength;
-
-        private int length;
-
-        private long i;
-
-        private bool enabled;
+        private readonly int _divider = Gameboy.TicksPerSec / 256;
+        private readonly int _fullLength;
+        private int _length;
+        private long _i;
+        private bool _enabled;
 
         public LengthCounter(int fullLength)
         {
-            this.fullLength = fullLength;
+            _fullLength = fullLength;
         }
 
-        public void start()
+        public void Start()
         {
-            i = 8192;
+            _i = 8192;
         }
 
-        public void tick()
+        public void Tick()
         {
-            if (++i == DIVIDER)
+            if (++_i == _divider)
             {
-                i = 0;
-                if (enabled && length > 0)
+                _i = 0;
+                if (_enabled && _length > 0)
                 {
-                    length--;
+                    _length--;
                 }
             }
         }
 
-        public void setLength(int length)
+        public void SetLength(int len)
         {
-            this.length = length == 0 ? fullLength : length;
+            _length = len == 0 ? _fullLength : len;
         }
 
-        public void setNr4(int value)
+        public void SetNr4(int value)
         {
             var enable = (value & (1 << 6)) != 0;
             var trigger = (value & (1 << 7)) != 0;
 
-            if (enabled)
+            if (_enabled)
             {
-                if (length == 0 && trigger)
+                if (_length == 0 && trigger)
                 {
-                    if (enable && i < DIVIDER / 2)
+                    if (enable && _i < _divider / 2)
                     {
-                        setLength(fullLength - 1);
+                        SetLength(_fullLength - 1);
                     }
                     else
                     {
-                        setLength(fullLength);
+                        SetLength(_fullLength);
                     }
                 }
             }
             else if (enable)
             {
-                if (length > 0 && i < DIVIDER / 2)
+                if (_length > 0 && _i < _divider / 2)
                 {
-                    length--;
+                    _length--;
                 }
 
-                if (length == 0 && trigger && i < DIVIDER / 2)
+                if (_length == 0 && trigger && _i < _divider / 2)
                 {
-                    setLength(fullLength - 1);
+                    SetLength(_fullLength - 1);
                 }
             }
             else
             {
-                if (length == 0 && trigger)
+                if (_length == 0 && trigger)
                 {
-                    setLength(fullLength);
+                    SetLength(_fullLength);
                 }
             }
 
-            enabled = enable;
+            _enabled = enable;
         }
 
-        public int getValue()
+        public int GetValue()
         {
-            return length;
+            return _length;
         }
 
-        public bool isEnabled()
+        public bool IsEnabled()
         {
-            return enabled;
+            return _enabled;
+        }
+        
+        public override string ToString()
+        {
+            return $"LengthCounter[l={_length},f={_fullLength},c={_i},{(_enabled ? "enabled" : "disabled")}]";
         }
 
-
-        public string toString()
+        public void Reset()
         {
-            return string.Format("LengthCounter[l=%d,f=%d,c=%d,%s]", length, fullLength, i,
-                enabled ? "enabled" : "disabled");
-        }
-
-        public void reset()
-        {
-            enabled = true;
-            i = 0;
-            length = 0;
+            _enabled = true;
+            _i = 0;
+            _length = 0;
         }
     }
 

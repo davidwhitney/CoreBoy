@@ -15,8 +15,8 @@ namespace CoreBoy.Test.Unit.GPU
         public void SetUp()
         {
             var registers = new MemoryRegisters(GpuRegister.Values().ToArray());
-            registers.Put(GpuRegister.BGP, 0b11100100);
-            _fifo = new DmgPixelFifo(new NullDisplay(), new Lcdc(), registers);
+            registers.Put(GpuRegister.Bgp, 0b11100100);
+            _fifo = new DmgPixelFifo(new NullDisplay(), registers);
         }
 
         [Test]

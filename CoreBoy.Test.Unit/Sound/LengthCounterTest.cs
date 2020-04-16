@@ -249,9 +249,9 @@ namespace CoreBoy.Test.Unit.Sound
          */
         private void shouldBeOn()
         {
-            if (lengthCounter.isEnabled())
+            if (lengthCounter.IsEnabled())
             {
-                Assert.AreNotEqual(0, lengthCounter.getValue());
+                Assert.AreNotEqual(0, lengthCounter.GetValue());
             }
         }
 
@@ -276,7 +276,7 @@ namespace CoreBoy.Test.Unit.Sound
 
         private void shouldBeOff()
         {
-            Assert.True(lengthCounter.isEnabled() && lengthCounter.getValue() == 0);
+            Assert.True(lengthCounter.IsEnabled() && lengthCounter.GetValue() == 0);
         }
 
         private void delay(int cpuCycles)

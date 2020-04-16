@@ -111,7 +111,7 @@ namespace CoreBoy.sound
         protected virtual void setNr4(int value)
         {
             nr4 = value;
-            length.setNr4(value);
+            length.SetNr4(value);
             if ((value & (1 << 7)) != 0)
             {
                 channelEnabled = dacEnabled;
@@ -159,13 +159,13 @@ namespace CoreBoy.sound
 
         protected bool updateLength()
         {
-            length.tick();
-            if (!length.isEnabled())
+            length.Tick();
+            if (!length.IsEnabled())
             {
                 return channelEnabled;
             }
 
-            if (channelEnabled && length.getValue() == 0)
+            if (channelEnabled && length.GetValue() == 0)
             {
                 channelEnabled = false;
             }

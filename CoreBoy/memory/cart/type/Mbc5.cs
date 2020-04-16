@@ -3,136 +3,105 @@ using CoreBoy.memory.cart.battery;
 
 namespace CoreBoy.memory.cart.type
 {
-
-
-    public class Mbc5 : IAddressSpace {
-
-    private readonly CartridgeType type;
-
-    private readonly int romBanks;
-
-    private readonly int ramBanks;
-
-    private readonly int[] cartridge;
-
-    private readonly int[] ram;
-
-    private readonly Battery battery;
-
-    private int selectedRamBank;
-
-    private int selectedRomBank = 1;
-
-    private bool ramWriteEnabled;
-
-    public Mbc5(int[] cartridge, CartridgeType type, Battery battery, int romBanks, int ramBanks)
+    public class Mbc5 : IAddressSpace
     {
-        this.cartridge = cartridge;
-        this.ramBanks = ramBanks;
-        this.romBanks = romBanks;
-        ram = new int[0x2000 * Math.Max(this.ramBanks, 1)];
-        for (int i = 0; i < ram.Length; i++)
+        private readonly int _ramBanks;
+        private readonly int[] _cartridge;
+        private readonly int[] _ram;
+        private readonly IBattery _battery;
+        private int _selectedRamBank;
+        private int _selectedRomBank = 1;
+        private bool _ramWriteEnabled;
+
+        public Mbc5(int[] cartridge, CartridgeType type, IBattery battery, int romBanks, int ramBanks)
         {
-            ram[i] = 0xff;
+            _cartridge = cartridge;
+            _ramBanks = ramBanks;
+            _ram = new int[0x2000 * Math.Max(_ramBanks, 1)];
+            for (var i = 0; i < _ram.Length; i++)
+            {
+                _ram[i] = 0xff;
+            }
+
+            _battery = battery;
+            battery.LoadRam(_ram);
         }
 
-        this.type = type;
-        this.battery = battery;
-        battery.loadRam(ram);
-    }
-
-    
-
-    public bool Accepts(int address)
-    {
-        return (address >= 0x0000 && address < 0x8000) ||
-               (address >= 0xa000 && address < 0xc000);
-    }
-
-    
-
-    public void SetByte(int address, int value)
-    {
-        if (address >= 0x0000 && address < 0x2000)
+        public bool Accepts(int address) => address >= 0x0000 && address < 0x8000 || address >= 0xa000 && address < 0xc000;
+        
+        public void SetByte(int address, int value)
         {
-            ramWriteEnabled = (value & 0b1010) != 0;
-            if (!ramWriteEnabled)
+            if (address >= 0x0000 && address < 0x2000)
             {
-                battery.saveRam(ram);
+                _ramWriteEnabled = (value & 0b1010) != 0;
+                if (!_ramWriteEnabled)
+                {
+                    _battery.SaveRam(_ram);
+                }
+            }
+            else if (address >= 0x2000 && address < 0x3000)
+            {
+                _selectedRomBank = (_selectedRomBank & 0x100) | value;
+            }
+            else if (address >= 0x3000 && address < 0x4000)
+            {
+                _selectedRomBank = (_selectedRomBank & 0x0ff) | ((value & 1) << 8);
+            }
+            else if (address >= 0x4000 && address < 0x6000)
+            {
+                var bank = value & 0x0f;
+                if (bank < _ramBanks)
+                {
+                    _selectedRamBank = bank;
+                }
+            }
+            else if (address >= 0xa000 && address < 0xc000 && _ramWriteEnabled)
+            {
+                var ramAddress = GetRamAddress(address);
+                if (ramAddress < _ram.Length)
+                {
+                    _ram[ramAddress] = value;
+                }
             }
         }
-        else if (address >= 0x2000 && address < 0x3000)
-        {
-            selectedRomBank = (selectedRomBank & 0x100) | value;
-        }
-        else if (address >= 0x3000 && address < 0x4000)
-        {
-            selectedRomBank = (selectedRomBank & 0x0ff) | ((value & 1) << 8);
-        }
-        else if (address >= 0x4000 && address < 0x6000)
-        {
-            int bank = value & 0x0f;
-            if (bank < ramBanks)
-            {
-                selectedRamBank = bank;
-            }
-        }
-        else if (address >= 0xa000 && address < 0xc000 && ramWriteEnabled)
-        {
-            int ramAddress = getRamAddress(address);
-            if (ramAddress < ram.Length)
-            {
-                ram[ramAddress] = value;
-            }
-        }
-    }
 
-    
-
-    public int GetByte(int address)
-    {
-        if (address >= 0x0000 && address < 0x4000)
+        public int GetByte(int address)
         {
-            return getRomByte(0, address);
-        }
-        else if (address >= 0x4000 && address < 0x8000)
-        {
-            return getRomByte(selectedRomBank, address - 0x4000);
-        }
-        else if (address >= 0xa000 && address < 0xc000)
-        {
-            int ramAddress = getRamAddress(address);
-            if (ramAddress < ram.Length)
+            if (address >= 0x0000 && address < 0x4000)
             {
-                return ram[ramAddress];
+                return GetRomByte(0, address);
             }
-            else
+
+            if (address >= 0x4000 && address < 0x8000)
             {
+                return GetRomByte(_selectedRomBank, address - 0x4000);
+            }
+
+            if (address >= 0xa000 && address < 0xc000)
+            {
+                var ramAddress = GetRamAddress(address);
+                if (ramAddress < _ram.Length)
+                {
+                    return _ram[ramAddress];
+                }
+
                 return 0xff;
             }
-        }
-        else
-        {
+
             throw new ArgumentException(Integer.ToHexString(address));
         }
-    }
 
-    private int getRomByte(int bank, int address)
-    {
-        int cartOffset = bank * 0x4000 + address;
-        if (cartOffset < cartridge.Length)
+        private int GetRomByte(int bank, int address)
         {
-            return cartridge[cartOffset];
-        }
-        else
-        {
+            var cartOffset = bank * 0x4000 + address;
+            if (cartOffset < _cartridge.Length)
+            {
+                return _cartridge[cartOffset];
+            }
+
             return 0xff;
         }
-    }
 
-    private int getRamAddress(int address)
-    {
-        return selectedRamBank * 0x2000 + (address - 0xa000);
-    }
+        private int GetRamAddress(int address) => _selectedRamBank * 0x2000 + (address - 0xa000);
     }
 }

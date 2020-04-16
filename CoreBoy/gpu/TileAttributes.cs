@@ -23,7 +23,7 @@ namespace CoreBoy.gpu
         public bool IsPriority() => (_value & (1 << 7)) != 0;
         public bool IsYFlip() => (_value & (1 << 6)) != 0;
         public bool IsXFlip() => (_value & (1 << 5)) != 0;
-        public GpuRegister GetDmgPalette() => (_value & (1 << 4)) == 0 ? GpuRegister.OBP0 : GpuRegister.OBP1;
+        public GpuRegister GetDmgPalette() => (_value & (1 << 4)) == 0 ? GpuRegister.Obp0 : GpuRegister.Obp1;
         public int GetBank() => (_value & (1 << 3)) == 0 ? 0 : 1;
         public int GetColorPaletteIndex() => _value & 0x07;
     }

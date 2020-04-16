@@ -14,6 +14,7 @@ namespace CoreBoy.gpu
         public int GetWindowTileMapDisplay() => (_value & 0x40) == 0 ? 0x9800 : 0x9c00;
         public bool IsLcdEnabled() => (_value & 0x80) != 0;
         public bool Accepts(int address) => address == 0xff40;
+        
         public void SetByte(int address, int val) => _value = val;
         public int GetByte(int address) => _value;
         public void Set(int val) => _value = val;

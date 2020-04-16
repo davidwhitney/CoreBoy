@@ -35,7 +35,7 @@ namespace CoreBoy.gpu
         private int _lcdEnabledDelay;
         private int _ticksInLine;
         private Mode _mode;
-        private GpuPhase _phase;
+        private IGpuPhase _phase;
 
         public Gpu(IDisplay display, InterruptManager interruptManager, Dma dma, Ram oamRam, bool gbc)
         {
@@ -59,7 +59,7 @@ namespace CoreBoy.gpu
             _vBlankPhase = new VBlankPhase();
 
             _mode = Mode.OamSearch;
-            _phase = _oamSearchPhase.start();
+            _phase = _oamSearchPhase.Start();
 
             _display = display;
         }
@@ -102,7 +102,7 @@ namespace CoreBoy.gpu
 
         private IAddressSpace GetVideoRam()
         {
-            if (_gbc && (_r.Get(GpuRegister.VBK) & 1) == 1)
+            if (_gbc && (_r.Get(GpuRegister.Vbk) & 1) == 1)
             {
                 return _videoRam1;
             }
@@ -114,7 +114,7 @@ namespace CoreBoy.gpu
 
         public void SetByte(int address, int value)
         {
-            if (address == GpuRegister.STAT.Address)
+            if (address == GpuRegister.Stat.Address)
             {
                 SetStat(value);
                 return;
@@ -132,7 +132,7 @@ namespace CoreBoy.gpu
 
         public int GetByte(int address)
         {
-            if (address == GpuRegister.STAT.Address)
+            if (address == GpuRegister.Stat.Address)
             {
                 return GetStat();
             }
@@ -143,7 +143,7 @@ namespace CoreBoy.gpu
                 return 0xff;
             }
 
-            if (address == GpuRegister.VBK.Address)
+            if (address == GpuRegister.Vbk.Address)
             {
                 return _gbc ? 0xfe : 0xff;
             }
@@ -172,12 +172,12 @@ namespace CoreBoy.gpu
 
             var oldMode = _mode;
             _ticksInLine++;
-            if (_phase.tick())
+            if (_phase.Tick())
             {
                 // switch line 153 to 0
-                if (_ticksInLine == 4 && _mode == Mode.VBlank && _r.Get(GpuRegister.LY) == 153)
+                if (_ticksInLine == 4 && _mode == Mode.VBlank && _r.Get(GpuRegister.Ly) == 153)
                 {
-                    _r.Put(GpuRegister.LY, 0);
+                    _r.Put(GpuRegister.Ly, 0);
                     RequestLycEqualsLyInterrupt();
                 }
             }
@@ -187,28 +187,28 @@ namespace CoreBoy.gpu
                 {
                     case Mode.OamSearch:
                         _mode = Mode.PixelTransfer;
-                        _phase = _pixelTransferPhase.Start(_oamSearchPhase.getSprites());
+                        _phase = _pixelTransferPhase.Start(_oamSearchPhase.GetSprites());
                         break;
 
                     case Mode.PixelTransfer:
                         _mode = Mode.HBlank;
-                        _phase = _hBlankPhase.start(_ticksInLine);
+                        _phase = _hBlankPhase.Start(_ticksInLine);
                         RequestLcdcInterrupt(3);
                         break;
 
                     case Mode.HBlank:
                         _ticksInLine = 0;
-                        if (_r.PreIncrement(GpuRegister.LY) == 144)
+                        if (_r.PreIncrement(GpuRegister.Ly) == 144)
                         {
                             _mode = Mode.VBlank;
-                            _phase = _vBlankPhase.start();
+                            _phase = _vBlankPhase.Start();
                             _interruptManager.RequestInterrupt(InterruptManager.InterruptType.VBlank);
                             RequestLcdcInterrupt(4);
                         }
                         else
                         {
                             _mode = Mode.OamSearch;
-                            _phase = _oamSearchPhase.start();
+                            _phase = _oamSearchPhase.Start();
                         }
 
                         RequestLcdcInterrupt(5);
@@ -217,16 +217,16 @@ namespace CoreBoy.gpu
 
                     case Mode.VBlank:
                         _ticksInLine = 0;
-                        if (_r.PreIncrement(GpuRegister.LY) == 1)
+                        if (_r.PreIncrement(GpuRegister.Ly) == 1)
                         {
                             _mode = Mode.OamSearch;
-                            _r.Put(GpuRegister.LY, 0);
-                            _phase = _oamSearchPhase.start();
+                            _r.Put(GpuRegister.Ly, 0);
+                            _phase = _oamSearchPhase.Start();
                             RequestLcdcInterrupt(5);
                         }
                         else
                         {
-                            _phase = _vBlankPhase.start();
+                            _phase = _vBlankPhase.Start();
                         }
 
                         RequestLycEqualsLyInterrupt();
@@ -249,7 +249,7 @@ namespace CoreBoy.gpu
 
         private void RequestLcdcInterrupt(int statBit)
         {
-            if ((_r.Get(GpuRegister.STAT) & (1 << statBit)) != 0)
+            if ((_r.Get(GpuRegister.Stat) & (1 << statBit)) != 0)
             {
                 _interruptManager.RequestInterrupt(InterruptManager.InterruptType.Lcdc);
             }
@@ -257,7 +257,7 @@ namespace CoreBoy.gpu
 
         private void RequestLycEqualsLyInterrupt()
         {
-            if (_r.Get(GpuRegister.LYC) == _r.Get(GpuRegister.LY))
+            if (_r.Get(GpuRegister.Lyc) == _r.Get(GpuRegister.Ly))
             {
                 RequestLcdcInterrupt(6);
             }
@@ -265,13 +265,13 @@ namespace CoreBoy.gpu
 
         private int GetStat()
         {
-            return _r.Get(GpuRegister.STAT) | (int) _mode |
-                   (_r.Get(GpuRegister.LYC) == _r.Get(GpuRegister.LY) ? (1 << 2) : 0) | 0x80;
+            return _r.Get(GpuRegister.Stat) | (int) _mode |
+                   (_r.Get(GpuRegister.Lyc) == _r.Get(GpuRegister.Ly) ? (1 << 2) : 0) | 0x80;
         }
 
         private void SetStat(int value)
         {
-            _r.Put(GpuRegister.STAT, value & 0b11111000); // last three bits are read-only
+            _r.Put(GpuRegister.Stat, value & 0b11111000); // last three bits are read-only
         }
 
         private void SetLcdc(int value)
@@ -289,9 +289,9 @@ namespace CoreBoy.gpu
 
         private void DisableLcd()
         {
-            _r.Put(GpuRegister.LY, 0);
+            _r.Put(GpuRegister.Ly, 0);
             _ticksInLine = 0;
-            _phase = _hBlankPhase.start(250);
+            _phase = _hBlankPhase.Start(250);
             _mode = Mode.HBlank;
             _lcdEnabled = false;
             _lcdEnabledDelay = -1;

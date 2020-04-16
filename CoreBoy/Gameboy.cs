@@ -54,30 +54,30 @@ namespace CoreBoy
             _sound = new Sound(soundOutput, _gbc);
             _serialPort = new SerialPort(interruptManager, serialEndpoint, SpeedMode);
 
-            Mmu.addAddressSpace(rom);
-            Mmu.addAddressSpace(_gpu);
-            Mmu.addAddressSpace(new Joypad(interruptManager, controller));
-            Mmu.addAddressSpace(interruptManager);
-            Mmu.addAddressSpace(_serialPort);
-            Mmu.addAddressSpace(_timer);
-            Mmu.addAddressSpace(_dma);
-            Mmu.addAddressSpace(_sound);
+            Mmu.AddAddressSpace(rom);
+            Mmu.AddAddressSpace(_gpu);
+            Mmu.AddAddressSpace(new Joypad(interruptManager, controller));
+            Mmu.AddAddressSpace(interruptManager);
+            Mmu.AddAddressSpace(_serialPort);
+            Mmu.AddAddressSpace(_timer);
+            Mmu.AddAddressSpace(_dma);
+            Mmu.AddAddressSpace(_sound);
 
-            Mmu.addAddressSpace(new Ram(0xc000, 0x1000));
+            Mmu.AddAddressSpace(new Ram(0xc000, 0x1000));
             if (_gbc)
             {
-                Mmu.addAddressSpace(SpeedMode);
-                Mmu.addAddressSpace(_hdma);
-                Mmu.addAddressSpace(new GbcRam());
-                Mmu.addAddressSpace(new UndocumentedGbcRegisters());
+                Mmu.AddAddressSpace(SpeedMode);
+                Mmu.AddAddressSpace(_hdma);
+                Mmu.AddAddressSpace(new GbcRam());
+                Mmu.AddAddressSpace(new UndocumentedGbcRegisters());
             }
             else
             {
-                Mmu.addAddressSpace(new Ram(0xd000, 0x1000));
+                Mmu.AddAddressSpace(new Ram(0xd000, 0x1000));
             }
 
-            Mmu.addAddressSpace(new Ram(0xff80, 0x7f));
-            Mmu.addAddressSpace(new ShadowAddressSpace(Mmu, 0xe000, 0xc000, 0x1e00));
+            Mmu.AddAddressSpace(new Ram(0xff80, 0x7f));
+            Mmu.AddAddressSpace(new ShadowAddressSpace(Mmu, 0xe000, 0xc000, 0x1e00));
 
             Cpu = new Cpu(Mmu, interruptManager, _gpu, display, SpeedMode);
 
@@ -147,7 +147,7 @@ namespace CoreBoy
 
         public Gpu.Mode? Tick()
         {
-            _timer.tick();
+            _timer.Tick();
             if (_hdma.IsTransferInProgress())
             {
                 _hdma.Tick();
@@ -158,7 +158,7 @@ namespace CoreBoy
             }
 
             _dma.Tick();
-            _sound.tick();
+            _sound.Tick();
             _serialPort.Tick();
             return _gpu.Tick();
         }

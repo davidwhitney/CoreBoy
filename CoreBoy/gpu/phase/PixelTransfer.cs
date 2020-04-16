@@ -2,7 +2,7 @@ using CoreBoy.memory;
 
 namespace CoreBoy.gpu.phase
 {
-    public class PixelTransfer : GpuPhase
+    public class PixelTransfer : IGpuPhase
     {
         private readonly IPixelFifo _fifo;
         private readonly Fetcher _fetcher;
@@ -23,7 +23,7 @@ namespace CoreBoy.gpu.phase
             
             _fifo = gbc
                 ? (IPixelFifo) new ColorPixelFifo(lcdc, display, bgPalette, oamPalette)
-                : new DmgPixelFifo(display, lcdc, r);
+                : new DmgPixelFifo(display, r);
 
             _fetcher = new Fetcher(_fifo, videoRam0, videoRam1, oemRam, lcdc, r, gbc);
         }
@@ -48,7 +48,7 @@ namespace CoreBoy.gpu.phase
             return this;
         }
 
-        public bool tick()
+        public bool Tick()
         {
             _fetcher.Tick();
             if (_lcdc.IsBgAndWindowDisplay() || _gbc)
@@ -58,15 +58,15 @@ namespace CoreBoy.gpu.phase
                     return true;
                 }
 
-                if (_droppedPixels < _r.Get(GpuRegister.SCX) % 8)
+                if (_droppedPixels < _r.Get(GpuRegister.Scx) % 8)
                 {
                     _fifo.DropPixel();
                     _droppedPixels++;
                     return true;
                 }
 
-                if (!_window && _lcdc.IsWindowDisplay() && _r.Get(GpuRegister.LY) >= _r.Get(GpuRegister.WY) &&
-                    _x == _r.Get(GpuRegister.WX) - 7)
+                if (!_window && _lcdc.IsWindowDisplay() && _r.Get(GpuRegister.Ly) >= _r.Get(GpuRegister.Wy) &&
+                    _x == _r.Get(GpuRegister.Wx) - 7)
                 {
                     _window = true;
                     StartFetchingWindow();
@@ -90,14 +90,14 @@ namespace CoreBoy.gpu.phase
                         continue;
                     }
 
-                    if (_x == 0 && s.getX() < 8)
+                    if (_x == 0 && s.GetX() < 8)
                     {
-                        _fetcher.AddSprite(s, 8 - s.getX(), i);
+                        _fetcher.AddSprite(s, 8 - s.GetX(), i);
                         spriteAdded = true;
 
                         _sprites[i] = null;
                     }
-                    else if (s.getX() - 8 == _x)
+                    else if (s.GetX() - 8 == _x)
                     {
                         _fetcher.AddSprite(s, 0, i);
                         spriteAdded = true;
@@ -123,8 +123,8 @@ namespace CoreBoy.gpu.phase
 
         private void StartFetchingBackground()
         {
-            var bgX = _r.Get(GpuRegister.SCX) / 0x08;
-            var bgY = (_r.Get(GpuRegister.SCY) + _r.Get(GpuRegister.LY)) % 0x100;
+            var bgX = _r.Get(GpuRegister.Scx) / 0x08;
+            var bgY = (_r.Get(GpuRegister.Scy) + _r.Get(GpuRegister.Ly)) % 0x100;
 
             _fetcher.StartFetching(_lcdc.GetBgTileMapDisplay() + (bgY / 0x08) * 0x20, _lcdc.GetBgWindowTileData(), bgX,
                 _lcdc.IsBgWindowTileDataSigned(), bgY % 0x08);
@@ -132,8 +132,8 @@ namespace CoreBoy.gpu.phase
 
         private void StartFetchingWindow()
         {
-            var winX = (_x - _r.Get(GpuRegister.WX) + 7) / 0x08;
-            var winY = _r.Get(GpuRegister.LY) - _r.Get(GpuRegister.WY);
+            var winX = (_x - _r.Get(GpuRegister.Wx) + 7) / 0x08;
+            var winY = _r.Get(GpuRegister.Ly) - _r.Get(GpuRegister.Wy);
 
             _fetcher.StartFetching(_lcdc.GetWindowTileMapDisplay() + (winY / 0x08) * 0x20, _lcdc.GetBgWindowTileData(),
                 winX, _lcdc.IsBgWindowTileDataSigned(), winY % 0x08);

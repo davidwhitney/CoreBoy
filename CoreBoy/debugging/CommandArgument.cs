@@ -7,61 +7,61 @@ namespace CoreBoy.debugging
 	public class CommandArgument
     {
 
-        private readonly string name;
+        private readonly string _name;
 
-        private readonly bool required;
+        private readonly bool _required;
 
-        private readonly ICollection<string> allowedValues;
+        private readonly ICollection<string> _allowedValues;
 
         public CommandArgument(string name, bool required)
         {
-            this.name = name;
-            this.required = required;
-            allowedValues = new List<string>();
+            _name = name;
+            _required = required;
+            _allowedValues = new List<string>();
         }
 
         public CommandArgument(string name, bool required, ICollection<string> allowedValues)
         {
-            this.name = name;
-            this.required = required;
-            this.allowedValues = allowedValues ?? new List<string>();
+            _name = name;
+            _required = required;
+            _allowedValues = allowedValues ?? new List<string>();
         }
 
-        public string getName()
+        public string GetName()
         {
-            return name;
+            return _name;
         }
 
-        public bool isRequired()
+        public bool IsRequired()
         {
-            return required;
+            return _required;
         }
 
-        public ICollection<string> getAllowedValues()
+        public ICollection<string> GetAllowedValues()
         {
-            return allowedValues;
+            return _allowedValues;
         }
 
         public override string ToString()
         {
             var builder = new StringBuilder();
-            if (!required)
+            if (!_required)
             {
                 builder.Append('[');
             }
 
-            if (allowedValues != null)
+            if (_allowedValues != null)
             {
                 builder.Append('{');
-                builder.Append(string.Join(",", allowedValues.ToArray()));
+                builder.Append(string.Join(",", _allowedValues.ToArray()));
                 builder.Append('}');
             }
             else
             {
-                builder.Append(name.ToUpper());
+                builder.Append(_name.ToUpper());
             }
 
-            if (!required)
+            if (!_required)
             {
                 builder.Append(']');
             }

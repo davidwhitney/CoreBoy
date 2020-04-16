@@ -13,17 +13,15 @@ namespace CoreBoy.gui
 {
     public class Emulator: IRunnable
     {
-        private const int Scale = 2;
-
         public Gameboy Gameboy { get; set; }
-        public IDisplay Display { get; set; } = new BitmapDisplay(Scale);
+        public IDisplay Display { get; set; } = new BitmapDisplay();
         public IController Controller { get; set; } = new NullController();
         public SerialEndpoint SerialEndpoint { get; set; } = new NullSerialEndpoint();
         public GameboyOptions Options { get; set; }
 
         private readonly List<Task> _runnables;
 
-        public Emulator(string[] args, string properties)
+        public Emulator(string[] args)
         {
             _runnables = new List<Task>();
             Options = ParseArgs(args);

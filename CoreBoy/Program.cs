@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using CoreBoy.gui;
@@ -18,8 +17,7 @@ namespace CoreBoy
             var cancellationTokenSource = new CancellationTokenSource();
             var token = cancellationTokenSource.Token;
 
-            var properties = LoadProperties();
-            var emulator = new Emulator(args, properties);
+            var emulator = new Emulator(args);
             var ui = new WinFormsEmulatorSurface();
 
             emulator.Controller = ui;
@@ -31,13 +29,6 @@ namespace CoreBoy
 
             emulator.Run(token);
             Application.Run(ui);
-        }
-
-        private static string LoadProperties()
-        {
-            var fileName = Path.Combine(Environment.GetEnvironmentVariable("user.home") ?? "", ".coffeegb.properties");
-            var propFile = new FileInfo(fileName);
-            return propFile.Exists ? File.ReadAllText(propFile.FullName) : "";
         }
     }
 }

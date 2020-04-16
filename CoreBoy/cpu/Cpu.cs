@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using CoreBoy.cpu.op;
 using CoreBoy.cpu.opcode;
@@ -7,6 +8,7 @@ using CoreBoy.gpu;
 
 namespace CoreBoy.cpu
 {
+    [SuppressMessage("ReSharper", "InconsistentNaming")]
     public enum State
     {
         OPCODE,
@@ -122,13 +124,13 @@ namespace CoreBoy.cpu
                         }
                         else if (_opcode1 == 0x10)
                         {
-                            CurrentOpcode = _opcodes.COMMANDS[_opcode1];
+                            CurrentOpcode = _opcodes.Commands[_opcode1];
                             State = State.EXT_OPCODE;
                         }
                         else
                         {
                             State = State.OPERAND;
-                            CurrentOpcode = _opcodes.COMMANDS[_opcode1];
+                            CurrentOpcode = _opcodes.Commands[_opcode1];
                             if (CurrentOpcode == null)
                             {
                                 throw new InvalidOperationException($"No command for 0x{_opcode1:X2}");
@@ -154,7 +156,7 @@ namespace CoreBoy.cpu
 
                         accessedMemory = true;
                         _opcode2 = _addressSpace.GetByte(pc);
-                        CurrentOpcode ??= _opcodes.EXT_COMMANDS[_opcode2];
+                        CurrentOpcode ??= _opcodes.ExtCommands[_opcode2];
 
                         if (CurrentOpcode == null)
                         {
@@ -328,7 +330,7 @@ namespace CoreBoy.cpu
                 return;
             }
 
-            var stat = _addressSpace.GetByte(GpuRegister.STAT.Address);
+            var stat = _addressSpace.GetByte(GpuRegister.Stat.Address);
             if ((stat & 0b11) == (int) Gpu.Mode.OamSearch && _gpu.GetTicksInLine() < 79)
             {
                 SpriteBug.CorruptOam(_addressSpace, type, _gpu.GetTicksInLine());

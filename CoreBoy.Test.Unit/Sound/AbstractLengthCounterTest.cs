@@ -23,11 +23,11 @@ namespace CoreBoy.Test.Unit.Sound
         {
             if (register == 1)
             {
-                lengthCounter.setLength(0 - value);
+                lengthCounter.SetLength(0 - value);
             }
             else if (register == 4)
             {
-                lengthCounter.setNr4(value);
+                lengthCounter.SetNr4(value);
             }
             else
             {
@@ -39,7 +39,7 @@ namespace CoreBoy.Test.Unit.Sound
         {
             for (int i = 0; i < clocks; i++)
             {
-                lengthCounter.tick();
+                lengthCounter.Tick();
             }
         }
 
@@ -50,7 +50,7 @@ namespace CoreBoy.Test.Unit.Sound
 
         protected void syncApu()
         {
-            lengthCounter.reset();
+            lengthCounter.Reset();
         }
     }
 }

@@ -5,75 +5,61 @@ namespace CoreBoy.sound
 {
     public class SoundMode3 : AbstractSoundMode
     {
-
-        private static readonly int[] DMG_WAVE = new int[]
+        private static readonly int[] DmgWave =
         {
             0x84, 0x40, 0x43, 0xaa, 0x2d, 0x78, 0x92, 0x3c,
             0x60, 0x59, 0x59, 0xb0, 0x34, 0xb8, 0x2e, 0xda
         };
 
-        private static readonly int[] CGB_WAVE = new int[]
+        private static readonly int[] CgbWave =
         {
             0x00, 0xff, 0x00, 0xff, 0x00, 0xff, 0x00, 0xff,
             0x00, 0xff, 0x00, 0xff, 0x00, 0xff, 0x00, 0xff
         };
 
-        private readonly Ram waveRam = new Ram(0xff30, 0x10);
-
-        private int freqDivider;
-
-        private int lastOutput;
-
-        private int i;
-
-        private int ticksSinceRead = 65536;
-
-        private int lastReadAddr;
-
-        private int buffer;
-
-        private bool triggered;
+        private readonly Ram _waveRam = new Ram(0xff30, 0x10);
+        private int _freqDivider;
+        private int _lastOutput;
+        private int _i;
+        private int _ticksSinceRead = 65536;
+        private int _lastReadAddress;
+        private int _buffer;
+        private bool _triggered;
 
         public SoundMode3(bool gbc) : base(0xff1a, 256, gbc)
         {
-            foreach (int v in gbc ? CGB_WAVE : DMG_WAVE)
+            foreach (var v in gbc ? CgbWave : DmgWave)
             {
-                waveRam.SetByte(0xff30, v);
+                _waveRam.SetByte(0xff30, v);
             }
         }
 
-
-        public override bool Accepts(int address)
-        {
-            return waveRam.Accepts(address) || base.Accepts(address);
-        }
-
+        public override bool Accepts(int address) => _waveRam.Accepts(address) || base.Accepts(address);
 
         public override int GetByte(int address)
         {
-            if (!waveRam.Accepts(address))
+            if (!_waveRam.Accepts(address))
             {
                 return base.GetByte(address);
             }
 
             if (!isEnabled())
             {
-                return waveRam.GetByte(address);
+                return _waveRam.GetByte(address);
             }
-            else if (waveRam.Accepts(lastReadAddr) && (gbc || ticksSinceRead < 2))
+
+            if (_waveRam.Accepts(_lastReadAddress) && (gbc || _ticksSinceRead < 2))
             {
-                return waveRam.GetByte(lastReadAddr);
+                return _waveRam.GetByte(_lastReadAddress);
             }
-            else
-            {
-                return 0xff;
-            }
+
+            return 0xff;
         }
 
 
         public override void SetByte(int address, int value)
         {
-            if (!waveRam.Accepts(address))
+            if (!_waveRam.Accepts(address))
             {
                 base.SetByte(address, value);
                 return;
@@ -81,14 +67,13 @@ namespace CoreBoy.sound
 
             if (!isEnabled())
             {
-                waveRam.SetByte(address, value);
+                _waveRam.SetByte(address, value);
             }
-            else if (waveRam.Accepts(lastReadAddr) && (gbc || ticksSinceRead < 2))
+            else if (_waveRam.Accepts(_lastReadAddress) && (gbc || _ticksSinceRead < 2))
             {
-                waveRam.SetByte(lastReadAddr, value);
+                _waveRam.SetByte(_lastReadAddress, value);
             }
         }
-
 
         protected override void setNr0(int value)
         {
@@ -97,37 +82,29 @@ namespace CoreBoy.sound
             channelEnabled &= dacEnabled;
         }
 
-
         protected override void setNr1(int value)
         {
             base.setNr1(value);
-            length.setLength(256 - value);
+            length.SetLength(256 - value);
         }
-
-
-        protected override void setNr3(int value)
-        {
-            base.setNr3(value);
-        }
-
 
         protected override void setNr4(int value)
         {
             if (!gbc && (value & (1 << 7)) != 0)
             {
-                if (isEnabled() && freqDivider == 2)
+                if (isEnabled() && _freqDivider == 2)
                 {
-                    int pos = i / 2;
+                    var pos = _i / 2;
                     if (pos < 4)
                     {
-                        waveRam.SetByte(0xff30, waveRam.GetByte(0xff30 + pos));
+                        _waveRam.SetByte(0xff30, _waveRam.GetByte(0xff30 + pos));
                     }
                     else
                     {
                         pos = pos & ~3;
-                        for (int j = 0; j < 4; j++)
+                        for (var j = 0; j < 4; j++)
                         {
-                            waveRam.SetByte(0xff30 + j, waveRam.GetByte(0xff30 + ((pos + j) % 0x10)));
+                            _waveRam.SetByte(0xff30 + j, _waveRam.GetByte(0xff30 + ((pos + j) % 0x10)));
                         }
                     }
                 }
@@ -136,35 +113,32 @@ namespace CoreBoy.sound
             base.setNr4(value);
         }
 
-
         public override void start()
         {
-            i = 0;
-            buffer = 0;
+            _i = 0;
+            _buffer = 0;
             if (gbc)
             {
-                length.reset();
+                length.Reset();
             }
 
-            length.start();
+            length.Start();
         }
-
 
         protected override void trigger()
         {
-            i = 0;
-            freqDivider = 6;
-            triggered = !gbc;
+            _i = 0;
+            _freqDivider = 6;
+            _triggered = !gbc;
             if (gbc)
             {
-                getWaveEntry();
+                GetWaveEntry();
             }
         }
 
-
         public override int tick()
         {
-            ticksSinceRead++;
+            _ticksSinceRead++;
             if (!updateLength())
             {
                 return 0;
@@ -180,37 +154,35 @@ namespace CoreBoy.sound
                 return 0;
             }
 
-            if (--freqDivider == 0)
+            if (--_freqDivider == 0)
             {
-                resetFreqDivider();
-                if (triggered)
+                ResetFreqDivider();
+                if (_triggered)
                 {
-                    lastOutput = (buffer >> 4) & 0x0f;
-                    triggered = false;
+                    _lastOutput = (_buffer >> 4) & 0x0f;
+                    _triggered = false;
                 }
                 else
                 {
-                    lastOutput = getWaveEntry();
+                    _lastOutput = GetWaveEntry();
                 }
 
-                i = (i + 1) % 32;
+                _i = (_i + 1) % 32;
             }
 
-            return lastOutput;
+            return _lastOutput;
         }
 
-        private int getVolume()
-        {
-            return (getNr2() >> 5) & 0b11;
-        }
+        private int GetVolume() => (getNr2() >> 5) & 0b11;
 
-        private int getWaveEntry()
+        private int GetWaveEntry()
         {
-            ticksSinceRead = 0;
-            lastReadAddr = 0xff30 + i / 2;
-            buffer = waveRam.GetByte(lastReadAddr);
-            int b = buffer;
-            if (i % 2 == 0)
+            _ticksSinceRead = 0;
+            _lastReadAddress = 0xff30 + _i / 2;
+            _buffer = _waveRam.GetByte(_lastReadAddress);
+
+            var b = _buffer;
+            if (_i % 2 == 0)
             {
                 b = (b >> 4) & 0x0f;
             }
@@ -219,25 +191,16 @@ namespace CoreBoy.sound
                 b = b & 0x0f;
             }
 
-            switch (getVolume())
+            return GetVolume() switch
             {
-                case 0:
-                    return 0;
-                case 1:
-                    return b;
-                case 2:
-                    return b >> 1;
-                case 3:
-                    return b >> 2;
-                default:
-                    throw new InvalidOperationException("Illegal state");
-            }
+                0 => 0,
+                1 => b,
+                2 => b >> 1,
+                3 => b >> 2,
+                _ => throw new InvalidOperationException("Illegal state")
+            };
         }
 
-        private void resetFreqDivider()
-        {
-            freqDivider = getFrequency() * 2;
-        }
+        private void ResetFreqDivider() => _freqDivider = getFrequency() * 2;
     }
-
 }

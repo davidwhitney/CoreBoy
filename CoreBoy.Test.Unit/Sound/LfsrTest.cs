@@ -14,9 +14,9 @@ namespace CoreBoy.Test.Unit.Sound
             int previousValue = 0;
             for (int i = 0; i < 100; i++)
             {
-                lfsr.nextBit(false);
-                Assert.AreNotEqual(previousValue, lfsr.getValue());
-                previousValue = lfsr.getValue();
+                lfsr.NextBit(false);
+                Assert.AreNotEqual(previousValue, lfsr.Value);
+                previousValue = lfsr.Value;
             }
         }
 
@@ -27,9 +27,9 @@ namespace CoreBoy.Test.Unit.Sound
             int previousValue = 0;
             for (int i = 0; i < 100; i++)
             {
-                lfsr.nextBit(true);
-                Assert.AreNotEqual(previousValue, lfsr.getValue());
-                previousValue = lfsr.getValue();
+                lfsr.NextBit(true);
+                Assert.AreNotEqual(previousValue, lfsr.Value);
+                previousValue = lfsr.Value;
             }
         }
     }

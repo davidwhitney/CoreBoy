@@ -1,7 +1,7 @@
 namespace CoreBoy.gpu.phase
 {
-    public interface GpuPhase
+    public interface IGpuPhase
     {
-        bool tick();
+        bool Tick();
     }
 }

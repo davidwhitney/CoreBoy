@@ -1,36 +1,20 @@
-using System;
 using System.Collections.Generic;
 
 namespace CoreBoy.memory
 {
     public class Mmu : IAddressSpace
     {
-        private static readonly IAddressSpace VOID = new VoidAddressSpace();
-        private List<IAddressSpace> spaces = new List<IAddressSpace>();
+        private static readonly IAddressSpace Void = new VoidAddressSpace();
+        private readonly List<IAddressSpace> _spaces = new List<IAddressSpace>();
 
-        public void addAddressSpace(IAddressSpace space)
-        {
-            spaces.Add(space);
-        }
+        public void AddAddressSpace(IAddressSpace space) => _spaces.Add(space);
+        public bool Accepts(int address) => true;
+        public void SetByte(int address, int value) => GetSpace(address).SetByte(address, value);
+        public int GetByte(int address) => GetSpace(address).GetByte(address);
 
-        public bool Accepts(int address)
+        private IAddressSpace GetSpace(int address)
         {
-            return true;
-        }
-
-        public void SetByte(int address, int value)
-        {
-            getSpace(address).SetByte(address, value);
-        }
-
-        public int GetByte(int address)
-        {
-            return getSpace(address).GetByte(address);
-        }
-
-        private IAddressSpace getSpace(int address)
-        {
-            foreach (var s in spaces)
+            foreach (var s in _spaces)
             {
                 if (s.Accepts(address))
                 {
@@ -38,37 +22,8 @@ namespace CoreBoy.memory
                 }
             }
 
-            return VOID;
+            return Void;
         }
 
-    }
-
-    public class VoidAddressSpace : IAddressSpace
-    {
-        public bool Accepts(int address)
-        {
-            return true;
-        }
-
-        public void SetByte(int address, int value)
-        {
-            if (address < 0 || address > 0xffff)
-            {
-                throw new ArgumentException("Invalid address: " + Integer.ToHexString(address));
-            }
-
-            //LOG.debug("Writing value {} to void address {}", Integer.toHexString(value), int.ToHexString(address));
-        }
-
-        public int GetByte(int address)
-        {
-            if (address < 0 || address > 0xffff)
-            {
-                throw new ArgumentException("Invalid address: " + Integer.ToHexString(address));
-            }
-
-            //LOG.debug("Reading value from void address {}", Integer.toHexString(address));
-            return 0xff;
-        }
     }
 }

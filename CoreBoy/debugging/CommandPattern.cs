@@ -145,8 +145,8 @@ namespace CoreBoy.debugging
 
             private ParsedCommandLine(Dictionary<string, string> argumentMap, List<string> remainingArguments)
             {
-                this._argumentMap = argumentMap;
-                this._remainingArguments = remainingArguments;
+                _argumentMap = argumentMap;
+                _remainingArguments = remainingArguments;
             }
 
             public string GetArgument(string name)
@@ -168,7 +168,7 @@ namespace CoreBoy.debugging
 
             private Builder(string[] commandNames)
             {
-                this.CommandNames = new List<string>(commandNames);
+                CommandNames = new List<string>(commandNames);
                 Arguments = new List<CommandArgument>();
             }
             public static Builder Create(string longName)
@@ -217,7 +217,7 @@ namespace CoreBoy.debugging
 
             private void AssertNoOptionalLastArgument()
             {
-                if (Arguments.Count > 0 && !Arguments[^1].isRequired())
+                if (Arguments.Count > 0 && !Arguments[^1].IsRequired())
                 {
                     throw new InvalidOperationException("Can't add argument after the optional one");
                 }

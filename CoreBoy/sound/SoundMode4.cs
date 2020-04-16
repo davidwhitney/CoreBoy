@@ -24,18 +24,18 @@ namespace CoreBoy.sound
         {
             if (gbc)
             {
-                length.reset();
+                length.Reset();
             }
 
-            length.start();
-            lfsr.start();
+            length.Start();
+            lfsr.Start();
             volumeEnvelope.start();
         }
 
 
         protected override void trigger()
         {
-            lfsr.reset();
+            lfsr.Reset();
             volumeEnvelope.trigger();
         }
 
@@ -57,7 +57,7 @@ namespace CoreBoy.sound
 
             if (polynomialCounter.tick())
             {
-                lastResult = lfsr.nextBit((nr3 & (1 << 3)) != 0);
+                lastResult = lfsr.NextBit((nr3 & (1 << 3)) != 0);
             }
 
             return lastResult * volumeEnvelope.getVolume();
@@ -68,7 +68,7 @@ namespace CoreBoy.sound
         protected override void setNr1(int value)
         {
             base.setNr1(value);
-            length.setLength(64 - (value & 0b00111111));
+            length.SetLength(64 - (value & 0b00111111));
         }
 
         

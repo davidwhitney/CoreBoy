@@ -2,39 +2,24 @@ namespace CoreBoy.sound
 {
     public class Lfsr
     {
-        private int lfsr;
+        public int Value { get; private set; }
 
-        public Lfsr()
-        {
-            reset();
-        }
+        public Lfsr() => Reset();
+        public void Start() => Reset();
+        public void Reset() => Value = 0x7fff;
 
-        public void start()
+        public int NextBit(bool widthMode7)
         {
-            reset();
-        }
-
-        public void reset()
-        {
-            lfsr = 0x7fff;
-        }
-
-        public int nextBit(bool widthMode7)
-        {
-            bool x = ((lfsr & 1) ^ ((lfsr & 2) >> 1)) != 0;
-            lfsr = lfsr >> 1;
-            lfsr = lfsr | (x ? (1 << 14) : 0);
+            var x = ((Value & 1) ^ ((Value & 2) >> 1)) != 0;
+            Value = Value >> 1;
+            Value = Value | (x ? (1 << 14) : 0);
+            
             if (widthMode7)
             {
-                lfsr = lfsr | (x ? (1 << 6) : 0);
+                Value = Value | (x ? (1 << 6) : 0);
             }
 
-            return 1 & ~lfsr;
-        }
-
-        public int getValue()
-        {
-            return lfsr;
+            return 1 & ~Value;
         }
     }
 }

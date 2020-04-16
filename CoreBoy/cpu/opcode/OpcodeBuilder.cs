@@ -11,16 +11,16 @@ namespace CoreBoy.cpu.opcode
 {
     public class OpcodeBuilder
     {
-        private static readonly AluFunctions AluFuncs;
+        private static readonly AluFunctions AluFunctions;
         public static readonly List<IntRegistryFunction> OemBug;
 
         static OpcodeBuilder()
         {
-            AluFuncs = new AluFunctions();
+            AluFunctions = new AluFunctions();
             OemBug = new List<IntRegistryFunction>
             {
-                AluFuncs.GetFunction("INC", DataType.D16),
-                AluFuncs.GetFunction("DEC", DataType.D16)
+                AluFunctions.GetFunction("INC", DataType.D16),
+                AluFunctions.GetFunction("DEC", DataType.D16)
             };
         }
 
@@ -229,7 +229,7 @@ namespace CoreBoy.cpu.opcode
 
         public OpcodeBuilder Push()
         {
-            var dec = AluFuncs.GetFunction("DEC", DataType.D16);
+            var dec = AluFunctions.GetFunction("DEC", DataType.D16);
             _ops.Add(new PushOp1(dec));
             _ops.Add(new PushOp2(dec));
             return this;
@@ -284,7 +284,7 @@ namespace CoreBoy.cpu.opcode
 
         public OpcodeBuilder Pop()
         {
-            var inc = AluFuncs.GetFunction("INC", DataType.D16);
+            var inc = AluFunctions.GetFunction("INC", DataType.D16);
             _lastDataType = DataType.D16;
             _ops.Add(new PopOp1(inc));
             _ops.Add(new PopOp2(inc));
@@ -323,7 +323,7 @@ namespace CoreBoy.cpu.opcode
         public OpcodeBuilder Alu(string operation, string argument2)
         {
             var arg2 = Argument.Parse(argument2);
-            var func = AluFuncs.GetFunction(operation, _lastDataType, arg2.DataType);
+            var func = AluFunctions.GetFunction(operation, _lastDataType, arg2.DataType);
             _ops.Add(new AluOp1(func, arg2, operation, _lastDataType));
 
             if (_lastDataType == DataType.D16)
@@ -361,7 +361,7 @@ namespace CoreBoy.cpu.opcode
 
         public OpcodeBuilder Alu(string operation, int d8Value)
         {
-            var func = AluFuncs.GetFunction(operation, _lastDataType, DataType.D8);
+            var func = AluFunctions.GetFunction(operation, _lastDataType, DataType.D8);
             _ops.Add(new AluOp2(func, operation, d8Value));
 
             if (_lastDataType == DataType.D16)
@@ -397,7 +397,7 @@ namespace CoreBoy.cpu.opcode
 
         public OpcodeBuilder Alu(string operation)
         {
-            var func = AluFuncs.GetFunction(operation, _lastDataType);
+            var func = AluFunctions.GetFunction(operation, _lastDataType);
             _ops.Add(new AluOp3(func, operation, _lastDataType));
 
             if (_lastDataType == DataType.D16)
@@ -436,7 +436,7 @@ namespace CoreBoy.cpu.opcode
         public OpcodeBuilder AluHL(string operation)
         {
             Load("HL");
-            _ops.Add(new AluHLOp(AluFuncs.GetFunction(operation, DataType.D16)));
+            _ops.Add(new AluHLOp(AluFunctions.GetFunction(operation, DataType.D16)));
             Store("HL");
             return this;
         }

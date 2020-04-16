@@ -5,129 +5,117 @@ namespace CoreBoy.timer
 {
     public class Timer : IAddressSpace
     {
+        private readonly SpeedMode _speedMode;
+        private readonly InterruptManager _interruptManager;
+        private static readonly int[] FreqToBit = {9, 3, 5, 7};
 
-        private readonly SpeedMode speedMode;
-
-        private readonly InterruptManager interruptManager;
-
-        private static readonly int[] FREQ_TO_BIT = {9, 3, 5, 7};
-
-        private int div, tac, tma, tima;
-
-        private bool previousBit;
-
-        private bool overflow;
-
-        private int ticksSinceOverflow;
+        private int _div;
+        private int _tac;
+        private int _tma;
+        private int _tima;
+        private bool _previousBit;
+        private bool _overflow;
+        private int _ticksSinceOverflow;
 
         public Timer(InterruptManager interruptManager, SpeedMode speedMode)
         {
-            this.speedMode = speedMode;
-            this.interruptManager = interruptManager;
+            _speedMode = speedMode;
+            _interruptManager = interruptManager;
         }
 
-        public void tick()
+        public void Tick()
         {
-            updateDiv((div + 1) & 0xffff);
-            if (overflow)
+            UpdateDiv((_div + 1) & 0xffff);
+            if (!_overflow)
             {
-                ticksSinceOverflow++;
-                if (ticksSinceOverflow == 4)
-                {
-                    interruptManager.RequestInterrupt(InterruptManager.InterruptType.Timer);
-                }
+                return;
+            }
 
-                if (ticksSinceOverflow == 5)
-                {
-                    tima = tma;
-                }
+            _ticksSinceOverflow++;
+            if (_ticksSinceOverflow == 4)
+            {
+                _interruptManager.RequestInterrupt(InterruptManager.InterruptType.Timer);
+            }
 
-                if (ticksSinceOverflow == 6)
-                {
-                    tima = tma;
-                    overflow = false;
-                    ticksSinceOverflow = 0;
-                }
+            if (_ticksSinceOverflow == 5)
+            {
+                _tima = _tma;
+            }
+
+            if (_ticksSinceOverflow == 6)
+            {
+                _tima = _tma;
+                _overflow = false;
+                _ticksSinceOverflow = 0;
             }
         }
 
-        private void incTima()
+        private void IncTima()
         {
-            tima++;
-            tima %= 0x100;
-            if (tima == 0)
+            _tima++;
+            _tima %= 0x100;
+            if (_tima == 0)
             {
-                overflow = true;
-                ticksSinceOverflow = 0;
+                _overflow = true;
+                _ticksSinceOverflow = 0;
             }
         }
 
-        private void updateDiv(int newDiv)
+        private void UpdateDiv(int newDiv)
         {
-            div = newDiv;
-            int bitPos = FREQ_TO_BIT[tac & 0b11];
-            bitPos <<= speedMode.GetSpeedMode() - 1;
-            bool bit = (div & (1 << bitPos)) != 0;
-            bit &= (tac & (1 << 2)) != 0;
-            if (!bit && previousBit)
+            _div = newDiv;
+            int bitPos = FreqToBit[_tac & 0b11];
+            bitPos <<= _speedMode.GetSpeedMode() - 1;
+            bool bit = (_div & (1 << bitPos)) != 0;
+            bit &= (_tac & (1 << 2)) != 0;
+            if (!bit && _previousBit)
             {
-                incTima();
+                IncTima();
             }
 
-            previousBit = bit;
+            _previousBit = bit;
         }
 
-        public bool Accepts(int address)
-        {
-            return address >= 0xff04 && address <= 0xff07;
-        }
+        public bool Accepts(int address) => address >= 0xff04 && address <= 0xff07;
 
         public void SetByte(int address, int value)
         {
             switch (address)
             {
                 case 0xff04:
-                    updateDiv(0);
+                    UpdateDiv(0);
                     break;
 
                 case 0xff05:
-                    if (ticksSinceOverflow < 5)
+                    if (_ticksSinceOverflow < 5)
                     {
-                        tima = value;
-                        overflow = false;
-                        ticksSinceOverflow = 0;
+                        _tima = value;
+                        _overflow = false;
+                        _ticksSinceOverflow = 0;
                     }
 
                     break;
 
                 case 0xff06:
-                    tma = value;
+                    _tma = value;
                     break;
 
                 case 0xff07:
-                    tac = value;
+                    _tac = value;
                     break;
             }
         }
 
         public int GetByte(int address)
         {
-            switch (address)
+            return address switch
             {
-                case 0xff04:
-                    return div >> 8;
-
-                case 0xff05:
-                    return tima;
-
-                case 0xff06:
-                    return tma;
-
-                case 0xff07:
-                    return tac | 0b11111000;
-            }
-
-            throw new ArgumentException();
+                0xff04 => _div >> 8,
+                0xff05 => _tima,
+                0xff06 => _tma,
+                0xff07 => _tac | 0b11111000,
+                _ => throw new ArgumentException()
+            };
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,6 +11,7 @@ namespace CoreBoy.memory.cart
 {
     public class Cartridge : IAddressSpace
     {
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         public enum GameboyTypeFlag
         {
             UNIVERSAL = 0x80,
@@ -43,7 +45,7 @@ namespace CoreBoy.memory.cart
             }
             // LOG.debug("ROM banks: {}, RAM banks: {}", romBanks, ramBanks);
 
-            Battery battery = new NullBattery();
+            IBattery battery = new NullBattery();
             if (type.IsBattery() && options.IsSupportBatterySaves())
             {
                 //throw new NotImplementedException("Implement battery loading");
@@ -131,11 +133,11 @@ namespace CoreBoy.memory.cart
             switch (_dmgBootstrap)
             {
                 case 0 when !Gbc && (address >= 0x0000 && address < 0x0100):
-                    return BootRom.GAMEBOY_CLASSIC[address];
+                    return BootRom.GameboyClassic[address];
                 case 0 when Gbc && address >= 0x000 && address < 0x0100:
-                    return BootRom.GAMEBOY_COLOR[address];
+                    return BootRom.GameboyColor[address];
                 case 0 when Gbc && address >= 0x200 && address < 0x0900:
-                    return BootRom.GAMEBOY_COLOR[address - 0x0100];
+                    return BootRom.GameboyColor[address - 0x0100];
             }
 
             return address == 0xff50 ? 0xff : _addressSpace.GetByte(address);

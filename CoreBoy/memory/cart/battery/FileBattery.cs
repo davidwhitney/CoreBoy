@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace CoreBoy.memory.cart.battery
 {
-    public class FileBattery : Battery
+    public class FileBattery : IBattery
     {
         private readonly FileInfo _saveFile;
 
@@ -12,7 +12,7 @@ namespace CoreBoy.memory.cart.battery
             _saveFile = new FileInfo($"{romName}.sav.json");
         }
         
-        public void loadRam(int[] ram)
+        public void LoadRam(int[] ram)
         {
             if (!_saveFile.Exists)
             {
@@ -23,7 +23,7 @@ namespace CoreBoy.memory.cart.battery
             loaded.RAM.CopyTo(ram, 0);
         }
 
-        public void loadRamWithClock(int[] ram, long[] clockData)
+        public void LoadRamWithClock(int[] ram, long[] clockData)
         {
             if (!_saveFile.Exists)
             {
@@ -35,17 +35,18 @@ namespace CoreBoy.memory.cart.battery
             loaded.ClockData.CopyTo(clockData, 0);
         }
 
-        public void saveRam(int[] ram)
+        public void SaveRam(int[] ram)
         {
-            saveRamWithClock(ram, null);
+            SaveRamWithClock(ram, null);
         }
 
-        public void saveRamWithClock(int[] ram, long[] clockData)
+        public void SaveRamWithClock(int[] ram, long[] clockData)
         {
             var dto = new SaveState { RAM = ram, ClockData = clockData };
             var asText = JsonConvert.SerializeObject(dto);
             File.WriteAllText(_saveFile.FullName, asText);
         }
+
         public class SaveState
         {
             public int[] RAM { get; set; }

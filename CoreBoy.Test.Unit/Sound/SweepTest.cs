@@ -288,7 +288,7 @@ namespace CoreBoy.Test.Unit.Sound
 
         private void shouldBeOn()
         {
-            Assert.True(sweep.isEnabled());
+            Assert.True(sweep.IsEnabled());
         }
 
         /*
@@ -305,14 +305,14 @@ namespace CoreBoy.Test.Unit.Sound
          */
         private void shouldBeAlmostOff()
         {
-            Assert.True(sweep.isEnabled());
+            Assert.True(sweep.IsEnabled());
             delayApu(1);
             shouldBeOff();
         }
 
         private void shouldBeOff()
         {
-            Assert.False(sweep.isEnabled());
+            Assert.False(sweep.IsEnabled());
         }
 
         /*
@@ -331,9 +331,9 @@ namespace CoreBoy.Test.Unit.Sound
             wregNR(10, 0x11);
             wregNR(13, 0xff);
             wregNR(14, 0x83);
-            while (sweep.isEnabled())
+            while (sweep.IsEnabled())
             {
-                sweep.tick();
+                sweep.Tick();
             }
         }
 
@@ -342,15 +342,15 @@ namespace CoreBoy.Test.Unit.Sound
             switch (reg)
             {
                 case 10:
-                    sweep.setNr10(value);
+                    sweep.SetNr10(value);
                     break;
 
                 case 13:
-                    sweep.setNr13(value);
+                    sweep.SetNr13(value);
                     break;
 
                 case 14:
-                    sweep.setNr14(value);
+                    sweep.SetNr14(value);
                     break;
 
                 default:
@@ -362,7 +362,7 @@ namespace CoreBoy.Test.Unit.Sound
         {
             for (int i = 0; i < Gameboy.TicksPerSec / 256 * apuCycles; i++)
             {
-                sweep.tick();
+                sweep.Tick();
             }
         }
     }

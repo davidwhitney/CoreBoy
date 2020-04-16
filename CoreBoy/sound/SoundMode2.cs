@@ -24,10 +24,10 @@ namespace CoreBoy.sound
             i = 0;
             if (gbc)
             {
-                length.reset();
+                length.Reset();
             }
 
-            length.start();
+            length.Start();
             volumeEnvelope.start();
         }
 
@@ -64,7 +64,7 @@ namespace CoreBoy.sound
         protected override void setNr1(int value)
         {
             base.setNr1(value);
-            length.setLength(64 - (value & 0b00111111));
+            length.SetLength(64 - (value & 0b00111111));
         }
 
         protected override void setNr2(int value)

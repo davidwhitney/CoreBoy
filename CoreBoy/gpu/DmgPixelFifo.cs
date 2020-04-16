@@ -11,7 +11,7 @@ namespace CoreBoy.gpu
         private readonly IDisplay _display;
         private readonly MemoryRegisters _registers;
 
-        public DmgPixelFifo(IDisplay display, Lcdc lcdc, MemoryRegisters registers)
+        public DmgPixelFifo(IDisplay display, MemoryRegisters registers)
         {
             _display = display;
             _registers = registers;
@@ -32,7 +32,7 @@ namespace CoreBoy.gpu
             foreach (var p in pixelLine)
             {
                 Pixels.Enqueue(p);
-                _palettes.Enqueue(_registers.Get(GpuRegister.BGP));
+                _palettes.Enqueue(_registers.Get(GpuRegister.Bgp));
                 _pixelType.Enqueue(0);
             }
         }

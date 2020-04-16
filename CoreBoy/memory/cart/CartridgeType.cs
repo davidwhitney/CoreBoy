@@ -1,3 +1,5 @@
+// ReSharper disable InconsistentNaming
+// ReSharper disable UnusedMember.Global
 namespace CoreBoy.memory.cart
 {
     public enum CartridgeType

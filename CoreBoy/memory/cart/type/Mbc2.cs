@@ -2,49 +2,28 @@ using CoreBoy.memory.cart.battery;
 
 namespace CoreBoy.memory.cart.type
 {
-
-
     public class Mbc2 : IAddressSpace
     {
+        private readonly int[] _cartridge;
+        private readonly int[] _ram;
+        private readonly IBattery _battery;
+        private int _selectedRomBank = 1;
+        private bool _ramWriteEnabled;
 
-        private readonly CartridgeType type;
-
-        private readonly int romBanks;
-
-        private readonly int[] cartridge;
-
-        private readonly int[] ram;
-
-        private readonly Battery battery;
-
-        private int selectedRomBank = 1;
-
-        private bool ramWriteEnabled;
-
-        public Mbc2(int[] cartridge, CartridgeType type, Battery battery, int romBanks)
+        public Mbc2(int[] cartridge, CartridgeType type, IBattery battery, int romBanks)
         {
-            this.cartridge = cartridge;
-            this.romBanks = romBanks;
-            ram = new int[0x0200];
-            for (var i = 0; i < ram.Length; i++)
+            _cartridge = cartridge;
+            _ram = new int[0x0200];
+            for (var i = 0; i < _ram.Length; i++)
             {
-                ram[i] = 0xff;
+                _ram[i] = 0xff;
             }
 
-            this.type = type;
-            this.battery = battery;
-            battery.loadRam(ram);
+            _battery = battery;
+            battery.LoadRam(_ram);
         }
 
-        
-
-        public bool Accepts(int address)
-        {
-            return (address >= 0x0000 && address < 0x8000) ||
-                   (address >= 0xa000 && address < 0xc000);
-        }
-
-        
+        public bool Accepts(int address) => address >= 0x0000 && address < 0x8000 || address >= 0xa000 && address < 0xc000;
 
         public void SetByte(int address, int value)
         {
@@ -52,10 +31,10 @@ namespace CoreBoy.memory.cart.type
             {
                 if ((address & 0x0100) == 0)
                 {
-                    ramWriteEnabled = (value & 0b1010) != 0;
-                    if (!ramWriteEnabled)
+                    _ramWriteEnabled = (value & 0b1010) != 0;
+                    if (!_ramWriteEnabled)
                     {
-                        battery.saveRam(ram);
+                        _battery.SaveRam(_ram);
                     }
                 }
             }
@@ -63,65 +42,56 @@ namespace CoreBoy.memory.cart.type
             {
                 if ((address & 0x0100) != 0)
                 {
-                    selectedRomBank = value & 0b00001111;
+                    _selectedRomBank = value & 0b00001111;
                 }
             }
-            else if (address >= 0xa000 && address < 0xc000 && ramWriteEnabled)
+            else if (address >= 0xa000 && address < 0xc000 && _ramWriteEnabled)
             {
-                var ramAddress = getRamAddress(address);
-                if (ramAddress < ram.Length)
+                var ramAddress = GetRamAddress(address);
+                if (ramAddress < _ram.Length)
                 {
-                    ram[ramAddress] = value & 0x0f;
+                    _ram[ramAddress] = value & 0x0f;
                 }
             }
         }
-
-        
 
         public int GetByte(int address)
         {
             if (address >= 0x0000 && address < 0x4000)
             {
-                return getRomByte(0, address);
+                return GetRomByte(0, address);
             }
-            else if (address >= 0x4000 && address < 0x8000)
+
+            if (address >= 0x4000 && address < 0x8000)
             {
-                return getRomByte(selectedRomBank, address - 0x4000);
+                return GetRomByte(_selectedRomBank, address - 0x4000);
             }
-            else if (address >= 0xa000 && address < 0xb000)
+
+            if (address >= 0xa000 && address < 0xb000)
             {
-                var ramAddress = getRamAddress(address);
-                if (ramAddress < ram.Length)
+                var ramAddress = GetRamAddress(address);
+                if (ramAddress < _ram.Length)
                 {
-                    return ram[ramAddress];
+                    return _ram[ramAddress];
                 }
-                else
-                {
-                    return 0xff;
-                }
-            }
-            else
-            {
+
                 return 0xff;
             }
+
+            return 0xff;
         }
 
-        private int getRomByte(int bank, int address)
+        private int GetRomByte(int bank, int address)
         {
             var cartOffset = bank * 0x4000 + address;
-            if (cartOffset < cartridge.Length)
+            if (cartOffset < _cartridge.Length)
             {
-                return cartridge[cartOffset];
+                return _cartridge[cartOffset];
             }
-            else
-            {
-                return 0xff;
-            }
+
+            return 0xff;
         }
 
-        private int getRamAddress(int address)
-        {
-            return address - 0xa000;
-        }
+        private static int GetRamAddress(int address) => address - 0xa000;
     }
 }
