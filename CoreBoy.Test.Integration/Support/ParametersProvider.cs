@@ -30,7 +30,7 @@ namespace CoreBoy.Test.Unit.Integration.Support
         {
             searchOption ??= SearchOption.AllDirectories;
 
-            var root = "C:\\Users\\David Whitney\\OneDrive\\Desktop\\coffee-gb-netcore\\CoreBoy.Test.Unit\\roms";
+            var root = "C:\\Users\\David Whitney\\OneDrive\\Desktop\\coffee-gb-netcore\\CoreBoy.Test.Integration\\roms";
             var dir = Path.Combine(root, dirName);
             var paths = Directory.EnumerateFiles(dir, "*.gb", searchOption.Value).ToList();
             paths.RemoveAll(path => excludes.Any(path.Contains));
