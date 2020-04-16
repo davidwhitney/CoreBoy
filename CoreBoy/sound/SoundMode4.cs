@@ -1,92 +1,77 @@
 namespace CoreBoy.sound
 {
-    public class SoundMode4 : AbstractSoundMode
+    public class SoundMode4 : SoundModeBase
     {
-
-        private VolumeEnvelope volumeEnvelope;
-
-        private PolynomialCounter polynomialCounter;
-
-        private int lastResult;
-
-        private Lfsr lfsr = new Lfsr();
+        private int _lastResult;
+        private readonly VolumeEnvelope _volumeEnvelope;
+        private readonly PolynomialCounter _polynomialCounter;
+        private readonly Lfsr _lfsr = new Lfsr();
 
         public SoundMode4(bool gbc):base(0xff1f, 64, gbc)
         {
-            
-            volumeEnvelope = new VolumeEnvelope();
-            polynomialCounter = new PolynomialCounter();
+            _volumeEnvelope = new VolumeEnvelope();
+            _polynomialCounter = new PolynomialCounter();
         }
 
-        
-
-        public override void start()
+        public override void Start()
         {
-            if (gbc)
+            if (Gbc)
             {
-                length.Reset();
+                Length.Reset();
             }
 
-            length.Start();
-            lfsr.Start();
-            volumeEnvelope.start();
+            Length.Start();
+            _lfsr.Start();
+            _volumeEnvelope.Start();
         }
 
 
-        protected override void trigger()
+        protected override void Trigger()
         {
-            lfsr.Reset();
-            volumeEnvelope.trigger();
+            _lfsr.Reset();
+            _volumeEnvelope.Trigger();
         }
 
-        
-
-        public override int tick()
+        public override int Tick()
         {
-            volumeEnvelope.tick();
+            _volumeEnvelope.Tick();
 
-            if (!updateLength())
+            if (!UpdateLength())
             {
                 return 0;
             }
 
-            if (!dacEnabled)
+            if (!DacEnabled)
             {
                 return 0;
             }
 
-            if (polynomialCounter.tick())
+            if (_polynomialCounter.Tick())
             {
-                lastResult = lfsr.NextBit((nr3 & (1 << 3)) != 0);
+                _lastResult = _lfsr.NextBit((Nr3 & (1 << 3)) != 0);
             }
 
-            return lastResult * volumeEnvelope.getVolume();
+            return _lastResult * _volumeEnvelope.GetVolume();
         }
 
-        
-
-        protected override void setNr1(int value)
+        protected override void SetNr1(int value)
         {
-            base.setNr1(value);
-            length.SetLength(64 - (value & 0b00111111));
+            base.SetNr1(value);
+            Length.SetLength(64 - (value & 0b00111111));
         }
 
-        
-
-        protected override void setNr2(int value)
+        protected override void SetNr2(int value)
         {
-            base.setNr2(value);
-            volumeEnvelope.setNr2(value);
-            dacEnabled = (value & 0b11111000) != 0;
-            channelEnabled &= dacEnabled;
+            base.SetNr2(value);
+            _volumeEnvelope.SetNr2(value);
+            DacEnabled = (value & 0b11111000) != 0;
+            ChannelEnabled &= DacEnabled;
         }
 
-        
-
-        protected override void setNr3(int value)
+        protected override void SetNr3(int value)
         {
-            base.setNr3(value);
-            polynomialCounter.setNr43(value);
+            base.SetNr3(value);
+            _polynomialCounter.SetNr43(value);
         }
     }
 }

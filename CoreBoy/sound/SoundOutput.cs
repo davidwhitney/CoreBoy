@@ -1,28 +1,9 @@
 namespace CoreBoy.sound
 {
-    public interface SoundOutput
+    public interface ISoundOutput
     {
-
-        void start();
-
-        void stop();
-
-        void play(int left, int right);
-
-    }
-
-    public class NullSoundOutput : SoundOutput
-    {
-        public void start()
-        {
-        }
-
-        public void stop()
-        {
-        }
-
-        public void play(int left, int right)
-        {
-        }
+        void Start();
+        void Stop();
+        void Play(int left, int right);
     }
 }

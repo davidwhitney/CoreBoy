@@ -2,7 +2,6 @@ namespace CoreBoy.sound
 {
     public class FrequencySweep
     {
-
         private static readonly int Divider = Gameboy.TicksPerSec / 128;
 
         // sweep parameters
@@ -52,10 +51,7 @@ namespace CoreBoy.sound
             }
         }
 
-        public void SetNr13(int value)
-        {
-            _nr13 = value;
-        }
+        public void SetNr13(int value) => _nr13 = value;
 
         public void SetNr14(int value)
         {
@@ -71,35 +67,36 @@ namespace CoreBoy.sound
 
         public void Tick()
         {
-            if (++_i == Divider)
-            {
-                _i = 0;
-                if (!_counterEnabled)
-                {
-                    return;
-                }
+            _i++;
 
-                if (--_timer == 0)
-                {
-                    _timer = _period == 0 ? 8 : _period;
-                    if (_period != 0)
-                    {
-                        int newFreq = Calculate();
-                        if (!_overflow && _shift != 0)
-                        {
-                            _shadowFreq = newFreq;
-                            _nr13 = _shadowFreq & 0xff;
-                            _nr14 = (_shadowFreq & 0x700) >> 8;
-                            Calculate();
-                        }
-                    }
-                }
-            }
+            if (_i != Divider) return;
+
+            _i = 0;
+
+            if (!_counterEnabled) return;
+            
+            _timer--;
+
+            if (_timer != 0) return;
+
+            _timer = _period == 0 ? 8 : _period;
+
+            if (_period == 0) return;
+
+            var newFreq = Calculate();
+
+            if (_overflow || _shift == 0) return;
+
+            _shadowFreq = newFreq;
+            _nr13 = _shadowFreq & 0xff;
+            _nr14 = (_shadowFreq & 0x700) >> 8;
+
+            Calculate();
         }
 
         private int Calculate()
         {
-            int freq = _shadowFreq >> _shift;
+            var freq = _shadowFreq >> _shift;
             if (_negate)
             {
                 freq = _shadowFreq - freq;

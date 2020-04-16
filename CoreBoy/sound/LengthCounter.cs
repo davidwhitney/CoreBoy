@@ -2,11 +2,12 @@ namespace CoreBoy.sound
 {
     public class LengthCounter
     {
+        private long _i;
         private readonly int _divider = Gameboy.TicksPerSec / 256;
         private readonly int _fullLength;
-        private int _length;
-        private long _i;
-        private bool _enabled;
+
+        public bool Enabled { get; private set; }
+        public int Length { get; private set; }
 
         public LengthCounter(int fullLength)
         {
@@ -20,19 +21,21 @@ namespace CoreBoy.sound
 
         public void Tick()
         {
-            if (++_i == _divider)
+            _i++;
+
+            if (_i == _divider)
             {
                 _i = 0;
-                if (_enabled && _length > 0)
+                if (Enabled && Length > 0)
                 {
-                    _length--;
+                    Length--;
                 }
             }
         }
 
         public void SetLength(int len)
         {
-            _length = len == 0 ? _fullLength : len;
+            Length = len == 0 ? _fullLength : len;
         }
 
         public void SetNr4(int value)
@@ -40,9 +43,9 @@ namespace CoreBoy.sound
             var enable = (value & (1 << 6)) != 0;
             var trigger = (value & (1 << 7)) != 0;
 
-            if (_enabled)
+            if (Enabled)
             {
-                if (_length == 0 && trigger)
+                if (Length == 0 && trigger)
                 {
                     if (enable && _i < _divider / 2)
                     {
@@ -56,47 +59,37 @@ namespace CoreBoy.sound
             }
             else if (enable)
             {
-                if (_length > 0 && _i < _divider / 2)
+                if (Length > 0 && _i < _divider / 2)
                 {
-                    _length--;
+                    Length--;
                 }
 
-                if (_length == 0 && trigger && _i < _divider / 2)
+                if (Length == 0 && trigger && _i < _divider / 2)
                 {
                     SetLength(_fullLength - 1);
                 }
             }
             else
             {
-                if (_length == 0 && trigger)
+                if (Length == 0 && trigger)
                 {
                     SetLength(_fullLength);
                 }
             }
 
-            _enabled = enable;
+            Enabled = enable;
         }
 
-        public int GetValue()
-        {
-            return _length;
-        }
-
-        public bool IsEnabled()
-        {
-            return _enabled;
-        }
-        
         public override string ToString()
         {
-            return $"LengthCounter[l={_length},f={_fullLength},c={_i},{(_enabled ? "enabled" : "disabled")}]";
+            return $"LengthCounter[l={Length},f={_fullLength},c={_i},{(Enabled ? "enabled" : "disabled")}]";
         }
 
         public void Reset()
         {
-            _enabled = true;
+            Enabled = true;
             _i = 0;
-            _length = 0;
+            Length = 0;
         }
     }
 

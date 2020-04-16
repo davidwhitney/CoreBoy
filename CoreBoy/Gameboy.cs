@@ -34,7 +34,7 @@ namespace CoreBoy
             Cartridge rom, 
             IDisplay display, 
             IController controller,
-            SoundOutput soundOutput,
+            ISoundOutput soundOutput,
             SerialEndpoint serialEndpoint)
         {
             _display = display;

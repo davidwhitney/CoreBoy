@@ -3,98 +3,91 @@ using System;
 namespace CoreBoy.sound
 {
 
-    public class SoundMode2 : AbstractSoundMode
+    public class SoundMode2 : SoundModeBase
     {
+        private int _freqDivider;
+        private int _lastOutput;
+        private int _i;
+        private readonly VolumeEnvelope _volumeEnvelope;
 
-        private int freqDivider;
-
-        private int lastOutput;
-
-        private int i;
-
-        private VolumeEnvelope volumeEnvelope;
-
-        public SoundMode2(bool gbc) : base(0xff15, 64, gbc)
+        public SoundMode2(bool gbc) 
+            : base(0xff15, 64, gbc)
         {
-            volumeEnvelope = new VolumeEnvelope();
+            _volumeEnvelope = new VolumeEnvelope();
         }
         
-        public override void start()
+        public override void Start()
         {
-            i = 0;
-            if (gbc)
+            _i = 0;
+            if (Gbc)
             {
-                length.Reset();
+                Length.Reset();
             }
 
-            length.Start();
-            volumeEnvelope.start();
+            Length.Start();
+            _volumeEnvelope.Start();
         }
 
 
-        protected override void trigger()
+        protected override void Trigger()
         {
-            i = 0;
-            freqDivider = 1;
-            volumeEnvelope.trigger();
+            _i = 0;
+            _freqDivider = 1;
+            _volumeEnvelope.Trigger();
         }
         
 
-        public override int tick()
+        public override int Tick()
         {
-            volumeEnvelope.tick();
+            _volumeEnvelope.Tick();
 
-            var e = updateLength();
-            e = dacEnabled && e;
+            var e = UpdateLength();
+            e = DacEnabled && e;
             if (!e)
             {
                 return 0;
             }
 
-            if (--freqDivider == 0)
+            if (--_freqDivider == 0)
             {
-                resetFreqDivider();
-                lastOutput = ((getDuty() & (1 << i)) >> i);
-                i = (i + 1) % 8;
+                ResetFreqDivider();
+                _lastOutput = ((GetDuty() & (1 << _i)) >> _i);
+                _i = (_i + 1) % 8;
             }
 
-            return lastOutput * volumeEnvelope.getVolume();
+            return _lastOutput * _volumeEnvelope.GetVolume();
         }
 
-        protected override void setNr1(int value)
+        protected override void SetNr1(int value)
         {
-            base.setNr1(value);
-            length.SetLength(64 - (value & 0b00111111));
+            base.SetNr1(value);
+            Length.SetLength(64 - (value & 0b00111111));
         }
 
-        protected override void setNr2(int value)
+        protected override void SetNr2(int value)
         {
-            base.setNr2(value);
-            volumeEnvelope.setNr2(value);
-            dacEnabled = (value & 0b11111000) != 0;
-            channelEnabled &= dacEnabled;
+            base.SetNr2(value);
+            _volumeEnvelope.SetNr2(value);
+            DacEnabled = (value & 0b11111000) != 0;
+            ChannelEnabled &= DacEnabled;
         }
 
-        private int getDuty()
+        private int GetDuty()
         {
-            switch (getNr1() >> 6)
+            var i = GetNr1() >> 6;
+            return i switch
             {
-                case 0:
-                    return 0b00000001;
-                case 1:
-                    return 0b10000001;
-                case 2:
-                    return 0b10000111;
-                case 3:
-                    return 0b01111110;
-                default:
-                    throw new InvalidOperationException("Illegal operation");
-            }
+                0 => 0b00000001,
+                1 => 0b10000001,
+                2 => 0b10000111,
+                3 => 0b01111110,
+                _ => throw new InvalidOperationException("Illegal operation")
+            };
         }
 
-        private void resetFreqDivider()
+        private void ResetFreqDivider()
         {
-            freqDivider = getFrequency() * 4;
+            _freqDivider = GetFrequency() * 4;
         }
     }
 }

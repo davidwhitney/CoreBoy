@@ -84,8 +84,8 @@ namespace CoreBoy.Test.Unit.Sound
             begin();
             wchn(1, -1);
             wchn(4, 0x40);
-            Assert.True(lengthCounter.IsEnabled());
-            Assert.AreEqual(0, lengthCounter.GetValue());
+            Assert.True(lengthCounter.Enabled);
+            Assert.AreEqual(0, lengthCounter.Length);
         }
 
         /*
@@ -252,11 +252,11 @@ namespace CoreBoy.Test.Unit.Sound
             wchn(4, 0x40);
             wchn(4, 0xc0);
             delayApu(maxlen - 3);
-            Assert.True(lengthCounter.IsEnabled());
-            Assert.AreNotEqual(0, lengthCounter.GetValue());
+            Assert.True(lengthCounter.Enabled);
+            Assert.AreNotEqual(0, lengthCounter.Length);
             delayApu(1);
-            Assert.True(lengthCounter.IsEnabled());
-            Assert.AreEqual(0, lengthCounter.GetValue());
+            Assert.True(lengthCounter.Enabled);
+            Assert.AreEqual(0, lengthCounter.Length);
         }
 
         /*
@@ -301,7 +301,7 @@ namespace CoreBoy.Test.Unit.Sound
 
         private void endPassive(int remainingLength)
         {
-            Assert.AreEqual(remainingLength, lengthCounter.GetValue());
+            Assert.AreEqual(remainingLength, lengthCounter.Length);
         }
 
     }

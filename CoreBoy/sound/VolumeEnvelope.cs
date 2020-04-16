@@ -2,75 +2,56 @@ namespace CoreBoy.sound
 {
 	public class VolumeEnvelope
     {
+        private int _initialVolume;
+        private int _envelopeDirection;
+        private int _sweep;
+        private int _volume;
+        private bool _finished;
+        private int _i;
 
-        private int initialVolume;
-
-        private int envelopeDirection;
-
-        private int sweep;
-
-        private int volume;
-
-        private int i;
-
-        private bool finished;
-
-        public void setNr2(int register)
+        public void SetNr2(int register)
         {
-            initialVolume = register >> 4;
-            envelopeDirection = (register & (1 << 3)) == 0 ? -1 : 1;
-            sweep = register & 0b111;
+            _initialVolume = register >> 4;
+            _envelopeDirection = (register & (1 << 3)) == 0 ? -1 : 1;
+            _sweep = register & 0b111;
         }
 
-        public bool isEnabled()
+        public bool IsEnabled() => _sweep > 0;
+
+        public void Start()
         {
-            return sweep > 0;
+            _finished = true;
+            _i = 8192;
         }
 
-        public void start()
+        public void Trigger()
         {
-            finished = true;
-            i = 8192;
+            _i = 0;
+            _volume = _initialVolume;
+            _finished = false;
         }
 
-        public void trigger()
+        public void Tick()
         {
-            volume = initialVolume;
-            i = 0;
-            finished = false;
-        }
-
-        public void tick()
-        {
-            if (finished)
+            if (_finished)
             {
                 return;
             }
 
-            if ((volume == 0 && envelopeDirection == -1) || (volume == 15 && envelopeDirection == 1))
+            if ((_volume == 0 && _envelopeDirection == -1) || (_volume == 15 && _envelopeDirection == 1))
             {
-                finished = true;
+                _finished = true;
                 return;
             }
 
-            if (++i == sweep * Gameboy.TicksPerSec / 64)
+            if (++_i == _sweep * Gameboy.TicksPerSec / 64)
             {
-                i = 0;
-                volume += envelopeDirection;
+                _i = 0;
+                _volume += _envelopeDirection;
             }
         }
 
-        public int getVolume()
-        {
-            if (isEnabled())
-            {
-                return volume;
-            }
-            else
-            {
-                return initialVolume;
-            }
-        }
+        public int GetVolume() => IsEnabled() ? _volume : _initialVolume;
     }
 
 }

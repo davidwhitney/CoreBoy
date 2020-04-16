@@ -16,14 +16,14 @@ namespace CoreBoy.sound
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
         };
 
-        private readonly AbstractSoundMode[] _allModes = new AbstractSoundMode[4];
+        private readonly SoundModeBase[] _allModes = new SoundModeBase[4];
         private readonly Ram _ram = new Ram(0xff24, 0x03);
-        private readonly SoundOutput _output;
+        private readonly ISoundOutput _output;
         private readonly int[] _channels = new int[4];
         private readonly bool[] _overridenEnabled = {true, true, true, true};
         private bool _enabled;
 
-        public Sound(SoundOutput output, bool gbc)
+        public Sound(ISoundOutput output, bool gbc)
         {
             _allModes[0] = new SoundMode1(gbc);
             _allModes[1] = new SoundMode2(gbc);
@@ -42,7 +42,7 @@ namespace CoreBoy.sound
             for (var i = 0; i < _allModes.Length; i++)
             {
                 var abstractSoundMode = _allModes[i];
-                var channel = abstractSoundMode.tick();
+                var channel = abstractSoundMode.Tick();
                 _channels[i] = channel;
             }
 
@@ -74,7 +74,7 @@ namespace CoreBoy.sound
             left *= ((volumes >> 4) & 0b111);
             right *= (volumes & 0b111);
 
-            _output.play((byte) left, (byte) right);
+            _output.Play((byte) left, (byte) right);
         }
 
         private IAddressSpace GetAddressSpace(int address)
@@ -139,7 +139,7 @@ namespace CoreBoy.sound
                 result = 0;
                 for (var i = 0; i < _allModes.Length; i++)
                 {
-                    result |= _allModes[i].isEnabled() ? (1 << i) : 0;
+                    result |= _allModes[i].IsEnabled() ? (1 << i) : 0;
                 }
 
                 result |= _enabled ? (1 << 7) : 0;
@@ -185,18 +185,18 @@ namespace CoreBoy.sound
 
             foreach (var m in _allModes)
             {
-                m.start();
+                m.Start();
             }
 
-            _output.start();
+            _output.Start();
         }
 
         private void Stop()
         {
-            _output.stop();
+            _output.Stop();
             foreach (var s in _allModes)
             {
-                s.stop();
+                s.Stop();
             }
         }
 

@@ -3,107 +3,107 @@ using System;
 namespace CoreBoy.sound
 {
 
-    public class SoundMode1 : AbstractSoundMode
+    public class SoundMode1 : SoundModeBase
     {
-        private int freqDivider;
-        private int lastOutput;
-        private int i;
-        private FrequencySweep frequencySweep;
-        private VolumeEnvelope volumeEnvelope;
+        private int _freqDivider;
+        private int _lastOutput;
+        private int _i;
+        private readonly FrequencySweep _frequencySweep;
+        private readonly VolumeEnvelope _volumeEnvelope;
 
         public SoundMode1(bool gbc) : base(0xff10, 64, gbc)
         {
-            frequencySweep = new FrequencySweep();
-            volumeEnvelope = new VolumeEnvelope();
+            _frequencySweep = new FrequencySweep();
+            _volumeEnvelope = new VolumeEnvelope();
         }
 
-        public override void start()
+        public override void Start()
         {
-            i = 0;
-            if (gbc)
+            _i = 0;
+            if (Gbc)
             {
-                length.Reset();
+                Length.Reset();
             }
 
-            length.Start();
-            frequencySweep.Start();
-            volumeEnvelope.start();
+            Length.Start();
+            _frequencySweep.Start();
+            _volumeEnvelope.Start();
         }
 
-        protected override void trigger()
+        protected override void Trigger()
         {
-            i = 0;
-            freqDivider = 1;
-            volumeEnvelope.trigger();
+            _i = 0;
+            _freqDivider = 1;
+            _volumeEnvelope.Trigger();
         }
 
-        public override int tick()
+        public override int Tick()
         {
-            volumeEnvelope.tick();
+            _volumeEnvelope.Tick();
 
-            var e = updateLength();
-            e = updateSweep() && e;
-            e = dacEnabled && e;
+            var e = UpdateLength();
+            e = UpdateSweep() && e;
+            e = DacEnabled && e;
             if (!e)
             {
                 return 0;
             }
 
-            if (--freqDivider == 0)
+            if (--_freqDivider == 0)
             {
-                resetFreqDivider();
-                lastOutput = ((getDuty() & (1 << i)) >> i);
-                i = (i + 1) % 8;
+                ResetFreqDivider();
+                _lastOutput = ((GetDuty() & (1 << _i)) >> _i);
+                _i = (_i + 1) % 8;
             }
 
-            return lastOutput * volumeEnvelope.getVolume();
+            return _lastOutput * _volumeEnvelope.GetVolume();
         }
 
-        protected override void setNr0(int value)
+        protected override void SetNr0(int value)
         {
-            base.setNr0(value);
-            frequencySweep.SetNr10(value);
+            base.SetNr0(value);
+            _frequencySweep.SetNr10(value);
         }
 
-        protected override void setNr1(int value)
+        protected override void SetNr1(int value)
         {
-            base.setNr1(value);
-            length.SetLength(64 - (value & 0b00111111));
+            base.SetNr1(value);
+            Length.SetLength(64 - (value & 0b00111111));
         }
 
-        protected override void setNr2(int value)
+        protected override void SetNr2(int value)
         {
-            base.setNr2(value);
-            volumeEnvelope.setNr2(value);
-            dacEnabled = (value & 0b11111000) != 0;
-            channelEnabled &= dacEnabled;
+            base.SetNr2(value);
+            _volumeEnvelope.SetNr2(value);
+            DacEnabled = (value & 0b11111000) != 0;
+            ChannelEnabled &= DacEnabled;
         }
 
-        protected override void setNr3(int value)
+        protected override void SetNr3(int value)
         {
-            base.setNr3(value);
-            frequencySweep.SetNr13(value);
+            base.SetNr3(value);
+            _frequencySweep.SetNr13(value);
         }
 
-        protected override void setNr4(int value)
+        protected override void SetNr4(int value)
         {
-            base.setNr4(value);
-            frequencySweep.SetNr14(value);
+            base.SetNr4(value);
+            _frequencySweep.SetNr14(value);
         }
 
-        protected override int getNr3()
+        protected override int GetNr3()
         {
-            return frequencySweep.GetNr13();
+            return _frequencySweep.GetNr13();
         }
 
-        protected override int getNr4()
+        protected override int GetNr4()
         {
-            return (base.getNr4() & 0b11111000) | (frequencySweep.GetNr14() & 0b00000111);
+            return (base.GetNr4() & 0b11111000) | (_frequencySweep.GetNr14() & 0b00000111);
         }
 
-        private int getDuty()
+        private int GetDuty()
         {
-            switch (getNr1() >> 6)
+            switch (GetNr1() >> 6)
             {
                 case 0:
                     return 0b00000001;
@@ -118,20 +118,20 @@ namespace CoreBoy.sound
             }
         }
 
-        private void resetFreqDivider()
+        private void ResetFreqDivider()
         {
-            freqDivider = getFrequency() * 4;
+            _freqDivider = GetFrequency() * 4;
         }
 
-        protected bool updateSweep()
+        protected bool UpdateSweep()
         {
-            frequencySweep.Tick();
-            if (channelEnabled && !frequencySweep.IsEnabled())
+            _frequencySweep.Tick();
+            if (ChannelEnabled && !_frequencySweep.IsEnabled())
             {
-                channelEnabled = false;
+                ChannelEnabled = false;
             }
 
-            return channelEnabled;
+            return ChannelEnabled;
         }
     }
 

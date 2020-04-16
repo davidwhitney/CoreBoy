@@ -3,7 +3,7 @@ using CoreBoy.memory;
 
 namespace CoreBoy.sound
 {
-    public class SoundMode3 : AbstractSoundMode
+    public class SoundMode3 : SoundModeBase
     {
         private static readonly int[] DmgWave =
         {
@@ -43,12 +43,12 @@ namespace CoreBoy.sound
                 return base.GetByte(address);
             }
 
-            if (!isEnabled())
+            if (!IsEnabled())
             {
                 return _waveRam.GetByte(address);
             }
 
-            if (_waveRam.Accepts(_lastReadAddress) && (gbc || _ticksSinceRead < 2))
+            if (_waveRam.Accepts(_lastReadAddress) && (Gbc || _ticksSinceRead < 2))
             {
                 return _waveRam.GetByte(_lastReadAddress);
             }
@@ -65,34 +65,34 @@ namespace CoreBoy.sound
                 return;
             }
 
-            if (!isEnabled())
+            if (!IsEnabled())
             {
                 _waveRam.SetByte(address, value);
             }
-            else if (_waveRam.Accepts(_lastReadAddress) && (gbc || _ticksSinceRead < 2))
+            else if (_waveRam.Accepts(_lastReadAddress) && (Gbc || _ticksSinceRead < 2))
             {
                 _waveRam.SetByte(_lastReadAddress, value);
             }
         }
 
-        protected override void setNr0(int value)
+        protected override void SetNr0(int value)
         {
-            base.setNr0(value);
-            dacEnabled = (value & (1 << 7)) != 0;
-            channelEnabled &= dacEnabled;
+            base.SetNr0(value);
+            DacEnabled = (value & (1 << 7)) != 0;
+            ChannelEnabled &= DacEnabled;
         }
 
-        protected override void setNr1(int value)
+        protected override void SetNr1(int value)
         {
-            base.setNr1(value);
-            length.SetLength(256 - value);
+            base.SetNr1(value);
+            Length.SetLength(256 - value);
         }
 
-        protected override void setNr4(int value)
+        protected override void SetNr4(int value)
         {
-            if (!gbc && (value & (1 << 7)) != 0)
+            if (!Gbc && (value & (1 << 7)) != 0)
             {
-                if (isEnabled() && _freqDivider == 2)
+                if (IsEnabled() && _freqDivider == 2)
                 {
                     var pos = _i / 2;
                     if (pos < 4)
@@ -110,51 +110,53 @@ namespace CoreBoy.sound
                 }
             }
 
-            base.setNr4(value);
+            base.SetNr4(value);
         }
 
-        public override void start()
+        public override void Start()
         {
             _i = 0;
             _buffer = 0;
-            if (gbc)
+            if (Gbc)
             {
-                length.Reset();
+                Length.Reset();
             }
 
-            length.Start();
+            Length.Start();
         }
 
-        protected override void trigger()
+        protected override void Trigger()
         {
             _i = 0;
             _freqDivider = 6;
-            _triggered = !gbc;
-            if (gbc)
+            _triggered = !Gbc;
+            if (Gbc)
             {
                 GetWaveEntry();
             }
         }
 
-        public override int tick()
+        public override int Tick()
         {
             _ticksSinceRead++;
-            if (!updateLength())
+            if (!UpdateLength())
             {
                 return 0;
             }
 
-            if (!dacEnabled)
+            if (!DacEnabled)
             {
                 return 0;
             }
 
-            if ((getNr0() & (1 << 7)) == 0)
+            if ((GetNr0() & (1 << 7)) == 0)
             {
                 return 0;
             }
 
-            if (--_freqDivider == 0)
+            _freqDivider--;
+
+            if (_freqDivider == 0)
             {
                 ResetFreqDivider();
                 if (_triggered)
@@ -173,7 +175,7 @@ namespace CoreBoy.sound
             return _lastOutput;
         }
 
-        private int GetVolume() => (getNr2() >> 5) & 0b11;
+        private int GetVolume() => (GetNr2() >> 5) & 0b11;
 
         private int GetWaveEntry()
         {
@@ -201,6 +203,6 @@ namespace CoreBoy.sound
             };
         }
 
-        private void ResetFreqDivider() => _freqDivider = getFrequency() * 2;
+        private void ResetFreqDivider() => _freqDivider = GetFrequency() * 2;
     }
 }
