@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using CoreBoy.cpu.op;
 using CoreBoy.cpu.opcode;
 using CoreBoy.gpu;
@@ -67,7 +68,10 @@ namespace CoreBoy.cpu
 
         public void Tick()
         {
-            if (++_clockCycle >= (4 / _speedMode.GetSpeedMode()))
+            _clockCycle++;
+            var speed = _speedMode.GetSpeedMode();
+
+            if (_clockCycle >= (4 / speed))
             {
                 _clockCycle = 0;
             }
@@ -109,6 +113,7 @@ namespace CoreBoy.cpu
             }
 
             var accessedMemory = false;
+
             while (true)
             {
                 var pc = Registers.PC;
@@ -319,7 +324,6 @@ namespace CoreBoy.cpu
                     _requestedIrq = null;
                     State = State.OPCODE;
                     break;
-
             }
         }
 
@@ -335,11 +339,6 @@ namespace CoreBoy.cpu
             {
                 SpriteBug.CorruptOam(_addressSpace, type, _gpu.GetTicksInLine());
             }
-        }
-
-        public Registers GetRegisters()
-        {
-            return Registers;
         }
 
         public void ClearState()

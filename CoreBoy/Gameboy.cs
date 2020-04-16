@@ -91,7 +91,7 @@ namespace CoreBoy
 
         private void InitiliseRegisters()
         {
-            var registers = Cpu.GetRegisters();
+            var registers = Cpu.Registers;
 
             registers.SetAf(0x01b0);
             if (_gbc)

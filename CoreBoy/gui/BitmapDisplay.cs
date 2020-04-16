@@ -18,12 +18,8 @@ namespace CoreBoy.gui
         private bool _doRefresh;
         private int _i;
 
-        private readonly object _lockObject = new object();
-        
         public event FrameProducedEventHandler OnFrameProduced;
 
-        private byte[] _currentScreenBytes = { };
-        
         public BitmapDisplay()
         {
             _rgb = new int[DisplayWidth * DisplayHeight];
@@ -53,20 +49,14 @@ namespace CoreBoy.gui
 
         public void RequestRefresh()
         {
-            lock (_lockObject)
-            {
-                _doRefresh = true;
-            }
+            _doRefresh = true;
         }
 
         public void WaitForRefresh()
         {
             while (_doRefresh)
             {
-                lock (_lockObject)
-                {
-                    Thread.Sleep(10);
-                }
+                Thread.Sleep(2);
             }
         }
 
@@ -89,51 +79,47 @@ namespace CoreBoy.gui
             {
                 if (!_doRefresh)
                 {
-                    Thread.Sleep(10);
+                    Thread.Sleep(2);
                     continue;
                 }
 
-                var pixels = new Image<Rgba32>(DisplayWidth, DisplayHeight);
-
-                var x = 0;
-                var y = 0;
-
-                foreach(var pixel in _rgb)
-                {
-                    if (x == DisplayWidth)
-                    {
-                        x = 0;
-                        y++;
-                    }
-
-                    var hex = "#" + pixel.ToString("X6");
-                    pixels[x, y] = Rgba32.FromHex(hex);
-
-                    x++;
-                }
-
-                lock (_lockObject)
-                {
-                    byte[] bytes;
-                    using (var memoryStream = new MemoryStream())
-                    {
-                        pixels.SaveAsBmp(memoryStream);
-                        pixels.Dispose();
-                        bytes = memoryStream.ToArray();
-                    }
-
-                    lock(_currentScreenBytes)
-                    {
-                        _currentScreenBytes = bytes;
-                    }
-
-                    OnFrameProduced?.Invoke(this, bytes);
-                    
-
-                    _i = 0;
-                    _doRefresh = false;
-                }
+                RefreshScreen();
             }
+        }
+
+        private void RefreshScreen()
+        {
+            var pixels = new Image<Rgba32>(DisplayWidth, DisplayHeight);
+
+            var x = 0;
+            var y = 0;
+
+            foreach (var pixel in _rgb)
+            {
+                if (x == DisplayWidth)
+                {
+                    x = 0;
+                    y++;
+                }
+
+                var hex = "#" + pixel.ToString("X6");
+                pixels[x, y] = Rgba32.FromHex(hex);
+
+                x++;
+            }
+
+            byte[] bytes;
+            using (var memoryStream = new MemoryStream())
+            {
+                pixels.SaveAsBmp(memoryStream);
+                pixels.Dispose();
+                bytes = memoryStream.ToArray();
+            }
+
+            OnFrameProduced?.Invoke(this, bytes);
+
+            _i = 0;
+            _doRefresh = false;
         }
     }
 }
