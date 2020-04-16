@@ -1,6 +1,6 @@
 ﻿using CoreBoy.cpu;
 
-namespace CoreBoy.Test.Unit.Integration.Support
+namespace CoreBoy.Test.Integration.Support
 {
     public interface ITracer
     {

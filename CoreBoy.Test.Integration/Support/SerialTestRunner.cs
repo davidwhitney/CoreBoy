@@ -7,53 +7,60 @@ using CoreBoy.memory.cart;
 using CoreBoy.serial;
 using CoreBoy.sound;
 
-namespace CoreBoy.Test.Unit.Integration.Support
+namespace CoreBoy.Test.Integration.Support
 {
     public class SerialTestRunner : SerialEndpoint
     {
 
-        private readonly Gameboy gb;
-        private readonly StringBuilder text;
-        private readonly TextWriter os;
+        private readonly Gameboy _gb;
+        private readonly StringBuilder _text;
+        private readonly TextWriter _os;
+        private readonly ITracer _tracer;
 
-        public SerialTestRunner(FileInfo romFileInfo, TextWriter os)
+        public SerialTestRunner(FileInfo romFileInfo, TextWriter os, bool trace)
         {
+            _tracer = trace ? (ITracer)new Tracer(romFileInfo.Name) : new NullTracer();
+
             var options = new GameboyOptions(romFileInfo);
             var cart = new Cartridge(options);
-            gb = new Gameboy(options, cart, new NullDisplay(), new NullController(), new NullSoundOutput(), this);
-            text = new StringBuilder();
-            this.os = os;
+            _gb = new Gameboy(options, cart, new NullDisplay(), new NullController(), new NullSoundOutput(), this);
+            _text = new StringBuilder();
+            _os = os;
         }
 
-        public string runTest()
+        public string RunTest()
         {
+            _tracer.Collect(_gb.Cpu.Registers);
+
             int divider = 0;
             while (true)
             {
-                gb.Tick();
+                _gb.Tick();
                 if (++divider == 4)
                 {
-                    if (isInfiniteLoop(gb))
+                    if (IsInfiniteLoop(_gb))
                     {
                         break;
                     }
 
                     divider = 0;
                 }
+
+                _tracer.Collect(_gb.Cpu.Registers);
             }
 
-            return text.ToString();
+            return _text.ToString();
         }
 
         public int transfer(int outgoing)
         {
-            text.Append((char) outgoing);
-            os.Write(outgoing);
-            os.Flush();
+            _text.Append((char) outgoing);
+            _os.Write(outgoing);
+            _os.Flush();
             return 0;
         }
 
-        public static bool isInfiniteLoop(Gameboy gb)
+        public static bool IsInfiniteLoop(Gameboy gb)
         {
             Cpu cpu = gb.Cpu;
             if (cpu.State != State.OPCODE)

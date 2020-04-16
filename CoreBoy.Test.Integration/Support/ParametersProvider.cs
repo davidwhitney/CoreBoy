@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace CoreBoy.Test.Unit.Integration.Support
+namespace CoreBoy.Test.Integration.Support
 {
     public static class ParametersProvider
     {

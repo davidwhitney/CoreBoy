@@ -1,8 +1,8 @@
 ﻿using System.IO;
-using CoreBoy.Test.Unit.Integration.Support;
+using CoreBoy.Test.Integration.Support;
 using NUnit.Framework;
 
-namespace CoreBoy.Test.Unit.Integration.Mooneye
+namespace CoreBoy.Test.Integration.Mooneye
 {
     [TestFixture, Timeout(1000 * 60)]
     public class TimerTest

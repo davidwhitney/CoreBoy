@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Text;
 using CoreBoy.controller;
@@ -9,7 +8,7 @@ using CoreBoy.memory.cart;
 using CoreBoy.serial;
 using CoreBoy.sound;
 
-namespace CoreBoy.Test.Unit.Integration.Support
+namespace CoreBoy.Test.Integration.Support
 {
     public class MemoryTestRunner
     {
@@ -32,7 +31,7 @@ namespace CoreBoy.Test.Unit.Integration.Support
         {
             int status = 0x80;
             int divider = 0;
-            while (status == 0x80 && !SerialTestRunner.isInfiniteLoop(gb))
+            while (status == 0x80 && !SerialTestRunner.IsInfiniteLoop(gb))
             {
                 gb.Tick();
                 if (++divider >= (gb.SpeedMode.GetSpeedMode() == 2 ? 1 : 4))

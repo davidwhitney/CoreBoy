@@ -2,7 +2,7 @@
 using System.IO;
 using NUnit.Framework;
 
-namespace CoreBoy.Test.Unit.Integration.Support
+namespace CoreBoy.Test.Integration.Support
 {
     public class RomTestUtils
     {
@@ -16,12 +16,12 @@ namespace CoreBoy.Test.Unit.Integration.Support
             Assert.AreEqual(0, result.getStatus(), "Non-zero return value");
         }
 
-        public static void testRomWithSerial(FileInfo romFileInfoInfo)
+        public static void testRomWithSerial(FileInfo romFileInfoInfo, bool trace = false)
         {
             Console.WriteLine($"\n### Running test rom {romFileInfoInfo.FullName} ###");
-            var runner = new SerialTestRunner(romFileInfoInfo, Console.Out);
+            var runner = new SerialTestRunner(romFileInfoInfo, Console.Out, trace);
 
-            var result = runner.runTest();
+            var result = runner.RunTest();
 
             Assert.True(result.Contains("Passed"));
         }
@@ -30,7 +30,7 @@ namespace CoreBoy.Test.Unit.Integration.Support
         {
             Console.WriteLine($"\n### Running test rom {romFileInfoInfo.FullName} ###");
             var runner = new MooneyeTestRunner(romFileInfoInfo, Console.Out, trace);
-            var result = runner.runTest();
+            var result = runner.RunTest();
             Assert.True(result);
         }
     }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using CoreBoy.controller;
 using CoreBoy.cpu;
 using CoreBoy.gpu;
@@ -9,15 +8,15 @@ using CoreBoy.memory.cart;
 using CoreBoy.serial;
 using CoreBoy.sound;
 
-namespace CoreBoy.Test.Unit.Integration.Support
+namespace CoreBoy.Test.Integration.Support
 {
     public class MooneyeTestRunner
     {
-        private readonly Gameboy gb;
-        private readonly Cpu cpu;
-        private readonly AddressSpace mem;
-        private readonly Registers regs;
-        private readonly TextWriter os;
+        private readonly Gameboy _gb;
+        private readonly Cpu _cpu;
+        private readonly AddressSpace _mem;
+        private readonly Registers _registers;
+        private readonly TextWriter _os;
         private readonly ITracer _tracer;
 
         public MooneyeTestRunner(FileInfo romFileInfo, TextWriter os, bool trace)
@@ -38,80 +37,76 @@ namespace CoreBoy.Test.Unit.Integration.Support
             opts.Add("db");
             var options = new GameboyOptions(romFileInfo, new List<string>(), opts);
             var cart = new Cartridge(options);
-            gb = new Gameboy(options, cart, new NullDisplay(), new NullController(), new NullSoundOutput(), 
+            _gb = new Gameboy(options, cart, new NullDisplay(), new NullController(), new NullSoundOutput(), 
                 new NullSerialEndpoint());
             Console.WriteLine("System type: " + (cart.Gbc ? "CGB" : "DMG"));
             Console.WriteLine("Bootstrap: " + (options.UseBootstrap ? "enabled" : "disabled"));
-            cpu = gb.Cpu;
-            regs = cpu.Registers;
-            mem = gb.Mmu;
-            this.os = os;
+            _cpu = _gb.Cpu;
+            _registers = _cpu.Registers;
+            _mem = _gb.Mmu;
+            _os = os;
         }
 
-        public bool runTest()
+        public bool RunTest()
         {
+            _tracer.Collect(_gb.Cpu.Registers);
+
             int divider = 0;
-            while (!isByteSequenceAtPc(0x00, 0x18, 0xfd))
+            while (!IsByteSequenceAtPc(0x00, 0x18, 0xfd))
             {
-                // infinite loop
-                gb.Tick();
-                if (++divider >= (gb.SpeedMode.GetSpeedMode() == 2 ? 1 : 4))
+                _gb.Tick();
+                if (++divider >= (_gb.SpeedMode.GetSpeedMode() == 2 ? 1 : 4))
                 {
-                    displayProgress();
+                    DisplayProgress();
                     divider = 0;
                 }
-
-                _tracer.Collect(gb.Cpu.Registers);
+                
+                _tracer.Collect(_gb.Cpu.Registers);
             }
-            
+
             _tracer.Save();
 
-            return regs.A == 0 
-                   && regs.B == 3 
-                   && regs.C == 5 
-                   && regs.D == 8 
-                   && regs.E == 13 
-                   && regs.H == 21 
-                   && regs.L == 34;
+            return _registers.A == 0 
+                   && _registers.B == 3 
+                   && _registers.C == 5 
+                   && _registers.D == 8 
+                   && _registers.E == 13 
+                   && _registers.H == 21 
+                   && _registers.L == 34;
         }
 
-        private void displayProgress()
+        private void DisplayProgress()
         {
-            if (cpu.State == State.OPCODE && mem.getByte(regs.PC) == 0x22 && regs.HL >= 0x9800 &&
-                regs.HL < 0x9c00)
+            if (_cpu.State == State.OPCODE && _mem.getByte(_registers.PC) == 0x22 && _registers.HL >= 0x9800 &&
+                _registers.HL < 0x9c00)
             {
-                if (regs.A != 0)
+                if (_registers.A != 0)
                 {
-                    os.Write(regs.A);
+                    _os.Write(_registers.A);
                 }
             }
-            else if (isByteSequenceAtPc(0x7d, 0xe6, 0x1f, 0xee, 0x1f))
+            else if (IsByteSequenceAtPc(0x7d, 0xe6, 0x1f, 0xee, 0x1f))
             {
-                os.Write('\n');
+                _os.Write('\n');
             }
         }
 
-        private bool isByteSequenceAtPc(params int[] seq)
+        private bool IsByteSequenceAtPc(params int[] seq)
         {
-            if (cpu.State != State.OPCODE)
+            if (_cpu.State != State.OPCODE)
             {
                 return false;
             }
 
-            int i = regs.PC;
+            int i = _registers.PC;
             bool found = true;
             foreach (int v in seq)
             {
-                if (mem.getByte(i++) != v)
+                if (_mem.getByte(i++) != v)
                 {
                     found = false;
                     break;
                 }
-            }
-
-            if (found)
-            {
-                Console.WriteLine("Ending test.");
             }
 
             return found;

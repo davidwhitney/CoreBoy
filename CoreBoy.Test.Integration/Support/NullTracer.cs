@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using System.Text;
-using CoreBoy.cpu;
+﻿using CoreBoy.cpu;
 
-namespace CoreBoy.Test.Unit.Integration.Support
+namespace CoreBoy.Test.Integration.Support
 {
     public class NullTracer : ITracer
     {

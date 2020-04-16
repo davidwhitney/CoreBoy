@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
 using NUnit.Framework;
+using static CoreBoy.Test.Integration.Support.RomTestUtils;
 
-using static CoreBoy.Test.Unit.Integration.Support.RomTestUtils;
-
-namespace CoreBoy.Test.Unit.Integration.Blargg
+namespace CoreBoy.Test.Integration.Blargg
 {
     [TestFixture]
     public class BlarggRomTest
