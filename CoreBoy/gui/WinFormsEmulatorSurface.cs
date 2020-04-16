@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Threading;
 using System.Windows.Forms;
 using CoreBoy.controller;
 using Button = CoreBoy.controller.Button;
@@ -13,6 +14,8 @@ namespace CoreBoy.gui
         private IButtonListener _listener;
         private readonly PictureBox _pictureBox;
         private readonly Dictionary<Keys, Button> _controls;
+
+        private readonly object _updateLock = new object();
 
         public WinFormsEmulatorSurface()
         {
@@ -77,8 +80,21 @@ namespace CoreBoy.gui
 
         public void UpdateDisplay(object _, byte[] frame)
         {
-            using var memoryStream = new MemoryStream(frame);
-            _pictureBox.Image = Image.FromStream(memoryStream);
+            if (!Monitor.TryEnter(_updateLock)) return;
+            
+            try
+            {
+                using var memoryStream = new MemoryStream(frame);
+                _pictureBox.Image = Image.FromStream(memoryStream);
+            }
+            catch
+            {
+                // YOLO
+            }
+            finally
+            {
+                Monitor.Exit(_updateLock);
+            }
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)

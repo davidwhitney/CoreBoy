@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CoreBoy.controller;
@@ -21,10 +22,10 @@ namespace CoreBoy.gui
 
         private readonly List<Thread> _runnables;
 
-        public Emulator(string[] args)
+        public Emulator(IEnumerable<string> args)
         {
             _runnables = new List<Thread>();
-            Options = ParseArgs(args);
+            Options = ParseArgs(args.ToArray());
         }
         
         private static GameboyOptions ParseArgs(string[] args)
