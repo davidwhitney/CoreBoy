@@ -38,31 +38,31 @@ namespace CoreBoy.sound
         {
             foreach (int v in gbc ? CGB_WAVE : DMG_WAVE)
             {
-                waveRam.setByte(0xff30, v);
+                waveRam.SetByte(0xff30, v);
             }
         }
 
 
-        public override bool accepts(int address)
+        public override bool Accepts(int address)
         {
-            return waveRam.accepts(address) || base.accepts(address);
+            return waveRam.Accepts(address) || base.Accepts(address);
         }
 
 
-        public override int getByte(int address)
+        public override int GetByte(int address)
         {
-            if (!waveRam.accepts(address))
+            if (!waveRam.Accepts(address))
             {
-                return base.getByte(address);
+                return base.GetByte(address);
             }
 
             if (!isEnabled())
             {
-                return waveRam.getByte(address);
+                return waveRam.GetByte(address);
             }
-            else if (waveRam.accepts(lastReadAddr) && (gbc || ticksSinceRead < 2))
+            else if (waveRam.Accepts(lastReadAddr) && (gbc || ticksSinceRead < 2))
             {
-                return waveRam.getByte(lastReadAddr);
+                return waveRam.GetByte(lastReadAddr);
             }
             else
             {
@@ -71,21 +71,21 @@ namespace CoreBoy.sound
         }
 
 
-        public override void setByte(int address, int value)
+        public override void SetByte(int address, int value)
         {
-            if (!waveRam.accepts(address))
+            if (!waveRam.Accepts(address))
             {
-                base.setByte(address, value);
+                base.SetByte(address, value);
                 return;
             }
 
             if (!isEnabled())
             {
-                waveRam.setByte(address, value);
+                waveRam.SetByte(address, value);
             }
-            else if (waveRam.accepts(lastReadAddr) && (gbc || ticksSinceRead < 2))
+            else if (waveRam.Accepts(lastReadAddr) && (gbc || ticksSinceRead < 2))
             {
-                waveRam.setByte(lastReadAddr, value);
+                waveRam.SetByte(lastReadAddr, value);
             }
         }
 
@@ -120,14 +120,14 @@ namespace CoreBoy.sound
                     int pos = i / 2;
                     if (pos < 4)
                     {
-                        waveRam.setByte(0xff30, waveRam.getByte(0xff30 + pos));
+                        waveRam.SetByte(0xff30, waveRam.GetByte(0xff30 + pos));
                     }
                     else
                     {
                         pos = pos & ~3;
                         for (int j = 0; j < 4; j++)
                         {
-                            waveRam.setByte(0xff30 + j, waveRam.getByte(0xff30 + ((pos + j) % 0x10)));
+                            waveRam.SetByte(0xff30 + j, waveRam.GetByte(0xff30 + ((pos + j) % 0x10)));
                         }
                     }
                 }
@@ -208,7 +208,7 @@ namespace CoreBoy.sound
         {
             ticksSinceRead = 0;
             lastReadAddr = 0xff30 + i / 2;
-            buffer = waveRam.getByte(lastReadAddr);
+            buffer = waveRam.GetByte(lastReadAddr);
             int b = buffer;
             if (i % 2 == 0)
             {

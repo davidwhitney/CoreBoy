@@ -2,7 +2,7 @@ using System;
 
 namespace CoreBoy.sound
 {
-    public abstract class AbstractSoundMode : AddressSpace
+    public abstract class AbstractSoundMode : IAddressSpace
     {
 
         protected readonly int offset;
@@ -33,12 +33,12 @@ namespace CoreBoy.sound
             return channelEnabled && dacEnabled;
         }
 
-        public virtual bool accepts(int address)
+        public virtual bool Accepts(int address)
         {
             return address >= offset && address < offset + 5;
         }
 
-        public virtual void setByte(int address, int value)
+        public virtual void SetByte(int address, int value)
         {
             switch (address - offset)
             {
@@ -64,7 +64,7 @@ namespace CoreBoy.sound
             }
         }
 
-        public virtual int getByte(int address)
+        public virtual int GetByte(int address)
         {
             switch (address - offset)
             {

@@ -6,12 +6,12 @@ namespace CoreBoy.debugging.command.apu
     public class Channel : Command
     {
 
-        private static CommandPattern PATTERN = CommandPattern.Builder
-            .create("apu chan")
-            .withDescription("enable given channels (1-4)")
-            .build();
+        private static readonly CommandPattern PATTERN = CommandPattern.Builder
+            .Create("apu chan")
+            .WithDescription("enable given channels (1-4)")
+            .Build();
 
-        private Sound sound;
+        private readonly Sound sound;
 
         public Channel(Sound sound)
         {
@@ -25,8 +25,8 @@ namespace CoreBoy.debugging.command.apu
 
         public void run(CommandPattern.ParsedCommandLine commandLine)
         {
-            var channels = new HashSet<string>(commandLine.getRemainingArguments());
-            for (int i = 1; i <= 4; i++)
+            var channels = new HashSet<string>(commandLine.GetRemainingArguments());
+            for (var i = 1; i <= 4; i++)
             {
                 sound.enableChannel(i - 1, channels.Contains(i.ToString()));
             }

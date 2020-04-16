@@ -3,7 +3,7 @@ using CoreBoy.memory;
 
 namespace CoreBoy.sound
 {
-    public class Sound : AddressSpace
+    public class Sound : IAddressSpace
     {
 
         private static readonly int[] MASKS = new int[]
@@ -53,7 +53,7 @@ namespace CoreBoy.sound
                 channels[i] = channel;
             }
 
-            var selection = r.getByte(0xff25);
+            var selection = r.GetByte(0xff25);
             var left = 0;
             var right = 0;
             for (var i = 0; i < 4; i++)
@@ -77,24 +77,24 @@ namespace CoreBoy.sound
             left /= 4;
             right /= 4;
 
-            var volumes = r.getByte(0xff24);
+            var volumes = r.GetByte(0xff24);
             left *= ((volumes >> 4) & 0b111);
             right *= (volumes & 0b111);
 
             output.play((byte) left, (byte) right);
         }
 
-        private AddressSpace getAddressSpace(int address)
+        private IAddressSpace getAddressSpace(int address)
         {
             foreach (var m in allModes)
             {
-                if (m.accepts(address))
+                if (m.Accepts(address))
                 {
                     return m;
                 }
             }
 
-            if (r.accepts(address))
+            if (r.Accepts(address))
             {
                 return r;
             }
@@ -103,13 +103,13 @@ namespace CoreBoy.sound
         }
 
 
-        public bool accepts(int address)
+        public bool Accepts(int address)
         {
             return getAddressSpace(address) != null;
         }
 
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             if (address == 0xff26)
             {
@@ -133,20 +133,20 @@ namespace CoreBoy.sound
                 return;
             }
 
-            AddressSpace s = getAddressSpace(address);
-            s?.setByte(address, value);
+            var s = getAddressSpace(address);
+            s?.SetByte(address, value);
             // throw new ArgumentException();
 
         }
 
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             int result;
             if (address == 0xff26)
             {
                 result = 0;
-                for (int i = 0; i < allModes.Length; i++)
+                for (var i = 0; i < allModes.Length; i++)
                 {
                     result |= allModes[i].isEnabled() ? (1 << i) : 0;
                 }
@@ -169,14 +169,14 @@ namespace CoreBoy.sound
                 throw new ArgumentException();
             }
 
-            return s.getByte(address);
+            return s.GetByte(address);
         }
 
         private void start()
         {
-            for (int i = 0xff10; i <= 0xff25; i++)
+            for (var i = 0xff10; i <= 0xff25; i++)
             {
-                int v = 0;
+                var v = 0;
                 // lengths should be preserved
                 if (i == 0xff11 || i == 0xff16 || i == 0xff20)
                 {
@@ -189,10 +189,10 @@ namespace CoreBoy.sound
                     v = getUnmaskedByte(i);
                 }
 
-                setByte(i, v);
+                SetByte(i, v);
             }
 
-            foreach (AbstractSoundMode m in allModes)
+            foreach (var m in allModes)
             {
                 m.start();
             }
@@ -203,7 +203,7 @@ namespace CoreBoy.sound
         private void stop()
         {
             output.stop();
-            foreach (AbstractSoundMode s in allModes)
+            foreach (var s in allModes)
             {
                 s.stop();
             }

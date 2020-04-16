@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using NUnit.Framework;
 using static CoreBoy.Test.Integration.Support.RomTestUtils;
 
@@ -57,7 +56,7 @@ namespace CoreBoy.Test.Integration.Blargg
             testRomWithMemory(getPath("oam_bug-2.gb"));
         }
 
-        private static FileInfo getPath(String name)
+        private static FileInfo getPath(string name)
         {
             var root = "C:\\Users\\David Whitney\\OneDrive\\Desktop\\coffee-gb-netcore\\CoreBoy.Test.Integration\\roms";
             return new FileInfo(Path.Combine(root, "blargg", name));

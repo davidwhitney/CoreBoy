@@ -13,8 +13,8 @@ namespace CoreBoy.sound
 
         public SoundMode1(bool gbc) : base(0xff10, 64, gbc)
         {
-            this.frequencySweep = new FrequencySweep();
-            this.volumeEnvelope = new VolumeEnvelope();
+            frequencySweep = new FrequencySweep();
+            volumeEnvelope = new VolumeEnvelope();
         }
 
         public override void start()
@@ -41,8 +41,7 @@ namespace CoreBoy.sound
         {
             volumeEnvelope.tick();
 
-            bool e = true;
-            e = updateLength() && e;
+            var e = updateLength();
             e = updateSweep() && e;
             e = dacEnabled && e;
             if (!e)

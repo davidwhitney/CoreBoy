@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -7,7 +6,7 @@ namespace CoreBoy.Test.Integration.Support
 {
     public static class ParametersProvider
     {
-        private static List<String> EXCLUDES = new List<string>
+        private static List<string> EXCLUDES = new List<string>
         {
             "-mgb.gb",
             "-sgb.gb",
@@ -21,12 +20,12 @@ namespace CoreBoy.Test.Integration.Support
             return getParameters(dirName, EXCLUDES, SearchOption.TopDirectoryOnly);
         }
 
-        public static object[][] getParameters(String dirName, SearchOption searchOption)
+        public static object[][] getParameters(string dirName, SearchOption searchOption)
         {
             return getParameters(dirName, EXCLUDES, SearchOption.AllDirectories);
         }
 
-        public static object[][] getParameters(String dirName, List<String> excludes, SearchOption? searchOption)
+        public static object[][] getParameters(string dirName, List<string> excludes, SearchOption? searchOption)
         {
             searchOption ??= SearchOption.AllDirectories;
 

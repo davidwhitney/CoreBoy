@@ -5,7 +5,7 @@ namespace CoreBoy.memory.cart.type
 {
 
 
-    public class Mbc5 : AddressSpace {
+    public class Mbc5 : IAddressSpace {
 
     private readonly CartridgeType type;
 
@@ -30,7 +30,7 @@ namespace CoreBoy.memory.cart.type
         this.cartridge = cartridge;
         this.ramBanks = ramBanks;
         this.romBanks = romBanks;
-        this.ram = new int[0x2000 * Math.Max(this.ramBanks, 1)];
+        ram = new int[0x2000 * Math.Max(this.ramBanks, 1)];
         for (int i = 0; i < ram.Length; i++)
         {
             ram[i] = 0xff;
@@ -43,7 +43,7 @@ namespace CoreBoy.memory.cart.type
 
     
 
-    public bool accepts(int address)
+    public bool Accepts(int address)
     {
         return (address >= 0x0000 && address < 0x8000) ||
                (address >= 0xa000 && address < 0xc000);
@@ -51,7 +51,7 @@ namespace CoreBoy.memory.cart.type
 
     
 
-    public void setByte(int address, int value)
+    public void SetByte(int address, int value)
     {
         if (address >= 0x0000 && address < 0x2000)
         {
@@ -89,7 +89,7 @@ namespace CoreBoy.memory.cart.type
 
     
 
-    public int getByte(int address)
+    public int GetByte(int address)
     {
         if (address >= 0x0000 && address < 0x4000)
         {

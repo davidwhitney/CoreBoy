@@ -5,7 +5,7 @@ using CoreBoy.memory;
 
 namespace CoreBoy.gpu
 {
-    public class Gpu : AddressSpace
+    public class Gpu : IAddressSpace
     {
         public enum Mode
         {
@@ -15,9 +15,9 @@ namespace CoreBoy.gpu
             PixelTransfer
         }
 
-        private readonly AddressSpace _videoRam0;
-        private readonly AddressSpace _videoRam1;
-        private readonly AddressSpace _oamRam;
+        private readonly IAddressSpace _videoRam0;
+        private readonly IAddressSpace _videoRam1;
+        private readonly IAddressSpace _oamRam;
         private readonly IDisplay _display;
         private readonly InterruptManager _interruptManager;
         private readonly Dma _dma;
@@ -64,35 +64,35 @@ namespace CoreBoy.gpu
             _display = display;
         }
 
-        private AddressSpace GetAddressSpace(int address)
+        private IAddressSpace GetAddressSpace(int address)
         {
-            if (_videoRam0.accepts(address) /* && mode != Mode.PixelTransfer*/)
+            if (_videoRam0.Accepts(address) /* && mode != Mode.PixelTransfer*/)
             {
                 return GetVideoRam();
             }
 
-            if (_oamRam.accepts(address) &&
+            if (_oamRam.Accepts(address) &&
                 !_dma.IsOamBlocked() /* && mode != Mode.OamSearch && mode != Mode.PixelTransfer*/)
             {
                 return _oamRam;
             }
 
-            if (_lcdc.accepts(address))
+            if (_lcdc.Accepts(address))
             {
                 return _lcdc;
             }
 
-            if (_r.accepts(address))
+            if (_r.Accepts(address))
             {
                 return _r;
             }
 
-            if (_gbc && _bgPalette.accepts(address))
+            if (_gbc && _bgPalette.Accepts(address))
             {
                 return _bgPalette;
             }
 
-            if (_gbc && _oamPalette.accepts(address))
+            if (_gbc && _oamPalette.Accepts(address))
             {
                 return _oamPalette;
             }
@@ -100,7 +100,7 @@ namespace CoreBoy.gpu
             return null;
         }
 
-        private AddressSpace GetVideoRam()
+        private IAddressSpace GetVideoRam()
         {
             if (_gbc && (_r.Get(GpuRegister.VBK) & 1) == 1)
             {
@@ -110,9 +110,9 @@ namespace CoreBoy.gpu
             return _videoRam0;
         }
 
-        public bool accepts(int address) => GetAddressSpace(address) != null;
+        public bool Accepts(int address) => GetAddressSpace(address) != null;
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             if (address == GpuRegister.STAT.Address)
             {
@@ -127,10 +127,10 @@ namespace CoreBoy.gpu
                 return;
             }
 
-            space?.setByte(address, value);
+            space?.SetByte(address, value);
         }
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             if (address == GpuRegister.STAT.Address)
             {
@@ -148,7 +148,7 @@ namespace CoreBoy.gpu
                 return _gbc ? 0xfe : 0xff;
             }
 
-            return space.getByte(address);
+            return space.GetByte(address);
         }
 
         public Mode? Tick()
@@ -170,7 +170,7 @@ namespace CoreBoy.gpu
                 return null;
             }
 
-            Mode oldMode = _mode;
+            var oldMode = _mode;
             _ticksInLine++;
             if (_phase.tick())
             {
@@ -187,7 +187,7 @@ namespace CoreBoy.gpu
                 {
                     case Mode.OamSearch:
                         _mode = Mode.PixelTransfer;
-                        _phase = _pixelTransferPhase.start(_oamSearchPhase.getSprites());
+                        _phase = _pixelTransferPhase.Start(_oamSearchPhase.getSprites());
                         break;
 
                     case Mode.PixelTransfer:
@@ -276,7 +276,7 @@ namespace CoreBoy.gpu
 
         private void SetLcdc(int value)
         {
-            _lcdc.set(value);
+            _lcdc.Set(value);
             if ((value & (1 << 7)) == 0)
             {
                 DisableLcd();

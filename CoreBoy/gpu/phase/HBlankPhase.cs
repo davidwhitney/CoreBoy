@@ -7,7 +7,7 @@ namespace CoreBoy.gpu.phase
 
         public HBlankPhase start(int ticksInLine)
         {
-            this.ticks = ticksInLine;
+            ticks = ticksInLine;
             return this;
         }
 

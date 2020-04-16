@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace CoreBoy.cpu
 {
-    public class InterruptManager : AddressSpace
+    public class InterruptManager : IAddressSpace
     {
         private bool _ime;
         private readonly bool _gbc;
@@ -75,9 +75,9 @@ namespace CoreBoy.cpu
         public bool IsIme() => _ime;
         public bool IsInterruptRequested() => (_interruptFlag & _interruptEnabled) != 0;
         public bool IsHaltBug() => (_interruptFlag & _interruptEnabled & 0x1f) != 0 && !_ime;
-        public bool accepts(int address) => address == 0xff0f || address == 0xffff;
+        public bool Accepts(int address) => address == 0xff0f || address == 0xffff;
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             switch (address)
             {
@@ -91,7 +91,7 @@ namespace CoreBoy.cpu
             }
         }
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             switch (address)
             {

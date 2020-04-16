@@ -2,7 +2,7 @@ using System;
 
 namespace CoreBoy.memory
 {
-    public class Ram : AddressSpace
+    public class Ram : IAddressSpace
     {
         private readonly int[] _space;
         private readonly int _length;
@@ -15,10 +15,10 @@ namespace CoreBoy.memory
             _offset = offset;
         }
 
-        public bool accepts(int address) => address >= _offset && address < _offset + _length;
-        public void setByte(int address, int value) => _space[address - _offset] = value;
+        public bool Accepts(int address) => address >= _offset && address < _offset + _length;
+        public void SetByte(int address, int value) => _space[address - _offset] = value;
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             var index = address - _offset;
             if (index < 0 || index >= _space.Length)

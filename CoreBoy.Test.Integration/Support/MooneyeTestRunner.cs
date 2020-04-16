@@ -14,7 +14,7 @@ namespace CoreBoy.Test.Integration.Support
     {
         private readonly Gameboy _gb;
         private readonly Cpu _cpu;
-        private readonly AddressSpace _mem;
+        private readonly IAddressSpace _mem;
         private readonly Registers _registers;
         private readonly TextWriter _os;
         private readonly ITracer _tracer;
@@ -77,7 +77,7 @@ namespace CoreBoy.Test.Integration.Support
 
         private void DisplayProgress()
         {
-            if (_cpu.State == State.OPCODE && _mem.getByte(_registers.PC) == 0x22 && _registers.HL >= 0x9800 &&
+            if (_cpu.State == State.OPCODE && _mem.GetByte(_registers.PC) == 0x22 && _registers.HL >= 0x9800 &&
                 _registers.HL < 0x9c00)
             {
                 if (_registers.A != 0)
@@ -102,7 +102,7 @@ namespace CoreBoy.Test.Integration.Support
             bool found = true;
             foreach (int v in seq)
             {
-                if (_mem.getByte(i++) != v)
+                if (_mem.GetByte(i++) != v)
                 {
                     found = false;
                     break;

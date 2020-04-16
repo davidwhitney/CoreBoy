@@ -68,7 +68,7 @@ namespace CoreBoy.gpu
                 var oldPriority = _priorities.Get(i);
 
                 var put = false;
-                if ((oldPriority == -1 || oldPriority == 100) && !_lcdc.isBgAndWindowDisplay())
+                if ((oldPriority == -1 || oldPriority == 100) && !_lcdc.IsBgAndWindowDisplay())
                 {
                     // this one takes precedence
                     put = true;

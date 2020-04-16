@@ -3,36 +3,36 @@ using System.Collections.Generic;
 
 namespace CoreBoy.memory
 {
-    public class Mmu : AddressSpace
+    public class Mmu : IAddressSpace
     {
-        private static readonly AddressSpace VOID = new VoidAddressSpace();
-        private List<AddressSpace> spaces = new List<AddressSpace>();
+        private static readonly IAddressSpace VOID = new VoidAddressSpace();
+        private List<IAddressSpace> spaces = new List<IAddressSpace>();
 
-        public void addAddressSpace(AddressSpace space)
+        public void addAddressSpace(IAddressSpace space)
         {
             spaces.Add(space);
         }
 
-        public bool accepts(int address)
+        public bool Accepts(int address)
         {
             return true;
         }
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
-            getSpace(address).setByte(address, value);
+            getSpace(address).SetByte(address, value);
         }
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
-            return getSpace(address).getByte(address);
+            return getSpace(address).GetByte(address);
         }
 
-        private AddressSpace getSpace(int address)
+        private IAddressSpace getSpace(int address)
         {
             foreach (var s in spaces)
             {
-                if (s.accepts(address))
+                if (s.Accepts(address))
                 {
                     return s;
                 }
@@ -43,14 +43,14 @@ namespace CoreBoy.memory
 
     }
 
-    public class VoidAddressSpace : AddressSpace
+    public class VoidAddressSpace : IAddressSpace
     {
-        public bool accepts(int address)
+        public bool Accepts(int address)
         {
             return true;
         }
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             if (address < 0 || address > 0xffff)
             {
@@ -60,7 +60,7 @@ namespace CoreBoy.memory
             //LOG.debug("Writing value {} to void address {}", Integer.toHexString(value), int.ToHexString(address));
         }
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             if (address < 0 || address > 0xffff)
             {

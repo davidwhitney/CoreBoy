@@ -5,7 +5,7 @@ using CoreBoy.cpu;
 
 namespace CoreBoy.serial
 {
-    public class SerialPort : AddressSpace
+    public class SerialPort : IAddressSpace
     {
         private readonly SerialEndpoint _serialEndpoint;
         private readonly InterruptManager _interruptManager;
@@ -46,12 +46,12 @@ namespace CoreBoy.serial
             }
         }
 
-        public bool accepts(int address)
+        public bool Accepts(int address)
         {
             return address == 0xff01 || address == 0xff02;
         }
         
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             if (address == 0xff01)
             {
@@ -67,7 +67,7 @@ namespace CoreBoy.serial
             }
         }
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             if (address == 0xff01)
             {

@@ -8,7 +8,7 @@ using CoreBoy.memory.cart.type;
 
 namespace CoreBoy.memory.cart
 {
-    public class Cartridge : AddressSpace
+    public class Cartridge : IAddressSpace
     {
         public enum GameboyTypeFlag
         {
@@ -17,7 +17,7 @@ namespace CoreBoy.memory.cart
             NON_CGB = 0
         }
 
-        private readonly AddressSpace _addressSpace;
+        private readonly IAddressSpace _addressSpace;
         private int _dmgBootstrap;
         
         public bool Gbc { get; }
@@ -111,9 +111,9 @@ namespace CoreBoy.memory.cart
             return t.ToString();
         }
 
-        public bool accepts(int address) => _addressSpace.accepts(address) || address == 0xff50;
+        public bool Accepts(int address) => _addressSpace.Accepts(address) || address == 0xff50;
         
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             if (address == 0xff50)
             {
@@ -121,12 +121,12 @@ namespace CoreBoy.memory.cart
             }
             else
             {
-                _addressSpace.setByte(address, value);
+                _addressSpace.SetByte(address, value);
             }
         }
 
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             switch (_dmgBootstrap)
             {
@@ -138,7 +138,7 @@ namespace CoreBoy.memory.cart
                     return BootRom.GAMEBOY_COLOR[address - 0x0100];
             }
 
-            return address == 0xff50 ? 0xff : _addressSpace.getByte(address);
+            return address == 0xff50 ? 0xff : _addressSpace.GetByte(address);
         }
 
         private static int[] LoadFile(FileSystemInfo file)

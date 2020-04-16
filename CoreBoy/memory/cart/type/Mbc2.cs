@@ -4,7 +4,7 @@ namespace CoreBoy.memory.cart.type
 {
 
 
-    public class Mbc2 : AddressSpace
+    public class Mbc2 : IAddressSpace
     {
 
         private readonly CartridgeType type;
@@ -25,8 +25,8 @@ namespace CoreBoy.memory.cart.type
         {
             this.cartridge = cartridge;
             this.romBanks = romBanks;
-            this.ram = new int[0x0200];
-            for (int i = 0; i < ram.Length; i++)
+            ram = new int[0x0200];
+            for (var i = 0; i < ram.Length; i++)
             {
                 ram[i] = 0xff;
             }
@@ -38,7 +38,7 @@ namespace CoreBoy.memory.cart.type
 
         
 
-        public bool accepts(int address)
+        public bool Accepts(int address)
         {
             return (address >= 0x0000 && address < 0x8000) ||
                    (address >= 0xa000 && address < 0xc000);
@@ -46,7 +46,7 @@ namespace CoreBoy.memory.cart.type
 
         
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             if (address >= 0x0000 && address < 0x2000)
             {
@@ -68,7 +68,7 @@ namespace CoreBoy.memory.cart.type
             }
             else if (address >= 0xa000 && address < 0xc000 && ramWriteEnabled)
             {
-                int ramAddress = getRamAddress(address);
+                var ramAddress = getRamAddress(address);
                 if (ramAddress < ram.Length)
                 {
                     ram[ramAddress] = value & 0x0f;
@@ -78,7 +78,7 @@ namespace CoreBoy.memory.cart.type
 
         
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             if (address >= 0x0000 && address < 0x4000)
             {
@@ -90,7 +90,7 @@ namespace CoreBoy.memory.cart.type
             }
             else if (address >= 0xa000 && address < 0xb000)
             {
-                int ramAddress = getRamAddress(address);
+                var ramAddress = getRamAddress(address);
                 if (ramAddress < ram.Length)
                 {
                     return ram[ramAddress];
@@ -108,7 +108,7 @@ namespace CoreBoy.memory.cart.type
 
         private int getRomByte(int bank, int address)
         {
-            int cartOffset = bank * 0x4000 + address;
+            var cartOffset = bank * 0x4000 + address;
             if (cartOffset < cartridge.Length)
             {
                 return cartridge[cartOffset];

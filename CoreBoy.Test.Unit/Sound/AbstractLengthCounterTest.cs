@@ -16,7 +16,7 @@ namespace CoreBoy.Test.Unit.Sound
         protected AbstractLengthCounterTest(int maxlen)
         {
             this.maxlen = maxlen;
-            this.lengthCounter = new LengthCounter(maxlen);
+            lengthCounter = new LengthCounter(maxlen);
         }
 
         protected void wchn(int register, int value)

@@ -2,17 +2,17 @@ using System;
 
 namespace CoreBoy.memory
 {
-    public class DmaAddressSpace : AddressSpace
+    public class DmaAddressSpace : IAddressSpace
     {
-        private readonly AddressSpace _addressSpace;
+        private readonly IAddressSpace _addressSpace;
 
-        public DmaAddressSpace(AddressSpace addressSpace) => _addressSpace = addressSpace;
-        public bool accepts(int address) => true;
-        public void setByte(int address, int value) => throw new NotImplementedException("Unsupported");
+        public DmaAddressSpace(IAddressSpace addressSpace) => _addressSpace = addressSpace;
+        public bool Accepts(int address) => true;
+        public void SetByte(int address, int value) => throw new NotImplementedException("Unsupported");
 
-        public int getByte(int address) =>
+        public int GetByte(int address) =>
             address < 0xe000
-                ? _addressSpace.getByte(address)
-                : _addressSpace.getByte(address - 0x2000);
+                ? _addressSpace.GetByte(address)
+                : _addressSpace.GetByte(address - 0x2000);
     }
 }

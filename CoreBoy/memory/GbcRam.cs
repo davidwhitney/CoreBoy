@@ -2,14 +2,14 @@ using System;
 
 namespace CoreBoy.memory
 {
-    public class GbcRam : AddressSpace
+    public class GbcRam : IAddressSpace
     {
         private readonly int[] _ram = new int[7 * 0x1000];
         private int _svbk;
 
-        public bool accepts(int address) => address == 0xff70 || (address >= 0xd000 && address < 0xe000);
+        public bool Accepts(int address) => address == 0xff70 || (address >= 0xd000 && address < 0xe000);
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             if (address == 0xff70)
             {
@@ -21,7 +21,7 @@ namespace CoreBoy.memory
             }
         }
 
-        public int getByte(int address) => address == 0xff70 ? _svbk : _ram[Translate(address)];
+        public int GetByte(int address) => address == 0xff70 ? _svbk : _ram[Translate(address)];
 
         private int Translate(int address)
         {

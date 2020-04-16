@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using CoreBoy.controller;
 using CoreBoy.cpu;
@@ -46,13 +45,13 @@ namespace CoreBoy.Test.Integration.Support
 
         private int getTestResult(Gameboy gb)
         {
-            AddressSpace mem = gb.Mmu;
+            IAddressSpace mem = gb.Mmu;
             if (!testStarted)
             {
                 var i = 0xa000;
                 foreach (var v in new[] {0x80, 0xde, 0xb0, 0x61})
                 {
-                    if (mem.getByte(i++) != v)
+                    if (mem.GetByte(i++) != v)
                     {
                         return 0x80;
                     }
@@ -61,7 +60,7 @@ namespace CoreBoy.Test.Integration.Support
                 testStarted = true;
             }
 
-            int status = mem.getByte(0xa000);
+            int status = mem.GetByte(0xa000);
 
             if (gb.Cpu.State != State.OPCODE)
             {
@@ -73,7 +72,7 @@ namespace CoreBoy.Test.Integration.Support
             int ii = reg.PC;
             foreach (int v in new int[] {0xe5, 0xf5, 0xfa, 0x83, 0xd8})
             {
-                if (mem.getByte(ii++) != v)
+                if (mem.GetByte(ii++) != v)
                 {
                     return status;
                 }
@@ -92,9 +91,9 @@ namespace CoreBoy.Test.Integration.Support
 
             private readonly int status;
 
-            private readonly String text;
+            private readonly string text;
 
-            public TestResult(int status, String text)
+            public TestResult(int status, string text)
             {
                 this.status = status;
                 this.text = text;
@@ -105,7 +104,7 @@ namespace CoreBoy.Test.Integration.Support
                 return status;
             }
 
-            public String getText()
+            public string getText()
             {
                 return text;
             }

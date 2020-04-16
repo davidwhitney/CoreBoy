@@ -9,12 +9,10 @@ namespace CoreBoy.gpu
         private readonly IntQueue _pixelType = new IntQueue(16); // 0 - bg, 1 - sprite
 
         private readonly IDisplay _display;
-        private readonly Lcdc _lcdc;
         private readonly MemoryRegisters _registers;
 
         public DmgPixelFifo(IDisplay display, Lcdc lcdc, MemoryRegisters registers)
         {
-            _lcdc = lcdc;
             _display = display;
             _registers = registers;
         }

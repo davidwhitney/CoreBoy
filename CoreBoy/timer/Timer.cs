@@ -3,7 +3,7 @@ using CoreBoy.cpu;
 
 namespace CoreBoy.timer
 {
-    public class Timer : AddressSpace
+    public class Timer : IAddressSpace
     {
 
         private readonly SpeedMode speedMode;
@@ -64,7 +64,7 @@ namespace CoreBoy.timer
 
         private void updateDiv(int newDiv)
         {
-            this.div = newDiv;
+            div = newDiv;
             int bitPos = FREQ_TO_BIT[tac & 0b11];
             bitPos <<= speedMode.GetSpeedMode() - 1;
             bool bit = (div & (1 << bitPos)) != 0;
@@ -77,12 +77,12 @@ namespace CoreBoy.timer
             previousBit = bit;
         }
 
-        public bool accepts(int address)
+        public bool Accepts(int address)
         {
             return address >= 0xff04 && address <= 0xff07;
         }
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             switch (address)
             {
@@ -110,7 +110,7 @@ namespace CoreBoy.timer
             }
         }
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             switch (address)
             {

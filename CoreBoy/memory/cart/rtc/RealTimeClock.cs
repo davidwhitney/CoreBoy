@@ -23,7 +23,7 @@ namespace CoreBoy.memory.cart.rtc
         public RealTimeClock(IClock clock)
         {
             this.clock = clock;
-            this.clockStart = clock.currentTimeMillis();
+            clockStart = clock.currentTimeMillis();
         }
 
         public void latch()
@@ -136,36 +136,27 @@ namespace CoreBoy.memory.cart.rtc
 
         private long clockTimeInSec()
         {
-            long now;
-            if (latchStart == 0)
-            {
-                now = clock.currentTimeMillis();
-            }
-            else
-            {
-                now = latchStart;
-            }
-
+            var now = latchStart == 0 ? clock.currentTimeMillis() : latchStart;
             return (now - clockStart) / 1000 + offsetSec;
         }
 
         public void deserialize(long[] clockData)
         {
-            long seconds = clockData[0];
-            long minutes = clockData[1];
-            long hours = clockData[2];
-            long days = clockData[3];
-            long daysHigh = clockData[4];
-            long timestamp = clockData[10];
+            var seconds = clockData[0];
+            var minutes = clockData[1];
+            var hours = clockData[2];
+            var days = clockData[3];
+            var daysHigh = clockData[4];
+            var timestamp = clockData[10];
 
-            this.clockStart = timestamp * 1000;
-            this.offsetSec = seconds + minutes * 60 + hours * 60 * 60 + days * 24 * 60 * 60 +
+            clockStart = timestamp * 1000;
+            offsetSec = seconds + minutes * 60 + hours * 60 * 60 + days * 24 * 60 * 60 +
                              daysHigh * 256 * 24 * 60 * 60;
         }
 
         public long[] serialize()
         {
-            long[] clockData = new long[11];
+            var clockData = new long[11];
             latch();
             clockData[0] = clockData[5] = getSeconds();
             clockData[1] = clockData[6] = getMinutes();

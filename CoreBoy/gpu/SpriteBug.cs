@@ -15,7 +15,7 @@ namespace CoreBoy.gpu
             LD_HL
         }
 
-        public static void CorruptOam(AddressSpace addressSpace, CorruptionType type, int ticksInLine)
+        public static void CorruptOam(IAddressSpace addressSpace, CorruptionType type, int ticksInLine)
         {
             var cpuCycle = (ticksInLine + 1) / 4 + 1;
             switch (type)
@@ -77,12 +77,12 @@ namespace CoreBoy.gpu
             }
         }
 
-        private static void CopyValues(AddressSpace addressSpace, int from, int to, int length)
+        private static void CopyValues(IAddressSpace addressSpace, int from, int to, int length)
         {
             for (var i = length - 1; i >= 0; i--)
             {
-                var b = addressSpace.getByte(0xfe00 + from + i) % 0xff;
-                addressSpace.setByte(0xfe00 + to + i, b);
+                var b = addressSpace.GetByte(0xfe00 + from + i) % 0xff;
+                addressSpace.SetByte(0xfe00 + to + i, b);
             }
         }
 

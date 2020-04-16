@@ -1,5 +1,3 @@
-using System;
-
 namespace CoreBoy.sound
 {
 
@@ -45,20 +43,13 @@ namespace CoreBoy.sound
 
         public void setLength(int length)
         {
-            if (length == 0)
-            {
-                this.length = fullLength;
-            }
-            else
-            {
-                this.length = length;
-            }
+            this.length = length == 0 ? fullLength : length;
         }
 
         public void setNr4(int value)
         {
-            bool enable = (value & (1 << 6)) != 0;
-            bool trigger = (value & (1 << 7)) != 0;
+            var enable = (value & (1 << 6)) != 0;
+            var trigger = (value & (1 << 7)) != 0;
 
             if (enabled)
             {
@@ -94,7 +85,7 @@ namespace CoreBoy.sound
                 }
             }
 
-            this.enabled = enable;
+            enabled = enable;
         }
 
         public int getValue()
@@ -108,17 +99,17 @@ namespace CoreBoy.sound
         }
 
 
-        public String toString()
+        public string toString()
         {
-            return String.Format("LengthCounter[l=%d,f=%d,c=%d,%s]", length, fullLength, i,
+            return string.Format("LengthCounter[l=%d,f=%d,c=%d,%s]", length, fullLength, i,
                 enabled ? "enabled" : "disabled");
         }
 
         public void reset()
         {
-            this.enabled = true;
-            this.i = 0;
-            this.length = 0;
+            enabled = true;
+            i = 0;
+            length = 0;
         }
     }
 

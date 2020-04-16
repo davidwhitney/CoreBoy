@@ -4,147 +4,130 @@ using CoreBoy.memory.cart.rtc;
 
 namespace CoreBoy.memory.cart.type
 {
-
-
-    public class Mbc3 : AddressSpace
+    public class Mbc3 : IAddressSpace
     {
-
-        private readonly CartridgeType type;
-
-        private readonly int ramBanks;
-
-        private readonly int[] cartridge;
-
-        private readonly int[] ram;
-
-        private readonly RealTimeClock clock;
-
-        private readonly Battery battery;
-
-        private int selectedRamBank;
-
-        private int selectedRomBank = 1;
-
-        private bool ramWriteEnabled;
-
-        private int latchClockReg = 0xff;
-
-        private bool clockLatched;
+        private readonly int[] _cartridge;
+        private readonly int[] _ram;
+        private readonly RealTimeClock _clock;
+        private readonly Battery _battery;
+        private int _selectedRamBank;
+        private int _selectedRomBank = 1;
+        private bool _ramWriteEnabled;
+        private int _latchClockReg = 0xff;
+        private bool _clockLatched;
 
         public Mbc3(int[] cartridge, CartridgeType type, Battery battery, int romBanks, int ramBanks)
         {
-            this.cartridge = cartridge;
-            this.ramBanks = ramBanks;
-            this.ram = new int[0x2000 * Math.Max(this.ramBanks, 1)];
-            for (int i = 0; i < ram.Length; i++)
+            _cartridge = cartridge;
+            _ram = new int[0x2000 * Math.Max(ramBanks, 1)];
+            for (var i = 0; i < _ram.Length; i++)
             {
-                ram[i] = 0xff;
+                _ram[i] = 0xff;
             }
 
-            this.type = type;
-            this.clock = new RealTimeClock(Clock.SYSTEM_CLOCK);
-            this.battery = battery;
+            _clock = new RealTimeClock(Clock.SYSTEM_CLOCK);
+            _battery = battery;
 
-            long[] clockData = new long[12];
-            battery.loadRamWithClock(ram, clockData);
-            clock.deserialize(clockData);
+            var clockData = new long[12];
+            battery.loadRamWithClock(_ram, clockData);
+            _clock.deserialize(clockData);
         }
 
 
-        public bool accepts(int address)
+        public bool Accepts(int address)
         {
             return (address >= 0x0000 && address < 0x8000) ||
                    (address >= 0xa000 && address < 0xc000);
         }
 
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             if (address >= 0x0000 && address < 0x2000)
             {
-                ramWriteEnabled = (value & 0b1010) != 0;
-                if (!ramWriteEnabled)
+                _ramWriteEnabled = (value & 0b1010) != 0;
+                if (!_ramWriteEnabled)
                 {
-                    battery.saveRamWithClock(ram, clock.serialize());
+                    _battery.saveRamWithClock(_ram, _clock.serialize());
                 }
             }
             else if (address >= 0x2000 && address < 0x4000)
             {
-                int bank = value & 0b01111111;
-                selectRomBank(bank);
+                var bank = value & 0b01111111;
+                SelectRomBank(bank);
             }
             else if (address >= 0x4000 && address < 0x6000)
             {
-                selectedRamBank = value;
+                _selectedRamBank = value;
             }
             else if (address >= 0x6000 && address < 0x8000)
             {
-                if (value == 0x01 && latchClockReg == 0x00)
+                if (value == 0x01 && _latchClockReg == 0x00)
                 {
-                    if (clockLatched)
+                    if (_clockLatched)
                     {
-                        clock.unlatch();
-                        clockLatched = false;
+                        _clock.unlatch();
+                        _clockLatched = false;
                     }
                     else
                     {
-                        clock.latch();
-                        clockLatched = true;
+                        _clock.latch();
+                        _clockLatched = true;
                     }
                 }
 
-                latchClockReg = value;
+                _latchClockReg = value;
             }
-            else if (address >= 0xa000 && address < 0xc000 && ramWriteEnabled && selectedRamBank < 4)
+            else if (address >= 0xa000 && address < 0xc000 && _ramWriteEnabled && _selectedRamBank < 4)
             {
-                int ramAddress = getRamAddress(address);
-                if (ramAddress < ram.Length)
+                var ramAddress = GetRamAddress(address);
+                if (ramAddress < _ram.Length)
                 {
-                    ram[ramAddress] = value;
+                    _ram[ramAddress] = value;
                 }
             }
-            else if (address >= 0xa000 && address < 0xc000 && ramWriteEnabled && selectedRamBank >= 4)
+            else if (address >= 0xa000 && address < 0xc000 && _ramWriteEnabled && _selectedRamBank >= 4)
             {
-                setTimer(value);
+                SetTimer(value);
             }
         }
 
-        private void selectRomBank(int bank)
+        private void SelectRomBank(int bank)
         {
             if (bank == 0)
             {
                 bank = 1;
             }
 
-            selectedRomBank = bank;
+            _selectedRomBank = bank;
         }
 
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             if (address >= 0x0000 && address < 0x4000)
             {
-                return getRomByte(0, address);
+                return GetRomByte(0, address);
             }
             else if (address >= 0x4000 && address < 0x8000)
             {
-                return getRomByte(selectedRomBank, address - 0x4000);
+                return GetRomByte(_selectedRomBank, address - 0x4000);
             }
-            else if (address >= 0xa000 && address < 0xc000 && selectedRamBank < 4)
+            else if (address >= 0xa000 && address < 0xc000 && _selectedRamBank < 4)
             {
-                int ramAddress = getRamAddress(address);
-                if (ramAddress < ram.Length)
+                var ramAddress = GetRamAddress(address);
+                if (ramAddress < _ram.Length)
                 {
-                    return ram[ramAddress];
+                    return _ram[ramAddress];
                 }
                 else
                 {
                     return 0xff;
                 }
             }
-            else if (address >= 0xa000 && address < 0xc000 && selectedRamBank >= 4)
+            else if (address >= 0xa000 && address < 0xc000 && _selectedRamBank >= 4)
             {
-                return getTimer();
+                return GetTimer();
             }
             else
             {
@@ -152,12 +135,12 @@ namespace CoreBoy.memory.cart.type
             }
         }
 
-        private int getRomByte(int bank, int address)
+        private int GetRomByte(int bank, int address)
         {
-            int cartOffset = bank * 0x4000 + address;
-            if (cartOffset < cartridge.Length)
+            var cartOffset = bank * 0x4000 + address;
+            if (cartOffset < _cartridge.Length)
             {
-                return cartridge[cartOffset];
+                return _cartridge[cartOffset];
             }
             else
             {
@@ -165,64 +148,64 @@ namespace CoreBoy.memory.cart.type
             }
         }
 
-        private int getRamAddress(int address)
+        private int GetRamAddress(int address)
         {
-            return selectedRamBank * 0x2000 + (address - 0xa000);
+            return _selectedRamBank * 0x2000 + (address - 0xa000);
         }
 
-        private int getTimer()
+        private int GetTimer()
         {
-            switch (selectedRamBank)
+            switch (_selectedRamBank)
             {
                 case 0x08:
-                    return clock.getSeconds();
+                    return _clock.getSeconds();
 
                 case 0x09:
-                    return clock.getMinutes();
+                    return _clock.getMinutes();
 
                 case 0x0a:
-                    return clock.getHours();
+                    return _clock.getHours();
 
                 case 0x0b:
-                    return clock.getDayCounter() & 0xff;
+                    return _clock.getDayCounter() & 0xff;
 
                 case 0x0c:
-                    int result = ((clock.getDayCounter() & 0x100) >> 8);
-                    result |= clock.isHalt() ? (1 << 6) : 0;
-                    result |= clock.isCounterOverflow() ? (1 << 7) : 0;
+                    var result = ((_clock.getDayCounter() & 0x100) >> 8);
+                    result |= _clock.isHalt() ? (1 << 6) : 0;
+                    result |= _clock.isCounterOverflow() ? (1 << 7) : 0;
                     return result;
             }
 
             return 0xff;
         }
 
-        private void setTimer(int value)
+        private void SetTimer(int value)
         {
-            int dayCounter = clock.getDayCounter();
-            switch (selectedRamBank)
+            var dayCounter = _clock.getDayCounter();
+            switch (_selectedRamBank)
             {
                 case 0x08:
-                    clock.setSeconds(value);
+                    _clock.setSeconds(value);
                     break;
 
                 case 0x09:
-                    clock.setMinutes(value);
+                    _clock.setMinutes(value);
                     break;
 
                 case 0x0a:
-                    clock.setHours(value);
+                    _clock.setHours(value);
                     break;
 
                 case 0x0b:
-                    clock.setDayCounter((dayCounter & 0x100) | (value & 0xff));
+                    _clock.setDayCounter((dayCounter & 0x100) | (value & 0xff));
                     break;
 
                 case 0x0c:
-                    clock.setDayCounter((dayCounter & 0xff) | ((value & 1) << 8));
-                    clock.setHalt((value & (1 << 6)) != 0);
+                    _clock.setDayCounter((dayCounter & 0xff) | ((value & 1) << 8));
+                    _clock.setHalt((value & (1 << 6)) != 0);
                     if ((value & (1 << 7)) == 0)
                     {
-                        clock.clearCounterOverflow();
+                        _clock.clearCounterOverflow();
                     }
 
                     break;

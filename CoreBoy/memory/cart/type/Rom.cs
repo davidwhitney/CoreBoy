@@ -1,6 +1,6 @@
 namespace CoreBoy.memory.cart.type
 {
-    public class Rom : AddressSpace
+    public class Rom : IAddressSpace
     {
         private int[] rom;
 
@@ -9,17 +9,17 @@ namespace CoreBoy.memory.cart.type
             this.rom = rom;
         }
 
-        public bool accepts(int address)
+        public bool Accepts(int address)
         {
             return (address >= 0x0000 && address < 0x8000) ||
                    (address >= 0xa000 && address < 0xc000);
         }
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
         }
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             if (address >= 0x0000 && address < 0x8000)
             {

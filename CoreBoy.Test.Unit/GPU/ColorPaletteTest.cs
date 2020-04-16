@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using CoreBoy.gpu;
 using NUnit.Framework;
@@ -12,19 +11,19 @@ namespace CoreBoy.Test.Unit.GPU
         public void TestAutoIncrement()
         {
             var p = new ColorPalette(0xff68);
-            p.setByte(0xff68, 0x80);
-            p.setByte(0xff69, 0x00);
-            p.setByte(0xff69, 0xaa);
-            p.setByte(0xff69, 0x11);
-            p.setByte(0xff69, 0xbb);
-            p.setByte(0xff69, 0x22);
-            p.setByte(0xff69, 0xcc);
-            p.setByte(0xff69, 0x33);
-            p.setByte(0xff69, 0xdd);
-            p.setByte(0xff69, 0x44);
-            p.setByte(0xff69, 0xee);
-            p.setByte(0xff69, 0x55);
-            p.setByte(0xff69, 0xff);
+            p.SetByte(0xff68, 0x80);
+            p.SetByte(0xff69, 0x00);
+            p.SetByte(0xff69, 0xaa);
+            p.SetByte(0xff69, 0x11);
+            p.SetByte(0xff69, 0xbb);
+            p.SetByte(0xff69, 0x22);
+            p.SetByte(0xff69, 0xcc);
+            p.SetByte(0xff69, 0x33);
+            p.SetByte(0xff69, 0xdd);
+            p.SetByte(0xff69, 0x44);
+            p.SetByte(0xff69, 0xee);
+            p.SetByte(0xff69, 0x55);
+            p.SetByte(0xff69, 0xff);
 
             AssertArrayEquals(new[] {0xaa00, 0xbb11, 0xcc22, 0xdd33}, p.GetPalette(0));
             AssertArrayEquals(new[] {0xee44, 0xff55, 0x0000, 0x0000}, p.GetPalette(1));

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace CoreBoy.memory
 {
-    public class MemoryRegisters : AddressSpace
+    public class MemoryRegisters : IAddressSpace
     {
         private readonly Dictionary<int, IRegister> _registers;
         private readonly Dictionary<int, int> _values = new Dictionary<int, int>();
@@ -18,7 +18,7 @@ namespace CoreBoy.memory
             {
                 if (map.ContainsKey(r.Address))
                 {
-                    throw new ArgumentException("Two registers with the same address: " + (int) r.Address);
+                    throw new ArgumentException($"Two registers with the same address: {r.Address}");
                 }
 
                 map.Add(r.Address, r);
@@ -62,9 +62,9 @@ namespace CoreBoy.memory
             return value;
         }
 
-        public bool accepts(int address) => _registers.ContainsKey(address);
+        public bool Accepts(int address) => _registers.ContainsKey(address);
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             var regType = _registers[address].Type;
             if (_allowsWrite.Contains(regType))
@@ -73,7 +73,7 @@ namespace CoreBoy.memory
             }
         }
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             var regType = _registers[address].Type; 
             return _allowsRead.Contains(regType) ? _values[address] : 0xff;

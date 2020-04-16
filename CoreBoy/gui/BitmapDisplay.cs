@@ -15,7 +15,6 @@ namespace CoreBoy.gui
 
         private readonly int[] _rgb;
         public bool Enabled { get; set; }
-        private int _scale;
         private bool _doRefresh;
         private int _i;
 
@@ -38,7 +37,6 @@ namespace CoreBoy.gui
         public BitmapDisplay(int scale)
         {
             _rgb = new int[DisplayWidth * DisplayHeight];
-            _scale = scale;
         }
 
         public void PutDmgPixel(int color)
@@ -55,10 +53,10 @@ namespace CoreBoy.gui
 
         public static int TranslateGbcRgb(int gbcRgb)
         {
-            int r = (gbcRgb >> 0) & 0x1f;
-            int g = (gbcRgb >> 5) & 0x1f;
-            int b = (gbcRgb >> 10) & 0x1f;
-            int result = (r * 8) << 16;
+            var r = (gbcRgb >> 0) & 0x1f;
+            var g = (gbcRgb >> 5) & 0x1f;
+            var b = (gbcRgb >> 10) & 0x1f;
+            var result = (r * 8) << 16;
             result |= (g * 8) << 8;
             result |= (b * 8) << 0;
             return result;

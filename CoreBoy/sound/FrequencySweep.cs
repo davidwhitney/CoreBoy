@@ -37,12 +37,12 @@ namespace CoreBoy.sound
 
         public void trigger()
         {
-            this.negging = false;
-            this.overflow = false;
+            negging = false;
+            overflow = false;
 
-            this.shadowFreq = nr13 | ((nr14 & 0b111) << 8);
-            this.timer = period == 0 ? 8 : period;
-            this.counterEnabled = period != 0 || shift != 0;
+            shadowFreq = nr13 | ((nr14 & 0b111) << 8);
+            timer = period == 0 ? 8 : period;
+            counterEnabled = period != 0 || shift != 0;
 
             if (shift > 0)
             {
@@ -52,9 +52,9 @@ namespace CoreBoy.sound
 
         public void setNr10(int value)
         {
-            this.period = (value >> 4) & 0b111;
-            this.negate = (value & (1 << 3)) != 0;
-            this.shift = value & 0b111;
+            period = (value >> 4) & 0b111;
+            negate = (value & (1 << 3)) != 0;
+            shift = value & 0b111;
             if (negging && !negate)
             {
                 overflow = true;
@@ -63,12 +63,12 @@ namespace CoreBoy.sound
 
         public void setNr13(int value)
         {
-            this.nr13 = value;
+            nr13 = value;
         }
 
         public void setNr14(int value)
         {
-            this.nr14 = value;
+            nr14 = value;
             if ((value & (1 << 7)) != 0)
             {
                 trigger();

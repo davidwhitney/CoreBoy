@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace CoreBoy.gpu
 {
-    public class ColorPalette : AddressSpace
+    public class ColorPalette : IAddressSpace
     {
         private readonly int _indexAddress;
         private readonly int _dataAddress;
@@ -32,9 +31,9 @@ namespace CoreBoy.gpu
             _dataAddress = offset + 1;
         }
 
-        public bool accepts(int address) => address == _indexAddress || address == _dataAddress;
+        public bool Accepts(int address) => address == _indexAddress || address == _dataAddress;
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
             if (address == _indexAddress)
             {
@@ -43,7 +42,7 @@ namespace CoreBoy.gpu
             }
             else if (address == _dataAddress)
             {
-                int color = _palettes[_index / 8][(_index % 8) / 2];
+                var color = _palettes[_index / 8][(_index % 8) / 2];
                 if (_index % 2 == 0)
                 {
                     color = (color & 0xff00) | value;
@@ -64,7 +63,7 @@ namespace CoreBoy.gpu
             }
         }
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
             if (address == _indexAddress)
             {
@@ -101,7 +100,7 @@ namespace CoreBoy.gpu
 
                 foreach (var c in palette)
                 {
-                    b.Append(string.Format("%04X", c)).Append(' ');
+                    b.Append($"{c:X4}").Append(' ');
                 }
 
                 b[^1] = '\n';

@@ -1,5 +1,3 @@
-//namespace eu.rekawek.coffeegb.cpu.opcode 
-
 using System;
 using System.Collections.Generic;
 using CoreBoy.cpu.op;
@@ -13,16 +11,16 @@ namespace CoreBoy.cpu.opcode
 {
     public class OpcodeBuilder
     {
-        private static readonly AluFunctions Alu;
+        private static readonly AluFunctions AluFuncs;
         public static readonly List<IntRegistryFunction> OemBug;
 
         static OpcodeBuilder()
         {
-            Alu = new AluFunctions();
+            AluFuncs = new AluFunctions();
             OemBug = new List<IntRegistryFunction>
             {
-                Alu.GetFunction("INC", DataType.D16),
-                Alu.GetFunction("DEC", DataType.D16)
+                AluFuncs.GetFunction("INC", DataType.D16),
+                AluFuncs.GetFunction("DEC", DataType.D16)
             };
         }
 
@@ -30,6 +28,10 @@ namespace CoreBoy.cpu.opcode
         private readonly string _label;
         private readonly List<Op> _ops = new List<Op>();
         private DataType _lastDataType;
+
+        public int GetOpcode() => _opcode;
+        public string GetLabel() => _label;
+        public List<Op> GetOps() => _ops;
 
         public OpcodeBuilder(int opcode, string label)
         {
@@ -39,8 +41,8 @@ namespace CoreBoy.cpu.opcode
 
         public OpcodeBuilder CopyByte(string target, string source)
         {
-            load(source);
-            store(target);
+            Load(source);
+            Store(target);
             return this;
         }
 
@@ -48,17 +50,17 @@ namespace CoreBoy.cpu.opcode
         {
             private readonly Argument _arg;
             public LoadOp(Argument arg) => _arg = arg;
-            public override bool readsMemory() => _arg.IsMemory;
-            public override int operandLength() => _arg.OperandLength;
+            public override bool ReadsMemory() => _arg.IsMemory;
+            public override int OperandLength() => _arg.OperandLength;
 
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context) =>
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context) =>
                 _arg.Read(registers, addressSpace, args);
 
             public override string ToString() =>
                 string.Format(_arg.DataType == DataType.D16 ? "{0} → [__]" : "{0} → [_]", _arg.Label);
         }
 
-        public OpcodeBuilder load(string source)
+        public OpcodeBuilder Load(string source)
         {
             var arg = Argument.Parse(source);
             _lastDataType = arg.DataType;
@@ -71,60 +73,57 @@ namespace CoreBoy.cpu.opcode
         {
             private readonly int _value;
             public LoadWordOp(int value) => _value = value;
-
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context) =>
-                _value;
-
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context) => _value;
             public override string ToString() => $"0x{_value:X2} → [__]";
         }
 
-        public OpcodeBuilder loadWord(int value)
+        public OpcodeBuilder LoadWord(int value)
         {
             _lastDataType = DataType.D16;
             _ops.Add(new LoadWordOp(value));
             return this;
         }
 
-        private class Store_a16_Op1 : Op
+        private class StoreA16Op1 : Op
         {
             private readonly Argument _arg;
-            public Store_a16_Op1(Argument arg) => _arg = arg;
-            public override bool writesMemory() => _arg.IsMemory;
-            public override int operandLength() => _arg.OperandLength;
+            public StoreA16Op1(Argument arg) => _arg = arg;
+            public override bool WritesMemory() => _arg.IsMemory;
+            public override int OperandLength() => _arg.OperandLength;
 
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context)
             {
-                addressSpace.setByte(ToWord(args), context & 0x00ff);
+                addressSpace.SetByte(ToWord(args), context & 0x00ff);
                 return context;
             }
 
             public override string ToString() => $"[ _] → {_arg.Label}";
         }
 
-        private class Store_a16_Op2 : Op
+        private class StoreA16Op2 : Op
         {
             private readonly Argument _arg;
-            public Store_a16_Op2(Argument arg) => _arg = arg;
-            public override bool writesMemory() => _arg.IsMemory;
-            public override int operandLength() => _arg.OperandLength;
+            public StoreA16Op2(Argument arg) => _arg = arg;
+            public override bool WritesMemory() => _arg.IsMemory;
+            public override int OperandLength() => _arg.OperandLength;
 
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context)
             {
-                addressSpace.setByte((ToWord(args) + 1) & 0xffff, (context & 0xff00) >> 8);
+                addressSpace.SetByte((ToWord(args) + 1) & 0xffff, (context & 0xff00) >> 8);
                 return context;
             }
 
             public override string ToString() => $"[_ ] → {_arg.Label}";
         }
 
-        private class Store_LastDataType : Op
+        private class StoreLastDataType : Op
         {
             private readonly Argument _arg;
-            public Store_LastDataType(Argument arg) => _arg = arg;
-            public override bool writesMemory() => _arg.IsMemory;
-            public override int operandLength() => _arg.OperandLength;
+            public StoreLastDataType(Argument arg) => _arg = arg;
+            public override bool WritesMemory() => _arg.IsMemory;
+            public override int OperandLength() => _arg.OperandLength;
 
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context)
             {
                 _arg.Write(registers, addressSpace, args, context);
                 return context;
@@ -135,19 +134,19 @@ namespace CoreBoy.cpu.opcode
         }
 
 
-        public OpcodeBuilder store(string target)
+        public OpcodeBuilder Store(string target)
         {
             var arg = Argument.Parse(target);
 
             if (_lastDataType == DataType.D16 && arg.Label == "(a16)")
             {
-                _ops.Add(new Store_a16_Op1(arg));
-                _ops.Add(new Store_a16_Op2(arg));
+                _ops.Add(new StoreA16Op1(arg));
+                _ops.Add(new StoreA16Op2(arg));
 
             }
             else if (_lastDataType == arg.DataType)
             {
-                _ops.Add(new Store_LastDataType(arg));
+                _ops.Add(new StoreLastDataType(arg));
             }
             else
             {
@@ -157,12 +156,12 @@ namespace CoreBoy.cpu.opcode
             return this;
         }
 
-        private class ProceedIf : Op
+        private class ProceedIfOp : Op
         {
             private readonly string _condition;
-            public ProceedIf(string condition) => _condition = condition;
+            public ProceedIfOp(string condition) => _condition = condition;
 
-            public override bool proceed(Registers registers)
+            public override bool Proceed(Registers registers)
             {
                 return _condition switch
                 {
@@ -177,50 +176,50 @@ namespace CoreBoy.cpu.opcode
             public override string ToString() => $"? {_condition}:";
         }
 
-        public OpcodeBuilder proceedIf(string condition)
+        public OpcodeBuilder ProceedIf(string condition)
         {
-            _ops.Add(new ProceedIf(condition));
+            _ops.Add(new ProceedIfOp(condition));
             return this;
         }
 
 
-        private class Push1 : Op
+        private class PushOp1 : Op
         {
             private readonly IntRegistryFunction _func;
-            public Push1(IntRegistryFunction func) => _func = func;
-            public override bool writesMemory() => true;
+            public PushOp1(IntRegistryFunction func) => _func = func;
+            public override bool WritesMemory() => true;
 
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context)
             {
                 registers.SP = _func(registers.Flags, registers.SP);
-                addressSpace.setByte(registers.SP, (context & 0xff00) >> 8);
+                addressSpace.SetByte(registers.SP, (context & 0xff00) >> 8);
                 return context;
             }
 
-            public override SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
+            public override SpriteBug.CorruptionType? CausesOemBug(Registers registers, int context)
             {
-                return inOamArea(registers.SP) ? SpriteBug.CorruptionType.PUSH_1 : (SpriteBug.CorruptionType?) null;
+                return InOamArea(registers.SP) ? SpriteBug.CorruptionType.PUSH_1 : (SpriteBug.CorruptionType?) null;
             }
 
             public override string ToString() => "[_ ] → (SP--)";
         }
 
-        private class Push2 : Op
+        private class PushOp2 : Op
         {
             private readonly IntRegistryFunction _func;
-            public Push2(IntRegistryFunction func) => _func = func;
-            public override bool writesMemory() => true;
+            public PushOp2(IntRegistryFunction func) => _func = func;
+            public override bool WritesMemory() => true;
 
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context)
             {
                 registers.SP = _func(registers.Flags, registers.SP);
-                addressSpace.setByte(registers.SP, context & 0x00ff);
+                addressSpace.SetByte(registers.SP, context & 0x00ff);
                 return context;
             }
 
-            public override SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
+            public override SpriteBug.CorruptionType? CausesOemBug(Registers registers, int context)
             {
-                return inOamArea(registers.SP) ? SpriteBug.CorruptionType.PUSH_2 : (SpriteBug.CorruptionType?) null;
+                return InOamArea(registers.SP) ? SpriteBug.CorruptionType.PUSH_2 : (SpriteBug.CorruptionType?) null;
             }
 
 
@@ -228,92 +227,78 @@ namespace CoreBoy.cpu.opcode
         }
 
 
-        public OpcodeBuilder push()
+        public OpcodeBuilder Push()
         {
-            var dec = Alu.GetFunction("DEC", DataType.D16);
-            _ops.Add(new Push1(dec));
-            _ops.Add(new Push2(dec));
+            var dec = AluFuncs.GetFunction("DEC", DataType.D16);
+            _ops.Add(new PushOp1(dec));
+            _ops.Add(new PushOp2(dec));
             return this;
         }
 
 
-        private class Pop1 : Op
+        private class PopOp1 : Op
         {
             private readonly IntRegistryFunction _func;
-            public Pop1(IntRegistryFunction func) => _func = func;
+            public PopOp1(IntRegistryFunction func) => _func = func;
 
-            public override bool readsMemory()
+            public override bool ReadsMemory()
             {
                 return true;
             }
 
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context)
             {
-                int lsb = addressSpace.getByte(registers.SP);
+                var lsb = addressSpace.GetByte(registers.SP);
                 registers.SP = _func(registers.Flags, registers.SP);
                 return lsb;
             }
 
 
-            public override SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
+            public override SpriteBug.CorruptionType? CausesOemBug(Registers registers, int context)
             {
-                return inOamArea(registers.SP) ? SpriteBug.CorruptionType.POP_1 : (SpriteBug.CorruptionType?) null;
+                return InOamArea(registers.SP) ? SpriteBug.CorruptionType.POP_1 : (SpriteBug.CorruptionType?) null;
             }
-
-
-            public override string ToString()
-            {
-                return string.Format("(SP++) → [ _]");
-            }
+            public override string ToString() => "(SP++) → [ _]";
         }
 
-        private class Pop2 : Op
+        private class PopOp2 : Op
         {
             private readonly IntRegistryFunction _func;
-            public Pop2(IntRegistryFunction func) => _func = func;
+            public PopOp2(IntRegistryFunction func) => _func = func;
+            public override bool ReadsMemory() => true;
 
-            public override bool readsMemory()
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context)
             {
-                return true;
-            }
-
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
-            {
-                int msb = addressSpace.getByte(registers.SP);
+                var msb = addressSpace.GetByte(registers.SP);
                 registers.SP = _func(registers.Flags, registers.SP);
                 return context | (msb << 8);
             }
-
-
-            public override SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
+            
+            public override SpriteBug.CorruptionType? CausesOemBug(Registers registers, int context)
             {
-                return inOamArea(registers.SP) ? SpriteBug.CorruptionType.POP_2 : (SpriteBug.CorruptionType?) null;
+                return InOamArea(registers.SP) ? SpriteBug.CorruptionType.POP_2 : (SpriteBug.CorruptionType?) null;
             }
 
-            public override string ToString()
-            {
-                return string.Format("(SP++) → [_ ]");
-            }
+            public override string ToString() => "(SP++) → [_ ]";
         }
 
-        public OpcodeBuilder pop()
+        public OpcodeBuilder Pop()
         {
-            var inc = Alu.GetFunction("INC", DataType.D16);
+            var inc = AluFuncs.GetFunction("INC", DataType.D16);
             _lastDataType = DataType.D16;
-            _ops.Add(new Pop1(inc));
-            _ops.Add(new Pop2(inc));
+            _ops.Add(new PopOp1(inc));
+            _ops.Add(new PopOp2(inc));
             return this;
         }
 
-
-        private class Alu1 : Op
+        private class AluOp1 : Op
         {
             private readonly BiIntRegistryFunction _func;
-            private Argument _arg2;
+            private readonly Argument _arg2;
             private readonly string _operation;
             private readonly DataType _lastDataType;
 
-            public Alu1(BiIntRegistryFunction func, Argument arg2, string operation, DataType lastDataType)
+            public AluOp1(BiIntRegistryFunction func, Argument arg2, string operation, DataType lastDataType)
             {
                 _func = func;
                 _arg2 = arg2;
@@ -321,64 +306,48 @@ namespace CoreBoy.cpu.opcode
                 _lastDataType = lastDataType;
             }
 
-            public override bool readsMemory()
-            {
-                return _arg2.IsMemory;
-            }
-
-
-            public override int operandLength()
-            {
-                return _arg2.OperandLength;
-            }
-
-
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int v1)
+            public override bool ReadsMemory() => _arg2.IsMemory;
+            public override int OperandLength() => _arg2.OperandLength;
+            
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int v1)
             {
                 var v2 = _arg2.Read(registers, addressSpace, args);
                 return _func(registers.Flags, v1, v2);
             }
 
-
-            public override string ToString()
-            {
-                if (_lastDataType == DataType.D16)
-                {
-                    return $"{_operation}([__],{_arg2}) → [__]";
-                }
-
-                return $"{_operation}([_],{_arg2}) → [_]";
-            }
+            public override string ToString() => _lastDataType == DataType.D16
+                ? $"{_operation}([__],{_arg2}) → [__]"
+                : $"{_operation}([_],{_arg2}) → [_]";
         }
 
-        public OpcodeBuilder alu(string operation, string argument2)
+        public OpcodeBuilder Alu(string operation, string argument2)
         {
             var arg2 = Argument.Parse(argument2);
-            var func = Alu.GetFunction(operation, _lastDataType, arg2.DataType);
-            _ops.Add(new Alu1(func, arg2, operation, _lastDataType));
+            var func = AluFuncs.GetFunction(operation, _lastDataType, arg2.DataType);
+            _ops.Add(new AluOp1(func, arg2, operation, _lastDataType));
 
             if (_lastDataType == DataType.D16)
             {
-                extraCycle();
+                ExtraCycle();
             }
 
             return this;
         }
 
-        private class Alu2 : Op
+        private class AluOp2 : Op
         {
             private readonly BiIntRegistryFunction _func;
             private readonly string _operation;
             private readonly int _d8Value;
 
-            public Alu2(BiIntRegistryFunction func, string operation, int d8Value)
+            public AluOp2(BiIntRegistryFunction func, string operation, int d8Value)
             {
                 _func = func;
                 _operation = operation;
                 _d8Value = d8Value;
             }
 
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int v1)
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int v1)
             {
                 return _func(registers.Flags, v1, _d8Value);
             }
@@ -390,123 +359,97 @@ namespace CoreBoy.cpu.opcode
             }
         }
 
-        public OpcodeBuilder alu(string operation, int d8Value)
+        public OpcodeBuilder Alu(string operation, int d8Value)
         {
-            var func = Alu.GetFunction(operation, _lastDataType, DataType.D8);
-            _ops.Add(new Alu2(func, operation, d8Value));
+            var func = AluFuncs.GetFunction(operation, _lastDataType, DataType.D8);
+            _ops.Add(new AluOp2(func, operation, d8Value));
 
             if (_lastDataType == DataType.D16)
             {
-                extraCycle();
+                ExtraCycle();
             }
 
             return this;
         }
 
-
-        private class Alu3 : Op
+        private class AluOp3 : Op
         {
             private readonly IntRegistryFunction _func;
             private readonly string _operation;
             private readonly DataType _lastDataType;
 
-            public Alu3(IntRegistryFunction func, string operation, DataType lastDataType)
+            public AluOp3(IntRegistryFunction func, string operation, DataType lastDataType)
             {
                 _func = func;
                 _operation = operation;
                 _lastDataType = lastDataType;
             }
 
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int value)
-            {
-                return _func(registers.Flags, value);
-            }
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int value) => _func(registers.Flags, value);
 
-
-            public override SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
-            {
-                return CausesOemBug(_func, context)
+            public override SpriteBug.CorruptionType? CausesOemBug(Registers registers, int context) =>
+                OpcodeBuilder.CausesOemBug(_func, context)
                     ? SpriteBug.CorruptionType.INC_DEC
                     : (SpriteBug.CorruptionType?) null;
-            }
 
-            public override string ToString()
-            {
-                if (_lastDataType == DataType.D16)
-                {
-                    return $"{_operation}([__]) → [__]";
-                }
-                else
-                {
-                    return $"{_operation}([_]) → [_]";
-                }
-            }
+            public override string ToString() => _lastDataType == DataType.D16 ? $"{_operation}([__]) → [__]" : $"{_operation}([_]) → [_]";
         }
 
-        public OpcodeBuilder alu(string operation)
+        public OpcodeBuilder Alu(string operation)
         {
-            var func = Alu.GetFunction(operation, _lastDataType);
-            _ops.Add(new Alu3(func, operation, _lastDataType));
+            var func = AluFuncs.GetFunction(operation, _lastDataType);
+            _ops.Add(new AluOp3(func, operation, _lastDataType));
 
             if (_lastDataType == DataType.D16)
             {
-                extraCycle();
+                ExtraCycle();
             }
 
             return this;
         }
 
-        private class AluHL : Op
+        private class AluHLOp : Op
         {
             private readonly IntRegistryFunction _func;
 
-            public AluHL(IntRegistryFunction func)
+            public AluHLOp(IntRegistryFunction func)
             {
                 _func = func;
             }
 
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int value)
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int value)
             {
                 return _func(registers.Flags, value);
             }
 
-            public override SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
+            public override SpriteBug.CorruptionType? CausesOemBug(Registers registers, int context)
             {
-                return CausesOemBug(_func, context) ? SpriteBug.CorruptionType.LD_HL : (SpriteBug.CorruptionType?) null;
+                return OpcodeBuilder.CausesOemBug(_func, context) ? SpriteBug.CorruptionType.LD_HL : (SpriteBug.CorruptionType?) null;
             }
 
             public override string ToString()
             {
-                return string.Format("%s(HL) → [__]");
+                return "%s(HL) → [__]";
             }
         }
 
-        public OpcodeBuilder aluHL(string operation)
+        public OpcodeBuilder AluHL(string operation)
         {
-            load("HL");
-            _ops.Add(new AluHL(Alu.GetFunction(operation, DataType.D16)));
-            store("HL");
+            Load("HL");
+            _ops.Add(new AluHLOp(AluFuncs.GetFunction(operation, DataType.D16)));
+            Store("HL");
             return this;
         }
 
-
-        private class BitHL : Op
+        private class BitHLOp : Op
         {
             private readonly int _bit;
-
-            public BitHL(int bit)
+            public BitHLOp(int bit) => _bit = bit;
+            public override bool ReadsMemory() => true;
+            
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context)
             {
-                _bit = bit;
-            }
-
-            public override bool readsMemory()
-            {
-                return true;
-            }
-
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
-            {
-                var value = addressSpace.getByte(registers.HL);
+                var value = addressSpace.GetByte(registers.HL);
                 var flags = registers.Flags;
                 flags.SetN(false);
                 flags.SetH(true);
@@ -517,20 +460,19 @@ namespace CoreBoy.cpu.opcode
 
                 return context;
             }
-
-
+            
             public override string ToString() => $"BIT({_bit:D},HL)";
         }
 
-        public OpcodeBuilder bitHL(int bit)
+        public OpcodeBuilder BitHL(int bit)
         {
-            _ops.Add(new BitHL(bit));
+            _ops.Add(new BitHLOp(bit));
             return this;
         }
 
-        private class ClearZ : Op
+        private class ClearZOp : Op
         {
-            public override int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
+            public override int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context)
             {
                 registers.Flags.SetZ(false);
                 return context;
@@ -539,24 +481,24 @@ namespace CoreBoy.cpu.opcode
             public override string ToString() => "0 → Z";
         }
 
-        public OpcodeBuilder clearZ()
+        public OpcodeBuilder ClearZ()
         {
-            _ops.Add(new ClearZ());
+            _ops.Add(new ClearZOp());
             return this;
         }
 
-        private class SwitchInterrupts : Op
+        private class SwitchInterruptsOp : Op
         {
             private readonly bool _enable;
             private readonly bool _withDelay;
 
-            public SwitchInterrupts(bool enable, bool withDelay)
+            public SwitchInterruptsOp(bool enable, bool withDelay)
             {
                 _enable = enable;
                 _withDelay = withDelay;
             }
 
-            public override void switchInterrupts(InterruptManager interruptManager)
+            public override void SwitchInterrupts(InterruptManager interruptManager)
             {
                 if (_enable)
                 {
@@ -575,13 +517,13 @@ namespace CoreBoy.cpu.opcode
             }
         }
 
-        public OpcodeBuilder switchInterrupts(bool enable, bool withDelay)
+        public OpcodeBuilder SwitchInterrupts(bool enable, bool withDelay)
         {
-            _ops.Add(new SwitchInterrupts(enable, withDelay));
+            _ops.Add(new SwitchInterruptsOp(enable, withDelay));
             return this;
         }
 
-        public OpcodeBuilder op(Op op)
+        public OpcodeBuilder Op(Op op)
         {
             _ops.Add(op);
             return this;
@@ -589,11 +531,11 @@ namespace CoreBoy.cpu.opcode
 
         private class ExtraCycleOp : Op
         {
-            public override bool readsMemory() => true;
+            public override bool ReadsMemory() => true;
             public override string ToString() => "wait cycle";
         }
 
-        public OpcodeBuilder extraCycle()
+        public OpcodeBuilder ExtraCycle()
         {
             _ops.Add(new ExtraCycleOp());
             return this;
@@ -601,7 +543,7 @@ namespace CoreBoy.cpu.opcode
 
         private class ForceFinishOp : Op
         {
-            public override bool forceFinishCycle() => true;
+            public override bool ForceFinishCycle() => true;
             public override string ToString() => "finish cycle";
         }
 
@@ -611,26 +553,7 @@ namespace CoreBoy.cpu.opcode
             return this;
         }
 
-        public Opcode Build()
-        {
-            return new Opcode(this);
-        }
-
-        public int GetOpcode()
-        {
-            return _opcode;
-        }
-
-        public string GetLabel()
-        {
-            return _label;
-        }
-
-        public List<Op> GetOps()
-        {
-            return _ops;
-        }
-
+        public Opcode Build() => new Opcode(this);
 
         public override string ToString() => _label;
 
@@ -639,9 +562,6 @@ namespace CoreBoy.cpu.opcode
             return OemBug.Contains(function) && InOamArea(context);
         }
 
-        private static bool InOamArea(int address)
-        {
-            return address >= 0xfe00 && address <= 0xfeff;
-        }
+        private static bool InOamArea(int address) => address >= 0xfe00 && address <= 0xfeff;
     }
 }

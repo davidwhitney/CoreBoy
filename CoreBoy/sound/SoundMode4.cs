@@ -14,8 +14,8 @@ namespace CoreBoy.sound
         public SoundMode4(bool gbc):base(0xff1f, 64, gbc)
         {
             
-            this.volumeEnvelope = new VolumeEnvelope();
-            this.polynomialCounter = new PolynomialCounter();
+            volumeEnvelope = new VolumeEnvelope();
+            polynomialCounter = new PolynomialCounter();
         }
 
         

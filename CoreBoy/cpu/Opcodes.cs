@@ -29,17 +29,17 @@ namespace CoreBoy.cpu
 
             foreach (var t in OpcodesForValues(0x03, 0x10, "BC", "DE", "HL", "SP"))
             {
-                RegCmd(opcodes, t, "INC {}").load(t.Value).alu("INC").store(t.Value);
+                RegCmd(opcodes, t, "INC {}").Load(t.Value).Alu("INC").Store(t.Value);
             }
 
             foreach (var t in OpcodesForValues(0x04, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A"))
             {
-                RegCmd(opcodes, t, "INC {}").load(t.Value).alu("INC").store(t.Value);
+                RegCmd(opcodes, t, "INC {}").Load(t.Value).Alu("INC").Store(t.Value);
             }
 
             foreach (var t in OpcodesForValues(0x05, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A"))
             {
-                RegCmd(opcodes, t, "DEC {}").load(t.Value).alu("DEC").store(t.Value);
+                RegCmd(opcodes, t, "DEC {}").Load(t.Value).Alu("DEC").Store(t.Value);
             }
 
             foreach (var (key, value) in OpcodesForValues(0x06, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A"))
@@ -49,14 +49,14 @@ namespace CoreBoy.cpu
 
             foreach (var o in OpcodesForValues(0x07, 0x08, "RLC", "RRC", "RL", "RR"))
             {
-                RegCmd(opcodes, o, o.Value + "A").load("A").alu(o.Value).clearZ().store("A");
+                RegCmd(opcodes, o, o.Value + "A").Load("A").Alu(o.Value).ClearZ().Store("A");
             }
 
             RegLoad(opcodes, 0x08, "(a16)", "SP");
 
             foreach (var t in OpcodesForValues(0x09, 0x10, "BC", "DE", "HL", "SP"))
             {
-                RegCmd(opcodes, t, "ADD HL,{}").load("HL").alu("ADD", t.Value).store("HL");
+                RegCmd(opcodes, t, "ADD HL,{}").Load("HL").Alu("ADD", t.Value).Store("HL");
             }
 
             foreach (var (key, value) in OpcodesForValues(0x0a, 0x10, "(BC)", "(DE)"))
@@ -66,29 +66,29 @@ namespace CoreBoy.cpu
 
             foreach (var t in OpcodesForValues(0x0b, 0x10, "BC", "DE", "HL", "SP"))
             {
-                RegCmd(opcodes, t, "DEC {}").load(t.Value).alu("DEC").store(t.Value);
+                RegCmd(opcodes, t, "DEC {}").Load(t.Value).Alu("DEC").Store(t.Value);
             }
 
             RegCmd(opcodes, 0x10, "STOP");
 
-            RegCmd(opcodes, 0x18, "JR r8").load("PC").alu("ADD", "r8").store("PC");
+            RegCmd(opcodes, 0x18, "JR r8").Load("PC").Alu("ADD", "r8").Store("PC");
 
             foreach (var c in OpcodesForValues(0x20, 0x08, "NZ", "Z", "NC", "C"))
             {
-                RegCmd(opcodes, c, "JR {},r8").load("PC").proceedIf(c.Value).alu("ADD", "r8").store("PC");
+                RegCmd(opcodes, c, "JR {},r8").Load("PC").ProceedIf(c.Value).Alu("ADD", "r8").Store("PC");
             }
 
-            RegCmd(opcodes, 0x22, "LD (HL+),A").CopyByte("(HL)", "A").aluHL("INC");
-            RegCmd(opcodes, 0x2a, "LD A,(HL+)").CopyByte("A", "(HL)").aluHL("INC");
+            RegCmd(opcodes, 0x22, "LD (HL+),A").CopyByte("(HL)", "A").AluHL("INC");
+            RegCmd(opcodes, 0x2a, "LD A,(HL+)").CopyByte("A", "(HL)").AluHL("INC");
 
-            RegCmd(opcodes, 0x27, "DAA").load("A").alu("DAA").store("A");
-            RegCmd(opcodes, 0x2f, "CPL").load("A").alu("CPL").store("A");
+            RegCmd(opcodes, 0x27, "DAA").Load("A").Alu("DAA").Store("A");
+            RegCmd(opcodes, 0x2f, "CPL").Load("A").Alu("CPL").Store("A");
 
-            RegCmd(opcodes, 0x32, "LD (HL-),A").CopyByte("(HL)", "A").aluHL("DEC");
-            RegCmd(opcodes, 0x3a, "LD A,(HL-)").CopyByte("A", "(HL)").aluHL("DEC");
+            RegCmd(opcodes, 0x32, "LD (HL-),A").CopyByte("(HL)", "A").AluHL("DEC");
+            RegCmd(opcodes, 0x3a, "LD A,(HL-)").CopyByte("A", "(HL)").AluHL("DEC");
 
-            RegCmd(opcodes, 0x37, "SCF").load("A").alu("SCF").store("A");
-            RegCmd(opcodes, 0x3f, "CCF").load("A").alu("CCF").store("A");
+            RegCmd(opcodes, 0x37, "SCF").Load("A").Alu("SCF").Store("A");
+            RegCmd(opcodes, 0x3f, "CCF").Load("A").Alu("CCF").Store("A");
 
             foreach (var (key, value) in OpcodesForValues(0x40, 0x08, "B", "C", "D", "E", "H", "L", "(HL)", "A"))
             {
@@ -109,85 +109,85 @@ namespace CoreBoy.cpu
             {
                 foreach (var t in OpcodesForValues(key, 0x01, "B", "C", "D", "E", "H", "L", "(HL)", "A"))
                 {
-                    RegCmd(opcodes, t, value + " {}").load("A").alu(value, t.Value).store("A");
+                    RegCmd(opcodes, t, value + " {}").Load("A").Alu(value, t.Value).Store("A");
                 }
             }
 
             foreach (var c in OpcodesForValues(0xc0, 0x08, "NZ", "Z", "NC", "C"))
             {
-                RegCmd(opcodes, c, "RET {}").extraCycle().proceedIf(c.Value).pop().ForceFinish().store("PC");
+                RegCmd(opcodes, c, "RET {}").ExtraCycle().ProceedIf(c.Value).Pop().ForceFinish().Store("PC");
             }
 
             foreach (var t in OpcodesForValues(0xc1, 0x10, "BC", "DE", "HL", "AF"))
             {
-                RegCmd(opcodes, t, "POP {}").pop().store(t.Value);
+                RegCmd(opcodes, t, "POP {}").Pop().Store(t.Value);
             }
 
             foreach (var c in OpcodesForValues(0xc2, 0x08, "NZ", "Z", "NC", "C"))
             {
-                RegCmd(opcodes, c, "JP {},a16").load("a16").proceedIf(c.Value).store("PC").extraCycle();
+                RegCmd(opcodes, c, "JP {},a16").Load("a16").ProceedIf(c.Value).Store("PC").ExtraCycle();
             }
 
-            RegCmd(opcodes, 0xc3, "JP a16").load("a16").store("PC").extraCycle();
+            RegCmd(opcodes, 0xc3, "JP a16").Load("a16").Store("PC").ExtraCycle();
 
             foreach (var c in OpcodesForValues(0xc4, 0x08, "NZ", "Z", "NC", "C"))
             {
-                RegCmd(opcodes, c, "CALL {},a16").proceedIf(c.Value).extraCycle().load("PC").push().load("a16")
-                    .store("PC");
+                RegCmd(opcodes, c, "CALL {},a16").ProceedIf(c.Value).ExtraCycle().Load("PC").Push().Load("a16")
+                    .Store("PC");
             }
 
             foreach (var t in OpcodesForValues(0xc5, 0x10, "BC", "DE", "HL", "AF"))
             {
-                RegCmd(opcodes, t, "PUSH {}").extraCycle().load(t.Value).push();
+                RegCmd(opcodes, t, "PUSH {}").ExtraCycle().Load(t.Value).Push();
             }
 
             foreach (var o in OpcodesForValues(0xc6, 0x08, "ADD", "ADC", "SUB", "SBC", "AND", "XOR", "OR", "CP"))
             {
-                RegCmd(opcodes, o, o.Value + " d8").load("A").alu(o.Value, "d8").store("A");
+                RegCmd(opcodes, o, o.Value + " d8").Load("A").Alu(o.Value, "d8").Store("A");
             }
 
             for (int i = 0xc7, j = 0x00; i <= 0xf7; i += 0x10, j += 0x10)
             {
-                RegCmd(opcodes, i, $"RST {j:X2}H").load("PC").push().ForceFinish().loadWord(j)
-                    .store("PC");
+                RegCmd(opcodes, i, $"RST {j:X2}H").Load("PC").Push().ForceFinish().LoadWord(j)
+                    .Store("PC");
             }
 
-            RegCmd(opcodes, 0xc9, "RET").pop().ForceFinish().store("PC");
+            RegCmd(opcodes, 0xc9, "RET").Pop().ForceFinish().Store("PC");
 
-            RegCmd(opcodes, 0xcd, "CALL a16").load("PC").extraCycle().push().load("a16").store("PC");
+            RegCmd(opcodes, 0xcd, "CALL a16").Load("PC").ExtraCycle().Push().Load("a16").Store("PC");
 
             for (int i = 0xcf, j = 0x08; i <= 0xff; i += 0x10, j += 0x10)
             {
-                RegCmd(opcodes, i, $"RST {j:X2}H").load("PC").push().ForceFinish().loadWord(j)
-                    .store("PC");
+                RegCmd(opcodes, i, $"RST {j:X2}H").Load("PC").Push().ForceFinish().LoadWord(j)
+                    .Store("PC");
             }
 
-            RegCmd(opcodes, 0xd9, "RETI").pop().ForceFinish().store("PC").switchInterrupts(true, false);
+            RegCmd(opcodes, 0xd9, "RETI").Pop().ForceFinish().Store("PC").SwitchInterrupts(true, false);
 
             RegLoad(opcodes, 0xe2, "(C)", "A");
             RegLoad(opcodes, 0xf2, "A", "(C)");
 
-            RegCmd(opcodes, 0xe9, "JP (HL)").load("HL").store("PC");
+            RegCmd(opcodes, 0xe9, "JP (HL)").Load("HL").Store("PC");
 
             RegCmd(opcodes, 0xe0, "LDH (a8),A").CopyByte("(a8)", "A");
             RegCmd(opcodes, 0xf0, "LDH A,(a8)").CopyByte("A", "(a8)");
 
-            RegCmd(opcodes, 0xe8, "ADD SP,r8").load("SP").alu("ADD_SP", "r8").extraCycle().store("SP");
-            RegCmd(opcodes, 0xf8, "LD HL,SP+r8").load("SP").alu("ADD_SP", "r8").store("HL");
+            RegCmd(opcodes, 0xe8, "ADD SP,r8").Load("SP").Alu("ADD_SP", "r8").ExtraCycle().Store("SP");
+            RegCmd(opcodes, 0xf8, "LD HL,SP+r8").Load("SP").Alu("ADD_SP", "r8").Store("HL");
 
             RegLoad(opcodes, 0xea, "(a16)", "A");
             RegLoad(opcodes, 0xfa, "A", "(a16)");
 
-            RegCmd(opcodes, 0xf3, "DI").switchInterrupts(false, true);
-            RegCmd(opcodes, 0xfb, "EI").switchInterrupts(true, true);
+            RegCmd(opcodes, 0xf3, "DI").SwitchInterrupts(false, true);
+            RegCmd(opcodes, 0xfb, "EI").SwitchInterrupts(true, true);
 
-            RegLoad(opcodes, 0xf9, "SP", "HL").extraCycle();
+            RegLoad(opcodes, 0xf9, "SP", "HL").ExtraCycle();
 
             foreach (var (key, value) in OpcodesForValues(0x00, 0x08, "RLC", "RRC", "RL", "RR", "SLA", "SRA", "SWAP", "SRL"))
             {
                 foreach (var t in OpcodesForValues(key, 0x01, "B", "C", "D", "E", "H", "L", "(HL)", "A"))
                 {
-                    RegCmd(extOpcodes, t, value + " {}").load(t.Value).alu(value).store(t.Value);
+                    RegCmd(extOpcodes, t, value + " {}").Load(t.Value).Alu(value).Store(t.Value);
                 }
             }
 
@@ -199,12 +199,12 @@ namespace CoreBoy.cpu
                     {
                         if ("BIT".Equals(value) && "(HL)".Equals(t.Value))
                         {
-                            RegCmd(extOpcodes, t, $"BIT {b},(HL)").bitHL(b);
+                            RegCmd(extOpcodes, t, $"BIT {b},(HL)").BitHL(b);
                         }
                         else
                         {
-                            RegCmd(extOpcodes, t, $"{value} {b},{t.Value}").load(t.Value)
-                                .alu(value, b).store(t.Value);
+                            RegCmd(extOpcodes, t, $"{value} {b},{t.Value}").Load(t.Value)
+                                .Alu(value, b).Store(t.Value);
                         }
                     }
                 }

@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using CoreBoy.cpu;
 using CoreBoy.cpu.opcode;
@@ -78,7 +77,7 @@ namespace CoreBoy.Test.Unit.CPU
         {
             for (int i = 0; i < opcodes.Length; i++)
             {
-                _memory.setByte(Offset + i, opcodes[i]);
+                _memory.SetByte(Offset + i, opcodes[i]);
             }
 
             _cpu.ClearState();
@@ -107,7 +106,7 @@ namespace CoreBoy.Test.Unit.CPU
             }
         }
 
-        private static String HexArray(int[] data)
+        private static string HexArray(int[] data)
         {
             var b = new StringBuilder("[");
             for (var i = 0; i < data.Length; i++)

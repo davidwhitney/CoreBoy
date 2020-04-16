@@ -3,7 +3,7 @@ using CoreBoy.gpu;
 
 namespace CoreBoy.memory
 {
-    public class Hdma : AddressSpace
+    public class Hdma : IAddressSpace
     {
         private const int Hdma1 = 0xff51;
         private const int Hdma2 = 0xff52;
@@ -11,7 +11,7 @@ namespace CoreBoy.memory
         private const int Hdma4 = 0xff54;
         private const int Hdma5 = 0xff55;
 
-        private readonly AddressSpace _addressSpace;
+        private readonly IAddressSpace _addressSpace;
         private readonly Ram _hdma1234 = new Ram(Hdma1, 4);
         private Gpu.Mode? _gpuMode;
 
@@ -24,8 +24,8 @@ namespace CoreBoy.memory
         private int _dst;
         private int _tick;
 
-        public Hdma(AddressSpace addressSpace) => _addressSpace = addressSpace;
-        public bool accepts(int address) => address >= Hdma1 && address <= Hdma5;
+        public Hdma(IAddressSpace addressSpace) => _addressSpace = addressSpace;
+        public bool Accepts(int address) => address >= Hdma1 && address <= Hdma5;
 
         public void Tick()
         {
@@ -41,7 +41,7 @@ namespace CoreBoy.memory
 
             for (var j = 0; j < 0x10; j++)
             {
-                _addressSpace.setByte(_dst + j, _addressSpace.getByte(_src + j));
+                _addressSpace.SetByte(_dst + j, _addressSpace.GetByte(_src + j));
             }
 
             _src += 0x10;
@@ -57,15 +57,16 @@ namespace CoreBoy.memory
             }
         }
 
-        public void setByte(int address, int value)
+        public void SetByte(int address, int value)
         {
-            if (_hdma1234.accepts(address))
+            if (_hdma1234.Accepts(address))
             {
-                _hdma1234.setByte(address, value);
+                _hdma1234.SetByte(address, value);
             }
             else if (address == Hdma5)
             {
-                if (_transferInProgress && (address & (1 << 7)) == 0)
+                //if (_transferInProgress && (address & (1 << 7)) == 0) // Apparently the second part of this expression is always true
+                if (_transferInProgress)
                 {
                     StopTransfer();
                 }
@@ -76,9 +77,9 @@ namespace CoreBoy.memory
             }
         }
 
-        public int getByte(int address)
+        public int GetByte(int address)
         {
-            if (_hdma1234.accepts(address))
+            if (_hdma1234.Accepts(address))
             {
                 return 0xff;
             }
@@ -114,8 +115,8 @@ namespace CoreBoy.memory
             _hblankTransfer = (reg & (1 << 7)) != 0;
             _length = reg & 0x7f;
 
-            _src = (_hdma1234.getByte(Hdma1) << 8) | (_hdma1234.getByte(Hdma2) & 0xf0);
-            _dst = ((_hdma1234.getByte(Hdma3) & 0x1f) << 8) | (_hdma1234.getByte(Hdma4) & 0xf0);
+            _src = (_hdma1234.GetByte(Hdma1) << 8) | (_hdma1234.GetByte(Hdma2) & 0xf0);
+            _dst = ((_hdma1234.GetByte(Hdma3) & 0x1f) << 8) | (_hdma1234.GetByte(Hdma4) & 0xf0);
             _src = _src & 0xfff0;
             _dst = (_dst & 0x1fff) | 0x8000;
 

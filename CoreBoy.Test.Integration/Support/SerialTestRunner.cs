@@ -69,14 +69,14 @@ namespace CoreBoy.Test.Integration.Support
             }
 
             Registers regs = cpu.Registers;
-            AddressSpace mem = gb.Mmu;
+            IAddressSpace mem = gb.Mmu;
 
             int i = regs.PC;
             bool found = true;
             foreach (int v in new int[] {0x18, 0xfe})
             {
                 // jr fe
-                if (mem.getByte(i++) != v)
+                if (mem.GetByte(i++) != v)
                 {
                     found = false;
                     break;
@@ -92,7 +92,7 @@ namespace CoreBoy.Test.Integration.Support
             foreach (int v in new int[] {0xc3, BitUtils.GetLsb(i), BitUtils.GetMsb(i)})
             {
                 // jp pc
-                if (mem.getByte(i++) != v)
+                if (mem.GetByte(i++) != v)
                 {
                     return false;
                 }

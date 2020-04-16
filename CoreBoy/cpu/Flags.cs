@@ -7,10 +7,10 @@ namespace CoreBoy.cpu
     {
         public int FlagsByte { get; private set; }
 
-        private static int Z_POS = 7;
-        private static int N_POS = 6;
-        private static int H_POS = 5;
-        private static int C_POS = 4;
+        private static readonly int Z_POS = 7;
+        private static readonly int N_POS = 6;
+        private static readonly int H_POS = 5;
+        private static readonly int C_POS = 4;
 
         public bool IsZ() => GetBit(FlagsByte, Z_POS);
         public bool IsN() => GetBit(FlagsByte, N_POS);

@@ -55,32 +55,32 @@ namespace CoreBoy.cpu.op
 				
                 // _BC
                 new Argument("(BC)", 0, true, DataType.D8)
-                    .Handle((r, a, args) => a.getByte(r.BC), (r, a, i1, value) => a.setByte(r.BC, value)),
+                    .Handle((r, a, args) => a.GetByte(r.BC), (r, a, i1, value) => a.SetByte(r.BC, value)),
 
                 // _DE
                 new Argument("(DE)", 0, true, DataType.D8)
-                    .Handle((r, a, args) => a.getByte(r.DE), (r, a, i1, value) => a.setByte(r.DE, value)),
+                    .Handle((r, a, args) => a.GetByte(r.DE), (r, a, i1, value) => a.SetByte(r.DE, value)),
 
                 // _HL
                 new Argument("(HL)", 0, true, DataType.D8)
-                    .Handle((r, a, args) => a.getByte(r.HL), (r, a, i1, value) => a.setByte(r.HL, value)),
+                    .Handle((r, a, args) => a.GetByte(r.HL), (r, a, i1, value) => a.SetByte(r.HL, value)),
 
                 // _a8
                 new Argument("(a8)", 1, true, DataType.D8)
-                    .Handle((r, a, args) => a.getByte(0xff00 | args[0]), (r, a, i1, value) => a.setByte(0xff00 | i1[0], value)),
+                    .Handle((r, a, args) => a.GetByte(0xff00 | args[0]), (r, a, i1, value) => a.SetByte(0xff00 | i1[0], value)),
 
                 // _a16
                 new Argument("(a16)", 2, true, DataType.D8)
-                    .Handle((r, a, args) => a.getByte(BitUtils.ToWord(args)), (r, a, i1, value) => a.setByte(BitUtils.ToWord(i1), value)),
+                    .Handle((r, a, args) => a.GetByte(BitUtils.ToWord(args)), (r, a, i1, value) => a.SetByte(BitUtils.ToWord(i1), value)),
 
                 // _C
                 new Argument("(C)", 0, true, DataType.D8)
-                    .Handle((r, a, args) => a.getByte(0xff00 | r.C), (r, a, i1, value) => a.setByte(0xff00 | r.C, value))
+                    .Handle((r, a, args) => a.GetByte(0xff00 | r.C), (r, a, i1, value) => a.SetByte(0xff00 | r.C, value))
             };
         }
 
-        private Func<Registers, AddressSpace, int[], int> _readFunc;
-        private Action<Registers, AddressSpace, int[], int> _writeAction;
+        private Func<Registers, IAddressSpace, int[], int> _readFunc;
+        private Action<Registers, IAddressSpace, int[], int> _writeAction;
 
         public Argument(string label) 
             : this(label, 0, false, DataType.D8)
@@ -95,15 +95,15 @@ namespace CoreBoy.cpu.op
             DataType = dataType;
         }
 
-		public Argument Handle(Func<Registers, AddressSpace, int[], int> readFunc, Action<Registers, AddressSpace, int[], int> writeAction)
+		public Argument Handle(Func<Registers, IAddressSpace, int[], int> readFunc, Action<Registers, IAddressSpace, int[], int> writeAction)
         {
             _readFunc = readFunc;
             _writeAction = writeAction;
             return this;
         }
 
-        public int Read(Registers registers, AddressSpace addressSpace, int[] args) => _readFunc(registers, addressSpace, args);
-        public void Write(Registers registers, AddressSpace addressSpace, int[] args, int value) => _writeAction(registers, addressSpace, args, value);
+        public int Read(Registers registers, IAddressSpace addressSpace, int[] args) => _readFunc(registers, addressSpace, args);
+        public void Write(Registers registers, IAddressSpace addressSpace, int[] args, int value) => _writeAction(registers, addressSpace, args, value);
 
         public static Argument Parse(string @string)
         {

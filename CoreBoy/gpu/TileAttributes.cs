@@ -21,8 +21,8 @@ namespace CoreBoy.gpu
         private TileAttributes(int value) => _value = value;
         public static TileAttributes ValueOf(int value) => Attributes[value];
         public bool IsPriority() => (_value & (1 << 7)) != 0;
-        public bool IsYflip() => (_value & (1 << 6)) != 0;
-        public bool IsXflip() => (_value & (1 << 5)) != 0;
+        public bool IsYFlip() => (_value & (1 << 6)) != 0;
+        public bool IsXFlip() => (_value & (1 << 5)) != 0;
         public GpuRegister GetDmgPalette() => (_value & (1 << 4)) == 0 ? GpuRegister.OBP0 : GpuRegister.OBP1;
         public int GetBank() => (_value & (1 << 3)) == 0 ? 0 : 1;
         public int GetColorPaletteIndex() => _value & 0x07;

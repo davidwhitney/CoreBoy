@@ -28,7 +28,7 @@ namespace CoreBoy.cpu
         public Opcode CurrentOpcode { get; private set; }
         public State State { get; private set; } = State.OPCODE;
 
-        private readonly AddressSpace _addressSpace;
+        private readonly IAddressSpace _addressSpace;
         private readonly InterruptManager _interruptManager;
         private readonly Gpu _gpu;
         private readonly IDisplay _display;
@@ -52,7 +52,7 @@ namespace CoreBoy.cpu
         private bool _haltBugMode;
         private readonly Opcodes _opcodes;
 
-        public Cpu(AddressSpace addressSpace, InterruptManager interruptManager, Gpu gpu, IDisplay display, SpeedMode speedMode)
+        public Cpu(IAddressSpace addressSpace, InterruptManager interruptManager, Gpu gpu, IDisplay display, SpeedMode speedMode)
         {
             _opcodes = new Opcodes();
             Registers = new Registers();
@@ -114,7 +114,7 @@ namespace CoreBoy.cpu
                 {
                     case State.OPCODE:
                         ClearState();
-                        _opcode1 = _addressSpace.getByte(pc);
+                        _opcode1 = _addressSpace.GetByte(pc);
                         accessedMemory = true;
                         if (_opcode1 == 0xcb)
                         {
@@ -153,11 +153,8 @@ namespace CoreBoy.cpu
                         }
 
                         accessedMemory = true;
-                        _opcode2 = _addressSpace.getByte(pc);
-                        if (CurrentOpcode == null)
-                        {
-                            CurrentOpcode = _opcodes.EXT_COMMANDS[_opcode2];
-                        }
+                        _opcode2 = _addressSpace.GetByte(pc);
+                        CurrentOpcode ??= _opcodes.EXT_COMMANDS[_opcode2];
 
                         if (CurrentOpcode == null)
                         {
@@ -177,7 +174,7 @@ namespace CoreBoy.cpu
                             }
 
                             accessedMemory = true;
-                            _operand[_operandIndex++] = _addressSpace.getByte(pc);
+                            _operand[_operandIndex++] = _addressSpace.GetByte(pc);
                             Registers.IncrementPc();
                         }
 
@@ -218,7 +215,7 @@ namespace CoreBoy.cpu
                         if (_opIndex < _ops.Count)
                         {
                             var op = _ops[_opIndex];
-                            var opAccessesMemory = op.readsMemory() || op.writesMemory();
+                            var opAccessesMemory = op.ReadsMemory() || op.WritesMemory();
                             if (accessedMemory && opAccessesMemory)
                             {
                                 return;
@@ -226,22 +223,22 @@ namespace CoreBoy.cpu
 
                             _opIndex++;
 
-                            var corruptionType = op.causesOemBug(Registers, _opContext);
+                            var corruptionType = op.CausesOemBug(Registers, _opContext);
                             if (corruptionType != null)
                             {
                                 HandleSpriteBug(corruptionType.Value);
                             }
                             
-                            _opContext = op.execute(Registers, _addressSpace, _operand, _opContext);
-                            op.switchInterrupts(_interruptManager);
+                            _opContext = op.Execute(Registers, _addressSpace, _operand, _opContext);
+                            op.SwitchInterrupts(_interruptManager);
 
-                            if (!op.proceed(Registers))
+                            if (!op.Proceed(Registers))
                             {
                                 _opIndex = _ops.Count;
                                 break;
                             }
 
-                            if (op.forceFinishCycle())
+                            if (op.ForceFinishCycle())
                             {
                                 return;
                             }
@@ -274,12 +271,12 @@ namespace CoreBoy.cpu
             switch (State)
             {
                 case State.IRQ_READ_IF:
-                    _interruptFlag = _addressSpace.getByte(0xff0f);
+                    _interruptFlag = _addressSpace.GetByte(0xff0f);
                     State = State.IRQ_READ_IE;
                     break;
 
                 case State.IRQ_READ_IE:
-                    _interruptEnabled = _addressSpace.getByte(0xffff);
+                    _interruptEnabled = _addressSpace.GetByte(0xffff);
                     _requestedIrq = null;
                     foreach (var irq in InterruptManager.InterruptType.Values())
                     {
@@ -305,13 +302,13 @@ namespace CoreBoy.cpu
 
                 case State.IRQ_PUSH_1:
                     Registers.DecrementSp();
-                    _addressSpace.setByte(Registers.SP, (Registers.PC & 0xff00) >> 8);
+                    _addressSpace.SetByte(Registers.SP, (Registers.PC & 0xff00) >> 8);
                     State = State.IRQ_PUSH_2;
                     break;
 
                 case State.IRQ_PUSH_2:
                     Registers.DecrementSp();
-                    _addressSpace.setByte(Registers.SP, Registers.PC & 0x00ff);
+                    _addressSpace.SetByte(Registers.SP, Registers.PC & 0x00ff);
                     State = State.IRQ_JUMP;
                     break;
 
@@ -326,12 +323,12 @@ namespace CoreBoy.cpu
 
         private void HandleSpriteBug(SpriteBug.CorruptionType type)
         {
-            if (!_gpu.GetLcdc().isLcdEnabled())
+            if (!_gpu.GetLcdc().IsLcdEnabled())
             {
                 return;
             }
 
-            var stat = _addressSpace.getByte(GpuRegister.STAT.Address);
+            var stat = _addressSpace.GetByte(GpuRegister.STAT.Address);
             if ((stat & 0b11) == (int) Gpu.Mode.OamSearch && _gpu.GetTicksInLine() < 79)
             {
                 SpriteBug.CorruptOam(_addressSpace, type, _gpu.GetTicksInLine());

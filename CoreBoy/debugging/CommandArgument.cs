@@ -17,7 +17,7 @@ namespace CoreBoy.debugging
         {
             this.name = name;
             this.required = required;
-            this.allowedValues = new List<string>();
+            allowedValues = new List<string>();
         }
 
         public CommandArgument(string name, bool required, ICollection<string> allowedValues)

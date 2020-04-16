@@ -16,7 +16,7 @@ namespace CoreBoy.sound
 
         public SoundMode2(bool gbc) : base(0xff15, 64, gbc)
         {
-            this.volumeEnvelope = new VolumeEnvelope();
+            volumeEnvelope = new VolumeEnvelope();
         }
         
         public override void start()
@@ -34,7 +34,7 @@ namespace CoreBoy.sound
 
         protected override void trigger()
         {
-            this.i = 0;
+            i = 0;
             freqDivider = 1;
             volumeEnvelope.trigger();
         }
@@ -44,8 +44,7 @@ namespace CoreBoy.sound
         {
             volumeEnvelope.tick();
 
-            bool e = true;
-            e = updateLength() && e;
+            var e = updateLength();
             e = dacEnabled && e;
             if (!e)
             {

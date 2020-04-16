@@ -4,62 +4,45 @@ namespace CoreBoy.gpu.phase
 {
     public class PixelTransfer : GpuPhase
     {
+        private readonly IPixelFifo _fifo;
+        private readonly Fetcher _fetcher;
+        private readonly MemoryRegisters _r;
+        private readonly Lcdc _lcdc;
+        private readonly bool _gbc;
+        private OamSearch.SpritePosition[] _sprites;
+        private int _droppedPixels;
+        private int _x;
+        private bool _window;
 
-        private readonly IPixelFifo fifo;
-
-        private readonly Fetcher fetcher;
-
-        private readonly IDisplay display;
-
-        private readonly MemoryRegisters r;
-
-        private readonly Lcdc lcdc;
-
-        private readonly bool gbc;
-
-        private OamSearch.SpritePosition[] sprites;
-
-        private int droppedPixels;
-
-        private int x;
-
-        private bool window;
-
-        public PixelTransfer(AddressSpace videoRam0, AddressSpace videoRam1, AddressSpace oemRam, IDisplay display,
+        public PixelTransfer(IAddressSpace videoRam0, IAddressSpace videoRam1, IAddressSpace oemRam, IDisplay display,
             Lcdc lcdc, MemoryRegisters r, bool gbc, ColorPalette bgPalette, ColorPalette oamPalette)
         {
-            this.r = r;
-            this.lcdc = lcdc;
-            this.gbc = gbc;
-            if (gbc)
-            {
-                this.fifo = new ColorPixelFifo(lcdc, display, bgPalette, oamPalette);
-            }
-            else
-            {
-                this.fifo = new DmgPixelFifo(display, lcdc, r);
-            }
+            _r = r;
+            _lcdc = lcdc;
+            _gbc = gbc;
+            
+            _fifo = gbc
+                ? (IPixelFifo) new ColorPixelFifo(lcdc, display, bgPalette, oamPalette)
+                : new DmgPixelFifo(display, lcdc, r);
 
-            this.fetcher = new Fetcher(fifo, videoRam0, videoRam1, oemRam, lcdc, r, gbc);
-            this.display = display;
-
+            _fetcher = new Fetcher(_fifo, videoRam0, videoRam1, oemRam, lcdc, r, gbc);
         }
 
-        public PixelTransfer start(OamSearch.SpritePosition[] sprites)
+        public PixelTransfer Start(OamSearch.SpritePosition[] sprites)
         {
-            this.sprites = sprites;
-            droppedPixels = 0;
-            x = 0;
-            window = false;
+            _sprites = sprites;
+            _droppedPixels = 0;
+            _x = 0;
+            _window = false;
 
-            fetcher.Init();
-            if (gbc || lcdc.isBgAndWindowDisplay())
+            _fetcher.Init();
+            if (_gbc || _lcdc.IsBgAndWindowDisplay())
             {
-                startFetchingBackground();
+                StartFetchingBackground();
             }
             else
             {
-                fetcher.FetchingDisabled();
+                _fetcher.FetchingDisabled();
             }
 
             return this;
@@ -67,65 +50,59 @@ namespace CoreBoy.gpu.phase
 
         public bool tick()
         {
-            fetcher.Tick();
-            if (lcdc.isBgAndWindowDisplay() || gbc)
+            _fetcher.Tick();
+            if (_lcdc.IsBgAndWindowDisplay() || _gbc)
             {
-                if (fifo.GetLength() <= 8)
+                if (_fifo.GetLength() <= 8)
                 {
                     return true;
                 }
 
-                if (droppedPixels < r.Get(GpuRegister.SCX) % 8)
+                if (_droppedPixels < _r.Get(GpuRegister.SCX) % 8)
                 {
-                    fifo.DropPixel();
-                    droppedPixels++;
+                    _fifo.DropPixel();
+                    _droppedPixels++;
                     return true;
                 }
 
-                if (!window && lcdc.isWindowDisplay() && r.Get(GpuRegister.LY) >= r.Get(GpuRegister.WY) &&
-                    x == r.Get(GpuRegister.WX) - 7)
+                if (!_window && _lcdc.IsWindowDisplay() && _r.Get(GpuRegister.LY) >= _r.Get(GpuRegister.WY) &&
+                    _x == _r.Get(GpuRegister.WX) - 7)
                 {
-                    window = true;
-                    startFetchingWindow();
+                    _window = true;
+                    StartFetchingWindow();
                     return true;
                 }
             }
 
-            if (lcdc.isObjDisplay())
+            if (_lcdc.IsObjDisplay())
             {
-                if (fetcher.SpriteInProgress())
+                if (_fetcher.SpriteInProgress())
                 {
                     return true;
                 }
 
-                bool spriteAdded = false;
-                for (int i = 0; i < sprites.Length; i++)
+                var spriteAdded = false;
+                for (var i = 0; i < _sprites.Length; i++)
                 {
-                    OamSearch.SpritePosition s = sprites[i];
+                    var s = _sprites[i];
                     if (s == null)
                     {
                         continue;
                     }
 
-                    if (x == 0 && s.getX() < 8)
+                    if (_x == 0 && s.getX() < 8)
                     {
-                        if (!spriteAdded)
-                        {
-                            fetcher.AddSprite(s, 8 - s.getX(), i);
-                            spriteAdded = true;
-                        }
+                        _fetcher.AddSprite(s, 8 - s.getX(), i);
+                        spriteAdded = true;
 
-                        sprites[i] = null;
+                        _sprites[i] = null;
                     }
-                    else if (s.getX() - 8 == x)
+                    else if (s.getX() - 8 == _x)
                     {
-                        if (!spriteAdded)
-                        {
-                            fetcher.AddSprite(s, 0, i);
-                            spriteAdded = true;
-                        }
+                        _fetcher.AddSprite(s, 0, i);
+                        spriteAdded = true;
 
-                        sprites[i] = null;
+                        _sprites[i] = null;
                     }
 
                     if (spriteAdded)
@@ -135,8 +112,8 @@ namespace CoreBoy.gpu.phase
                 }
             }
 
-            fifo.PutPixelToScreen();
-            if (++x == 160)
+            _fifo.PutPixelToScreen();
+            if (++_x == 160)
             {
                 return false;
             }
@@ -144,22 +121,22 @@ namespace CoreBoy.gpu.phase
             return true;
         }
 
-        private void startFetchingBackground()
+        private void StartFetchingBackground()
         {
-            int bgX = r.Get(GpuRegister.SCX) / 0x08;
-            int bgY = (r.Get(GpuRegister.SCY) + r.Get(GpuRegister.LY)) % 0x100;
+            var bgX = _r.Get(GpuRegister.SCX) / 0x08;
+            var bgY = (_r.Get(GpuRegister.SCY) + _r.Get(GpuRegister.LY)) % 0x100;
 
-            fetcher.StartFetching(lcdc.getBgTileMapDisplay() + (bgY / 0x08) * 0x20, lcdc.getBgWindowTileData(), bgX,
-                lcdc.isBgWindowTileDataSigned(), bgY % 0x08);
+            _fetcher.StartFetching(_lcdc.GetBgTileMapDisplay() + (bgY / 0x08) * 0x20, _lcdc.GetBgWindowTileData(), bgX,
+                _lcdc.IsBgWindowTileDataSigned(), bgY % 0x08);
         }
 
-        private void startFetchingWindow()
+        private void StartFetchingWindow()
         {
-            int winX = (this.x - r.Get(GpuRegister.WX) + 7) / 0x08;
-            int winY = r.Get(GpuRegister.LY) - r.Get(GpuRegister.WY);
+            var winX = (_x - _r.Get(GpuRegister.WX) + 7) / 0x08;
+            var winY = _r.Get(GpuRegister.LY) - _r.Get(GpuRegister.WY);
 
-            fetcher.StartFetching(lcdc.getWindowTileMapDisplay() + (winY / 0x08) * 0x20, lcdc.getBgWindowTileData(),
-                winX, lcdc.isBgWindowTileDataSigned(), winY % 0x08);
+            _fetcher.StartFetching(_lcdc.GetWindowTileMapDisplay() + (winY / 0x08) * 0x20, _lcdc.GetBgWindowTileData(),
+                winX, _lcdc.IsBgWindowTileDataSigned(), winY % 0x08);
         }
 
     }

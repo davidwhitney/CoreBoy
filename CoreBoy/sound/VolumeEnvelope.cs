@@ -17,9 +17,9 @@ namespace CoreBoy.sound
 
         public void setNr2(int register)
         {
-            this.initialVolume = register >> 4;
-            this.envelopeDirection = (register & (1 << 3)) == 0 ? -1 : 1;
-            this.sweep = register & 0b111;
+            initialVolume = register >> 4;
+            envelopeDirection = (register & (1 << 3)) == 0 ? -1 : 1;
+            sweep = register & 0b111;
         }
 
         public bool isEnabled()

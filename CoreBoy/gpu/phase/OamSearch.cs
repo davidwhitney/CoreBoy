@@ -40,7 +40,7 @@ namespace CoreBoy.gpu.phase
             }
         }
 
-        private readonly AddressSpace oemRam;
+        private readonly IAddressSpace oemRam;
         private readonly MemoryRegisters registers;
         private readonly SpritePosition[] sprites;
         private readonly Lcdc lcdc;
@@ -50,12 +50,12 @@ namespace CoreBoy.gpu.phase
         private int spriteX;
         private int i;
 
-        public OamSearch(AddressSpace oemRam, Lcdc lcdc, MemoryRegisters registers)
+        public OamSearch(IAddressSpace oemRam, Lcdc lcdc, MemoryRegisters registers)
         {
             this.oemRam = oemRam;
             this.registers = registers;
             this.lcdc = lcdc;
-            this.sprites = new SpritePosition[10];
+            sprites = new SpritePosition[10];
         }
 
         public OamSearch start()
@@ -65,7 +65,7 @@ namespace CoreBoy.gpu.phase
             spriteY = 0;
             spriteX = 0;
             i = 0;
-            for (int j = 0; j < sprites.Length; j++)
+            for (var j = 0; j < sprites.Length; j++)
             {
                 sprites[j] = null;
             }
@@ -76,18 +76,18 @@ namespace CoreBoy.gpu.phase
 
         public bool tick()
         {
-            int spriteAddress = 0xfe00 + 4 * i;
+            var spriteAddress = 0xfe00 + 4 * i;
             switch (state)
             {
                 case State.READING_Y:
-                    spriteY = oemRam.getByte(spriteAddress);
+                    spriteY = oemRam.GetByte(spriteAddress);
                     state = State.READING_X;
                     break;
 
                 case State.READING_X:
-                    spriteX = oemRam.getByte(spriteAddress + 1);
+                    spriteX = oemRam.GetByte(spriteAddress + 1);
                     if (spritePosIndex < sprites.Length && between(spriteY, registers.Get(GpuRegister.LY) + 16,
-                            spriteY + lcdc.getSpriteHeight()))
+                            spriteY + lcdc.GetSpriteHeight()))
                     {
                         sprites[spritePosIndex++] = new SpritePosition(spriteX, spriteY, spriteAddress);
                     }

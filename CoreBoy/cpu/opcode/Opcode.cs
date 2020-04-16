@@ -16,7 +16,7 @@ namespace CoreBoy.cpu.opcode
             Value = builder.GetOpcode();
             Label = builder.GetLabel();
             Ops = builder.GetOps();
-            Length = Ops.Count <= 0 ? 0 : Ops.Max(o => o.operandLength());
+            Length = Ops.Count <= 0 ? 0 : Ops.Max(o => o.OperandLength());
         }
 
         public override string ToString() => $"{Value:X2} {Label}";

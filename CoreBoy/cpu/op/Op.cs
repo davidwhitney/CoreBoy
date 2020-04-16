@@ -4,48 +4,17 @@ namespace CoreBoy.cpu.op
 {
     public abstract class Op
     {
-        public virtual bool readsMemory()
-        {
-            return false;
-        }
-
-        public virtual bool writesMemory()
-        {
-            return false;
-        }
-
-        public virtual int operandLength()
-        {
-            return 0;
-        }
-
-        public virtual int execute(Registers registers, AddressSpace addressSpace, int[] args, int context)
-        {
-            return context;
-        }
-
-        public virtual void switchInterrupts(InterruptManager interruptManager)
+        public virtual bool ReadsMemory() => false;
+        public virtual bool WritesMemory() => false;
+        public virtual int OperandLength() => 0;
+        public virtual int Execute(Registers registers, IAddressSpace addressSpace, int[] args, int context) => context;
+        public virtual void SwitchInterrupts(InterruptManager interruptManager)
         {
         }
 
-        public virtual bool proceed(Registers registers)
-        {
-            return true;
-        }
-
-        public virtual bool forceFinishCycle()
-        {
-            return false;
-        }
-
-        public virtual SpriteBug.CorruptionType? causesOemBug(Registers registers, int context)
-        {
-            return null;
-        }
-
-        protected static bool inOamArea(int address)
-        {
-            return address >= 0xfe00 && address <= 0xfeff;
-        }
+        public virtual bool Proceed(Registers registers) => true;
+        public virtual bool ForceFinishCycle() => false;
+        public virtual SpriteBug.CorruptionType? CausesOemBug(Registers registers, int context) => null;
+        protected static bool InOamArea(int address) => address >= 0xfe00 && address <= 0xfeff;
     }
 }
