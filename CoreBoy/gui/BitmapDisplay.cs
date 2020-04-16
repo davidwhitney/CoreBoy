@@ -20,6 +20,8 @@ namespace CoreBoy.gui
 
         public event FrameProducedEventHandler OnFrameProduced;
 
+        private object _lockObject = new object();
+
         public BitmapDisplay()
         {
             _rgb = new int[DisplayWidth * DisplayHeight];
@@ -47,43 +49,34 @@ namespace CoreBoy.gui
             return result;
         }
 
-        public void RequestRefresh()
-        {
-            _doRefresh = true;
-        }
+        public void RequestRefresh() => SetRefreshFlag(true);
 
         public void WaitForRefresh()
         {
             while (_doRefresh)
             {
-                Thread.Sleep(2);
+                Thread.Sleep(1);
             }
-        }
-
-        public void EnableLcd()
-        {
-            Enabled = true;
-        }
-
-        public void DisableLcd()
-        {
-            Enabled = false;
         }
         
         public void Run(CancellationToken token)
         {
-            _doRefresh = false;
+            SetRefreshFlag(false);
+            
             Enabled = true;
             
             while (!token.IsCancellationRequested)
             {
                 if (!_doRefresh)
                 {
-                    Thread.Sleep(2);
+                    Thread.Sleep(1);
                     continue;
                 }
 
                 RefreshScreen();
+
+
+                SetRefreshFlag(false);
             }
         }
 
@@ -119,7 +112,14 @@ namespace CoreBoy.gui
             OnFrameProduced?.Invoke(this, bytes);
 
             _i = 0;
-            _doRefresh = false;
+        }
+
+        private void SetRefreshFlag(bool flag)
+        {
+            lock (_lockObject)
+            {
+                _doRefresh = flag;
+            }
         }
     }
 }

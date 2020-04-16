@@ -86,7 +86,7 @@ namespace CoreBoy.cpu
                 {
                     if (State == State.STOPPED)
                     {
-                        _display.EnableLcd();
+                        _display.Enabled = true;
                     }
 
                     State = State.IRQ_READ_IF;
@@ -199,7 +199,7 @@ namespace CoreBoy.cpu
                             else
                             {
                                 State = State.STOPPED;
-                                _display.DisableLcd();
+                                _display.Enabled = false;
                             }
 
                             return;

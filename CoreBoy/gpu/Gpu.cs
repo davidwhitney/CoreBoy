@@ -159,7 +159,7 @@ namespace CoreBoy.gpu
                 {
                     if (--_lcdEnabledDelay == 0)
                     {
-                        _display.EnableLcd();
+                        _display.Enabled = true;
                         _lcdEnabled = true;
                     }
                 }
@@ -295,7 +295,7 @@ namespace CoreBoy.gpu
             _mode = Mode.HBlank;
             _lcdEnabled = false;
             _lcdEnabledDelay = -1;
-            _display.DisableLcd();
+            _display.Enabled = false;
         }
 
         private void EnableLcd()

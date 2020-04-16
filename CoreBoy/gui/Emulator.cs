@@ -19,11 +19,11 @@ namespace CoreBoy.gui
         public SerialEndpoint SerialEndpoint { get; set; } = new NullSerialEndpoint();
         public GameboyOptions Options { get; set; }
 
-        private readonly List<Task> _runnables;
+        private readonly List<Thread> _runnables;
 
         public Emulator(string[] args)
         {
-            _runnables = new List<Task>();
+            _runnables = new List<Thread>();
             Options = ParseArgs(args);
         }
         
@@ -97,17 +97,18 @@ namespace CoreBoy.gui
                 return;
             }
 
-            
             if (Display is IRunnable runnableDisplay)
             {
-                _runnables.Add(new Task(()=>runnableDisplay.Run(token), token, TaskCreationOptions.LongRunning));
+                _runnables.Add(new Thread(() => runnableDisplay.Run(token))
+                {
+                    Priority = ThreadPriority.AboveNormal
+                });
             }
 
-            _runnables.Add(
-                new Task(() => Gameboy.Run(token),
-                    token,
-                    TaskCreationOptions.LongRunning)
-            );
+            _runnables.Add(new Thread(() => Gameboy.Run(token))
+            {
+                Priority = ThreadPriority.AboveNormal
+            });
 
             _runnables.ForEach(t => t.Start());
         }
