@@ -1,19 +1,44 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using CommandLine;
 
 namespace CoreBoy
 {
     public class GameboyOptions
     {
-        public FileInfo RomFile { get; }
-        public bool ForceDmg { get; }
-        public bool ForceCgb { get; }
-        public bool UseBootstrap { get; }
-        public bool DisableBatterySaves { get; }
-        public bool Debug { get; }
-        public bool Headless { get; }
+        public FileInfo? RomFile => string.IsNullOrWhiteSpace(Rom) ? null : new FileInfo(Rom);
+
+        [Option('r', "rom", Required = false, HelpText = "Rom file.")]
+        public string Rom { get; set; }
+
+        [Option('d', "force-dmg", Required = false, HelpText = "ForceDmg.")]
+        public bool ForceDmg { get; set; }
+
+        [Option('c', "force-cgb", Required = false, HelpText = "ForceCgb.")]
+        public bool ForceCgb { get; set; }
+
+        [Option('b', "use-bootstrap", Required = false, HelpText = "UseBootstrap.")]
+        public bool UseBootstrap { get; set; }
+
+        [Option("disable-battery-saves", Required = false, HelpText = "disable-battery-saves.")]
+        public bool DisableBatterySaves { get; set; }
+
+        [Option("debug", Required = false, HelpText = "Debug.")]
+        public bool Debug { get; set; }
+
+        [Option("headless", Required = false, HelpText = "headless.")]
+        public bool Headless { get; set; }
+
+        public bool ShowUi => !Headless;
+
         public bool IsSupportBatterySaves() => !DisableBatterySaves;
+
+        public bool RomSpecified => !string.IsNullOrWhiteSpace(Rom);
+
+        public GameboyOptions()
+        {
+        }
 
         public GameboyOptions(FileInfo romFile) : this(romFile, new string[0], new string[0])
         {
@@ -21,19 +46,25 @@ namespace CoreBoy
 
         public GameboyOptions(FileInfo romFile, ICollection<string> longParameters, ICollection<string> shortParams)
         {
-            RomFile = romFile;
+            Rom = romFile.FullName;
             ForceDmg = longParameters.Contains("force-dmg") || shortParams.Contains("d");
             ForceCgb = longParameters.Contains("force-cgb") || shortParams.Contains("c");
 
-            if (ForceDmg && ForceCgb)
-            {
-                throw new ArgumentException("force-dmg and force-cgb options are can't be used together");
-            }
 
             UseBootstrap = longParameters.Contains("use-bootstrap") || shortParams.Contains("b");
             DisableBatterySaves = longParameters.Contains("disable-battery-saves") || shortParams.Contains("db");
             Debug = longParameters.Contains("debug");
             Headless = longParameters.Contains("headless");
+
+            Verify();
+        }
+
+        public void Verify()
+        {
+            if (ForceDmg && ForceCgb)
+            {
+                throw new ArgumentException("force-dmg and force-cgb options are can't be used together");
+            }
         }
         
         public static void PrintUsage(TextWriter stream)
@@ -49,6 +80,34 @@ namespace CoreBoy
             stream.WriteLine("      --debug                    Enable debug console");
             stream.WriteLine("      --headless                 Start in the headless mode");
             stream.Flush();
+        }
+
+        public static GameboyOptions Parse(string[] args)
+        {
+            var parser = new Parser(cfg =>
+            {
+                cfg.AutoHelp = true;
+                cfg.HelpWriter = Console.Out;
+            });
+
+            var result = parser.ParseArguments<GameboyOptions>(args)
+                .WithParsed(o => { o.Verify(); });
+
+
+            if (result is Parsed<GameboyOptions> parsed)
+            {
+                if (args.Length == 1 && args[0].Contains(".gb"))
+                {
+                    parsed.Value.Rom = args[0];
+                }
+
+                return parsed.Value;
+            }
+            else
+            {
+                Console.WriteLine("Failed to parsed!");
+                return null;
+            }
         }
     }
 }

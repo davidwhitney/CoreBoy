@@ -5,14 +5,10 @@
     <LangVersion>8.0</LangVersion>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>CoreBoy</RootNamespace>
-    <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>CoreBoy</AssemblyName>
     <StartupObject>CoreBoy.Program</StartupObject>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="debugging\Console.cs" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Remove="mario.gb" />
@@ -29,10 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="debugging\Console.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.7.82" />
+    <PackageReference Include="NAudio" Version="1.10.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
   </ItemGroup>

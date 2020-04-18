@@ -46,6 +46,20 @@ namespace CoreBoy.gui
             Controls.Add(_pictureBox);
         }
 
+        public static (bool, string) PromptForRom()
+        {
+            using var openFileDialog = new OpenFileDialog
+            {
+                Filter = "Gameboy ROM (*.gb)|*.gb| All files(*.*) |*.*",
+                FilterIndex = 0,
+                RestoreDirectory = true
+            };
+
+            return openFileDialog.ShowDialog() == DialogResult.OK 
+                ? (true, openFileDialog.FileName) 
+                : (false, null);
+        }
+
         private void WinFormsEmulatorSurface_KeyDown(object sender, KeyEventArgs e)
         {
             var button = _controls.ContainsKey(e.KeyCode) ? _controls[e.KeyCode] : null;
@@ -64,10 +78,7 @@ namespace CoreBoy.gui
             }
         }
 
-        public void SetButtonListener(IButtonListener listener)
-        {
-            _listener = listener;
-        }
+        public void SetButtonListener(IButtonListener listener) => _listener = listener;
 
         protected override void OnResize(EventArgs e)
         {

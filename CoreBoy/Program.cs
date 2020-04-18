@@ -3,52 +3,56 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using CommandLine;
 using CoreBoy.gui;
 
 namespace CoreBoy
 {
-    static class Program
+    public static class Program
     {
         [STAThread]
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
+            var cancellation = new CancellationTokenSource();
+            var arguments = GameboyOptions.Parse(args);
+            
             Application.SetCompatibleTextRenderingDefault(false);
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
 
-            var cancellationTokenSource = new CancellationTokenSource();
-            var token = cancellationTokenSource.Token;
-
-            var arguments = new List<string>(args);
-
-            PromptForRom(arguments);
-
             var emulator = new Emulator(arguments);
-            var ui = new WinFormsEmulatorSurface();
 
-            emulator.Controller = ui;
-            emulator.Display.OnFrameProduced += ui.UpdateDisplay;
-            ui.Closed += (sender, e) =>
+            if (!arguments.RomSpecified && arguments.ShowUi)
             {
-                cancellationTokenSource.Cancel();
-            };
+                var (success, romPath) = WinFormsEmulatorSurface.PromptForRom();
+                arguments.Rom = success ? romPath : string.Empty;
+            }
 
-            emulator.Run(token);
-            Application.Run(ui);
-        }
-
-        private static void PromptForRom(List<string> arguments)
-        {
-            if (arguments.Any()) return;
-
-            using var openFileDialog = new OpenFileDialog
+            if (!arguments.RomSpecified)
             {
-                Filter = "Gameboy ROM (*.gb)|*.gb| All files(*.*) |*.*", FilterIndex = 0, RestoreDirectory = true
-            };
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+                GameboyOptions.PrintUsage(Console.Out);
+                Console.Out.Flush();
+                Environment.Exit(1);
+            }
+            
+            if (arguments.ShowUi)
             {
-                arguments.Add(openFileDialog.FileName);
+                var ui = new WinFormsEmulatorSurface();
+                ui.Closed += (_, e) => { cancellation.Cancel(); };
+                emulator.Controller = ui;
+                emulator.Display.OnFrameProduced += ui.UpdateDisplay;
+
+                emulator.Run(cancellation.Token);
+                Application.Run(ui);
+            }
+            else
+            {
+                emulator.Run(cancellation.Token);
+                Console.WriteLine("Emulator running headless.");
+                Console.WriteLine("Press ANY key to exit.");
+                Console.ReadKey(true);
+
+                cancellation.Cancel();
             }
         }
     }
