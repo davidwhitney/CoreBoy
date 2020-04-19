@@ -92,7 +92,7 @@ namespace CoreBoy.Cli
                     {
                         Thread.Sleep(500);
                         _listener?.OnButtonRelease(snapshot);
-                    }).Start();
+                    }).Start(); // Yo dawn, I hear you like threads.
 
                     lastButton = button;
                 }

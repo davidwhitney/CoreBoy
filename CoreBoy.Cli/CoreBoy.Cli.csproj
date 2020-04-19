@@ -7,10 +7,14 @@
 
   <ItemGroup>
     <None Remove="mario.gb" />
+    <None Remove="pokemon.gbc" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="mario.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="pokemon.gbc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
