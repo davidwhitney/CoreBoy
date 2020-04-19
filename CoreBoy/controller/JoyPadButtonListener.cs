@@ -16,13 +16,19 @@ namespace CoreBoy.controller
 
         public void OnButtonPress(Button button)
         {
-            _interruptManager.RequestInterrupt(InterruptManager.InterruptType.P1013);
-            _buttons.TryAdd(button, button);
+            if (button != null)
+            {
+                _interruptManager.RequestInterrupt(InterruptManager.InterruptType.P1013);
+                _buttons.TryAdd(button, button);
+            }
         }
 
         public void OnButtonRelease(Button button)
         {
-            _buttons.TryRemove(button, out _);
+            if (button != null)
+            {
+                _buttons.TryRemove(button, out _);
+            }
         }
     }
 }

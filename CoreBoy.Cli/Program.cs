@@ -29,9 +29,6 @@ namespace CoreBoy.Cli
             emulator.Display.OnFrameProduced += ui.UpdateDisplay;
             emulator.Run(cancellation.Token);
 
-            //var inputLoop = new Thread(ui.ProcessInput);
-            //inputLoop.Start();
-
             ui.ProcessInput();
 
 
@@ -67,6 +64,9 @@ namespace CoreBoy.Cli
 
         public void ProcessInput()
         {
+            // Should probably be called "try to process input" amirite
+            // ☜(ﾟヮﾟ☜)  (❁´◡`❁)  ( •_•)>⌐■-■
+
             Button lastButton = null;
             var input = Console.ReadKey(true);
             while (input.Key != ConsoleKey.Escape)
@@ -75,13 +75,20 @@ namespace CoreBoy.Cli
 
                 if (button != null)
                 {
-                    if (lastButton != null)
+                    if (lastButton != button)
                     {
                         _listener?.OnButtonRelease(lastButton);
-
                     }
 
                     _listener?.OnButtonPress(button);
+
+                    var snapshot = button;
+                    new Thread(() =>
+                    {
+                        Thread.Sleep(500);
+                        _listener?.OnButtonRelease(snapshot);
+                    }).Start();
+
                     lastButton = button;
                 }
 
