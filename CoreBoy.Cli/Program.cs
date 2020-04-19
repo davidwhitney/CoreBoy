@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Windows.Forms;
 using CoreBoy.controller;
 using CoreBoy.gui;
 using Button = CoreBoy.controller.Button;
@@ -23,14 +22,21 @@ namespace CoreBoy.Cli
                 Environment.Exit(1);
             }
 
-            var ui = new CommandLineInteractivity();
-
-            emulator.Controller = ui;
-            emulator.Display.OnFrameProduced += ui.UpdateDisplay;
-            emulator.Run(cancellation.Token);
-
-            ui.ProcessInput();
-
+            if (arguments.Interactive)
+            {
+                var ui = new CommandLineInteractivity();
+                emulator.Controller = ui;
+                emulator.Display.OnFrameProduced += ui.UpdateDisplay; 
+                emulator.Run(cancellation.Token);
+                ui.ProcessInput();
+            }
+            else
+            {
+                emulator.Run(cancellation.Token);
+                Console.WriteLine("Running headless.");
+                Console.WriteLine("Press ANY key to exit.");
+                Console.ReadKey(true);
+            }
 
             cancellation.Cancel();
         }
@@ -62,11 +68,10 @@ namespace CoreBoy.Cli
 
         public void SetButtonListener(IButtonListener listener) => _listener = listener;
 
+        // Should probably be called "try to process input" amirite
+        // ☜(ﾟヮﾟ☜)  (❁´◡`❁)  ( •_•)>⌐■-■
         public void ProcessInput()
         {
-            // Should probably be called "try to process input" amirite
-            // ☜(ﾟヮﾟ☜)  (❁´◡`❁)  ( •_•)>⌐■-■
-
             Button lastButton = null;
             var input = Console.ReadKey(true);
             while (input.Key != ConsoleKey.Escape)

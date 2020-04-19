@@ -30,6 +30,9 @@ namespace CoreBoy
         [Option("headless", Required = false, HelpText = "headless.")]
         public bool Headless { get; set; }
 
+        [Option("interactive", Required = false, HelpText = "Play on the console!")]
+        public bool Interactive { get; set; }
+
         public bool ShowUi => !Headless;
 
         public bool IsSupportBatterySaves() => !DisableBatterySaves;
@@ -70,15 +73,16 @@ namespace CoreBoy
         public static void PrintUsage(TextWriter stream)
         {
             stream.WriteLine("Usage:");
-            stream.WriteLine("java -jar coffee-gb.jar [OPTIONS] ROM_FILE");
+            stream.WriteLine("coreboy.cli.exe my-totally-not-pirate-rom-file.gb");
             stream.WriteLine();
             stream.WriteLine("Available options:");
             stream.WriteLine("  -d  --force-dmg                Emulate classic GB (DMG) for universal ROMs");
             stream.WriteLine("  -c  --force-cgb                Emulate color GB (CGB) for all ROMs");
             stream.WriteLine("  -b  --use-bootstrap            Start with the GB bootstrap");
-            stream.WriteLine("  -db --disable-battery-saves    Disable battery saves");
+            stream.WriteLine("      --disable-battery-saves    Disable battery saves");
             stream.WriteLine("      --debug                    Enable debug console");
             stream.WriteLine("      --headless                 Start in the headless mode");
+            stream.WriteLine("      --interactive              Play on the console!");
             stream.Flush();
         }
 
