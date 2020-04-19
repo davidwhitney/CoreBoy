@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <LangVersion>8.0</LangVersion>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RootNamespace>CoreBoy.Windows</RootNamespace>
+    <AssemblyName>CoreBoy.Windows</AssemblyName>
+    <StartupObject>CoreBoy.Windows.Program</StartupObject>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="mario.gb" />
+    <None Remove="tetris.gb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="mario.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tetris.gb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CoreBoy\CoreBoy.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="WinFormsEmulatorSurface.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
+</Project>

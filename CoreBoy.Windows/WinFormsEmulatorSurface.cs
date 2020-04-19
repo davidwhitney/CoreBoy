@@ -5,9 +5,10 @@ using System.IO;
 using System.Threading;
 using System.Windows.Forms;
 using CoreBoy.controller;
+using CoreBoy.gui;
 using Button = CoreBoy.controller.Button;
 
-namespace CoreBoy.gui
+namespace CoreBoy.Windows
 {
     public partial class WinFormsEmulatorSurface : Form, IController
     {

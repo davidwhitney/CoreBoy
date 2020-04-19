@@ -1,4 +1,4 @@
-﻿namespace CoreBoy.gui
+﻿namespace CoreBoy.Windows
 {
     partial class WinFormsEmulatorSurface
     {

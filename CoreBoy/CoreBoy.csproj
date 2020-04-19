@@ -1,28 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Library</OutputType>
     <LangVersion>8.0</LangVersion>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>CoreBoy</RootNamespace>
     <AssemblyName>CoreBoy</AssemblyName>
-    <StartupObject>CoreBoy.Program</StartupObject>
+    <StartupObject></StartupObject>
     <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="mario.gb" />
-    <None Remove="tetris.gb" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="mario.gb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="tetris.gb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.7.82" />
