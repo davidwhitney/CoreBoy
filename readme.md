@@ -1,16 +1,16 @@
 # CoreBoy
 
-A .NET Core port of Coffee-GB.
-
-This is based on https://github.com/trekawek/coffee-gb which was an absolute joy to port.
-
+A .NET Core Gameboy emulator that started life as a port of Coffee-GB (https://github.com/trekawek/coffee-gb).
 MIT licensed, go nuts.
 
 # Docs
 
-Um, coming soon.
+This- 
 
-Uses WinForms, so Windows only for the moment.
+* Runs Gameboy and Gameboy Color games.
+* Has a headless CLI mode
+* Has a Windows-Only WinForms UI
+* Can be used as a library in your own software
 
 # Pre-Reqs
 
@@ -18,16 +18,38 @@ Uses WinForms, so Windows only for the moment.
 
 # Usage
 
-* Build it
-* Run it on the command line
+## Windows
+
+Just run `CoreBoy.Windows` and load a ROM from the file menu!
+
+## Mac / Linux
+
+Command line:
 
 ```bash
-	> CoreBoy.exe rom.gb
+dotnet CoreBoy.Cli -r myrom.rom --interactive
 ```
 
-# WARNING
+You can play on the command line!
 
-VERY VERY PRE-RELEASE.
+GUI ...TBC
 
-It doesn't exit cleanly, it has hanging threads, it's not working properly yet.
-But it's also kinda working, so, hey! Enjoy
+# Controls
+
+	LeftArrow = Left
+	RightArrow = Right
+	UpArrow = Up
+	DownArrow = Down
+	Z = A
+	X = B
+	Enter = Start
+	Backspace = Select
+
+# Audio
+
+Isn't working yet.
+
+# Resizing
+
+Is currently buggy and slow, because it's just "whatever WinForms is doing" rather than explicitly scaled rendering.
+I'll get around to it.
