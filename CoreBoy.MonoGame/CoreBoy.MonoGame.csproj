@@ -18,4 +18,14 @@
     <ProjectReference Include="..\CoreBoy\CoreBoy.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Games\" />
+  </ItemGroup>
+
 </Project>
