@@ -11,20 +11,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="mario.gb" />
-    <None Remove="tetris.gb" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="mario.gb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="tetris.gb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CoreBoy\CoreBoy.csproj" />
   </ItemGroup>
 
