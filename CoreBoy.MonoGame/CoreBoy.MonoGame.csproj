@@ -18,13 +18,4 @@
     <ProjectReference Include="..\CoreBoy\CoreBoy.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="Content\pokemon.gb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Content\tetris.gb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
