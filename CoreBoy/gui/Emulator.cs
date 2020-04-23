@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using CoreBoy.controller;
 using CoreBoy.gpu;
 using CoreBoy.memory.cart;
@@ -19,9 +16,10 @@ namespace CoreBoy.gui
         public IController Controller { get; set; } = new NullController();
         public SerialEndpoint SerialEndpoint { get; set; } = new NullSerialEndpoint();
         public GameboyOptions Options { get; set; }
+        public bool Active { get; set; }
 
         private readonly List<Thread> _runnables;
-
+        
         public Emulator(GameboyOptions options)
         {
             _runnables = new List<Thread>();
@@ -58,7 +56,21 @@ namespace CoreBoy.gui
             });
 
             _runnables.ForEach(t => t.Start());
+            Active = true;
         }
+
+        public void Stop(CancellationTokenSource source)
+        {
+            if (!Active)
+            {
+                return;
+            }
+            
+            source.Cancel();
+            _runnables.Clear();
+        }
+
+        public void TogglePause() => Gameboy.Pause = !Gameboy.Pause;
 
         private Gameboy CreateGameboy(Cartridge rom)
         {

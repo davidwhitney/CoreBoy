@@ -19,6 +19,8 @@ namespace CoreBoy
         public Cpu Cpu { get; }
         public SpeedMode SpeedMode { get; }
 
+        public bool Pause { get; set; }
+
         private readonly Gpu _gpu;
         private readonly Timer _timer;
         private readonly Dma _dma;
@@ -113,6 +115,12 @@ namespace CoreBoy
             
             while (!token.IsCancellationRequested)
             {
+                if (Pause)
+                {
+                    Thread.Sleep(1000);
+                    continue;
+                }
+
                 var newMode = Tick();
                 if (newMode.HasValue)
                 {
