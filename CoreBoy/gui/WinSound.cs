@@ -23,7 +23,7 @@ namespace CoreBoy.gui
 
         public void Start()
         {
-            _engine = new AudioPlaybackEngine(SampleRate, 2);
+            // _engine = new AudioPlaybackEngine(SampleRate, 2);
         }
 
         public void Stop()
@@ -39,7 +39,7 @@ namespace CoreBoy.gui
                 return;
             }
 
-           //Beep((uint)left, 5);*/
+            //Beep((uint)left, 5);*/
         }
     }
 
