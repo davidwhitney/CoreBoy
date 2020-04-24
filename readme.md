@@ -47,3 +47,9 @@ Isn't working yet.
 
 Is currently buggy and slow, because it's just "whatever WinForms is doing" rather than explicitly scaled rendering.
 I'll get around to it.
+
+# Lineage and Contributors
+
+- Originally based on Coffee-GB (https://github.com/trekawek/coffee-gb).
+- Ported to .NET Core by David Whitney
+- Avelonia UI contributed by Bogdan Bara (https://github.com/fknzxlegend1)
