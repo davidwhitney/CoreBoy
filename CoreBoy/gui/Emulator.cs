@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using CoreBoy.controller;
 using CoreBoy.gpu;
@@ -19,7 +20,7 @@ namespace CoreBoy.gui
         public bool Active { get; set; }
 
         private readonly List<Thread> _runnables;
-        
+
         public Emulator(GameboyOptions options)
         {
             _runnables = new List<Thread>();
@@ -65,12 +66,16 @@ namespace CoreBoy.gui
             {
                 return;
             }
-            
+
             source.Cancel();
             _runnables.Clear();
         }
 
-        public void TogglePause() => Gameboy.Pause = !Gameboy.Pause;
+        public void TogglePause()
+        {
+            if (Gameboy != null)
+                Gameboy.Pause = !Gameboy.Pause;
+        }
 
         private Gameboy CreateGameboy(Cartridge rom)
         {
@@ -86,7 +91,10 @@ namespace CoreBoy.gui
             //controller = new SwingController(properties);
             //gameboy = new Gameboy(options, rom, display, controller, sound, serialEndpoint, console);
 
-            return new Gameboy(Options, rom, Display, Controller, new WinSound(), SerialEndpoint);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return new Gameboy(Options, rom, Display, Controller, new WinSound(), SerialEndpoint);
+
+            return new Gameboy(Options, rom, Display, Controller, new NullSoundOutput(), SerialEndpoint);
         }
     }
 }
