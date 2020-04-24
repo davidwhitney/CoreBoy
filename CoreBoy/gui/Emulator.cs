@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using CoreBoy.controller;
 using CoreBoy.gpu;
@@ -90,7 +91,10 @@ namespace CoreBoy.gui
             //controller = new SwingController(properties);
             //gameboy = new Gameboy(options, rom, display, controller, sound, serialEndpoint, console);
 
-            return new Gameboy(Options, rom, Display, Controller, new WinSound(), SerialEndpoint);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return new Gameboy(Options, rom, Display, Controller, new WinSound(), SerialEndpoint);
+
+            return new Gameboy(Options, rom, Display, Controller, new NullSoundOutput(), SerialEndpoint);
         }
     }
 }
