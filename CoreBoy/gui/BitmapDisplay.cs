@@ -20,7 +20,7 @@ namespace CoreBoy.gui
 
         public event FrameProducedEventHandler OnFrameProduced;
 
-        private object _lockObject = new object();
+        private readonly object _lockObject = new object();
 
         public BitmapDisplay()
         {
@@ -95,8 +95,10 @@ namespace CoreBoy.gui
                     y++;
                 }
 
-                var hex = "#" + pixel.ToString("X6");
-                pixels[x, y] = Rgba32.FromHex(hex);
+                var b = pixel & 255;
+                var g = (pixel >> 8) & 255;
+                var r = (pixel >> 16) & 255;
+                pixels[x, y] = new Rgba32((byte)r, (byte)g, (byte)b, 255);
 
                 x++;
             }
