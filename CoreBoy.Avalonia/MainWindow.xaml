@@ -1,0 +1,36 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="CoreBoy.Avalonia.MainWindow"
+        Title="CoreBoy"
+        >
+  <Grid Background="Gray">
+
+    <Grid.RowDefinitions>
+      <RowDefinition MaxHeight="20"></RowDefinition>
+      <RowDefinition></RowDefinition>
+    </Grid.RowDefinitions>
+
+    <DockPanel Background="White" Grid.Row="0">
+      <Menu DockPanel.Dock="Top" Items="{Binding MenuItems}">
+
+        <Menu.Styles>
+          <Style Selector="MenuItem">
+            <Setter Property="Header" Value="{Binding Header}"/>
+            <Setter Property="Items" Value="{Binding Items}"/>
+            <Setter Property="Command" Value="{Binding Command}"/>
+            <Setter Property="CommandParameter" Value="{Binding CommandParameter}"/>
+          </Style>
+        </Menu.Styles>
+
+      </Menu>
+    </DockPanel>
+
+    <Image x:Name="ImageBox" Grid.Row ="1">
+
+    </Image>
+
+  </Grid>
+</Window>
