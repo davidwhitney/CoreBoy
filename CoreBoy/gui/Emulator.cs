@@ -19,7 +19,7 @@ namespace CoreBoy.gui
         public bool Active { get; set; }
 
         private readonly List<Thread> _runnables;
-        
+
         public Emulator(GameboyOptions options)
         {
             _runnables = new List<Thread>();
@@ -65,12 +65,16 @@ namespace CoreBoy.gui
             {
                 return;
             }
-            
+
             source.Cancel();
             _runnables.Clear();
         }
 
-        public void TogglePause() => Gameboy.Pause = !Gameboy.Pause;
+        public void TogglePause()
+        {
+            if (Gameboy != null)
+                Gameboy.Pause = !Gameboy.Pause;
+        }
 
         private Gameboy CreateGameboy(Cartridge rom)
         {
