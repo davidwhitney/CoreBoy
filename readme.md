@@ -26,13 +26,7 @@ Just run `CoreBoy.Windows` and load a ROM from the file menu!
 
 Command line:
 
-```bash
-dotnet CoreBoy.Cli -r myrom.rom --interactive
-```
-
-You can play on the command line!
-
-GUI ...TBC
+Just run `CoreBoy.Avalonia` and load a ROM from the file menu!
 
 # Controls
 
