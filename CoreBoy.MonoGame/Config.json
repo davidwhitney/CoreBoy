@@ -1,0 +1,21 @@
+﻿{
+	// Game file located in ./Games/
+	"game": "game.gb",
+	// Window size at startup
+	"window": {
+		"width": 160,
+		"height": 144,
+		"scale": 4
+	},
+	// Game Boy buttons mapped to keyboard buttons
+	"keymap": {
+		"a": "Z",
+		"b": "X",
+		"left": "Left",
+		"right": "Right",
+		"up": "Up",
+		"down": "Down",
+		"start": "Enter",
+		"select": "Space"
+	}
+}

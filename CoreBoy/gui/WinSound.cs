@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using CoreBoy.sound;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -23,7 +24,11 @@ namespace CoreBoy.gui
 
         public void Start()
         {
-            _engine = new AudioPlaybackEngine(SampleRate, 2);
+            // This is Windows-only for now.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _engine = new AudioPlaybackEngine(SampleRate, 2);
+            }
         }
 
         public void Stop()
@@ -39,7 +44,7 @@ namespace CoreBoy.gui
                 return;
             }
 
-           //Beep((uint)left, 5);*/
+            //Beep((uint)left, 5);*/
         }
     }
 
