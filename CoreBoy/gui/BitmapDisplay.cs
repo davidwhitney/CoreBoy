@@ -1,4 +1,6 @@
 using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using CoreBoy.gpu;
 using SixLabors.ImageSharp;
@@ -82,34 +84,8 @@ namespace CoreBoy.gui
 
         private void RefreshScreen()
         {
-            var pixels = new Image<Rgba32>(DisplayWidth, DisplayHeight);
-
-            var x = 0;
-            var y = 0;
-
-            foreach (var pixel in _rgb)
-            {
-                if (x == DisplayWidth)
-                {
-                    x = 0;
-                    y++;
-                }
-
-                var b = pixel & 255;
-                var g = (pixel >> 8) & 255;
-                var r = (pixel >> 16) & 255;
-                pixels[x, y] = new Rgba32((byte)r, (byte)g, (byte)b, 255);
-
-                x++;
-            }
-
-            byte[] bytes;
-            using (var memoryStream = new MemoryStream())
-            {
-                pixels.SaveAsBmp(memoryStream);
-                pixels.Dispose();
-                bytes = memoryStream.ToArray();
-            }
+            var frame = new GameboyDisplayFrame(_rgb);
+            var bytes = frame.ToBitmap();
 
             OnFrameProduced?.Invoke(this, bytes);
 
@@ -124,4 +100,5 @@ namespace CoreBoy.gui
             }
         }
     }
+
 }
