@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -52,7 +53,7 @@ namespace CoreBoy.Windows
                 }
             });
 
-            Controls.Add(_pictureBox = new PictureBox
+            Controls.Add(_pictureBox = new PixelBox
             {
                 Top = _menu.Height,
                 Width = BitmapDisplay.DisplayWidth * 5,
@@ -205,6 +206,24 @@ namespace CoreBoy.Windows
         {
             base.OnFormClosed(e);
             _pictureBox.Dispose();
+        }
+    }
+
+    public class PixelBox : PictureBox
+    {
+        public InterpolationMode Interpolation { get => InterpolationMode.NearestNeighbor; }
+
+        protected override void OnPaint(PaintEventArgs pe)
+        {
+            var graphics = pe.Graphics;
+            graphics.InterpolationMode = this.Interpolation;
+
+            if(graphics.InterpolationMode == InterpolationMode.NearestNeighbor)
+            {
+                graphics.PixelOffsetMode = PixelOffsetMode.Half;
+            }
+
+            base.OnPaint(pe);
         }
     }
 }
