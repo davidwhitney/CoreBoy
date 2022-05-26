@@ -13,7 +13,7 @@ namespace CoreBoy.gui
     public class Emulator: IRunnable
     {
         public Gameboy Gameboy { get; set; }
-        public IDisplay Display { get; set; } = new BitmapDisplay();
+        public IDisplay Display { get; set; }
         public IController Controller { get; set; } = new NullController();
         public SerialEndpoint SerialEndpoint { get; set; } = new NullSerialEndpoint();
         public GameboyOptions Options { get; set; }
