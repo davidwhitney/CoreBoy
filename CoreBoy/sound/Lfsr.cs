@@ -10,13 +10,14 @@ namespace CoreBoy.sound
 
         public int NextBit(bool widthMode7)
         {
-            var x = ((Value & 1) ^ ((Value & 2) >> 1)) != 0;
+            var xor = ((Value & 1) ^ ((Value & 2) >> 1));
             Value = Value >> 1;
-            Value = Value | (x ? (1 << 14) : 0);
-            
+            Value |= xor << 14;
+
             if (widthMode7)
             {
-                Value = Value | (x ? (1 << 6) : 0);
+                Value |= (xor << 6);
+                Value &= 0x7F;
             }
 
             return 1 & ~Value;
