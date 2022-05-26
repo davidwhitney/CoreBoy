@@ -25,6 +25,15 @@ namespace CoreBoy.Windows
         {
             InitializeComponent();
 
+            Controls.Add(_display = new BitmapDisplayControl
+            {
+                BackColor = Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(230)))), ((int)(((byte)(248)))), ((int)(((byte)(218))))),
+                DisplayEnabled = false,
+                Dock = DockStyle.Fill,
+                Location = new Point(0, 44),
+                Size = new Size(800, 720)
+            });
+
             Controls.Add(_menu = new MenuStrip
             {
                 Items =
@@ -48,15 +57,6 @@ namespace CoreBoy.Windows
                 }
             });
 
-            Controls.Add(_display = new BitmapDisplayControl
-            {
-                BackColor = Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(230)))), ((int)(((byte)(248)))), ((int)(((byte)(218))))),
-                DisplayEnabled = false,
-                Dock = DockStyle.Fill,
-                Location = new Point(0, 44),
-                Size = new Size(1600, 1296)
-            });
-
             _controls = new Dictionary<Keys, Button>
             {
                 {Keys.Left, Button.Left},
@@ -71,7 +71,7 @@ namespace CoreBoy.Windows
 
             AutoScaleDimensions = new SizeF(192F, 192F);
             AutoScaleMode = AutoScaleMode.Dpi;
-            ClientSize = new Size(1600, 1340);
+            ClientSize = new Size(_display.Width, _display.Height + _menu.Height);
 
             _cancellation = new CancellationTokenSource();
             _gameboyOptions = new GameboyOptions();
