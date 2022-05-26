@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using CoreBoy.sound;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
@@ -10,11 +11,14 @@ namespace CoreBoy.gui
 
     public class WinSound : ISoundOutput
     {
+        private readonly byte[] _buffer = new byte[BufferSize];
+        private int _i = 0;
         private int _tick;
         private readonly int _divider;
         private AudioPlaybackEngine _engine;
 
-        private const int SampleRate = 22050;
+        private const int BufferSize = 1024;
+        public const int SampleRate = 22050;
 
         public WinSound()
         {
@@ -29,6 +33,7 @@ namespace CoreBoy.gui
         public void Stop()
         {
             _engine?.Dispose();
+            _engine = null;
         }
 
         public void Play(int left, int right)
@@ -39,36 +44,61 @@ namespace CoreBoy.gui
                 return;
             }
 
-           //Beep((uint)left, 5);*/
+            left = (int)(left * 0.25);
+            right = (int)(right * 0.25);
+
+            left = left < 0 ? 0 : (left > 255 ? 255 : left);
+            right = right < 0 ? 0 : (right > 255 ? 255 : right);
+
+            _buffer[_i++] = (byte)left;
+            _buffer[_i++] = (byte)right;
+            if (_i > BufferSize / 2)
+            {
+                _engine?.PlaySound(_buffer, 0, _i);
+                _i = 0;
+            }
+
+            // wait until audio is done playing this data
+            while (_engine?.GetQueuedAudioLength() > BufferSize)
+            {
+                Thread.Sleep(0);
+            }
         }
     }
 
     public class AudioPlaybackEngine : IDisposable
     {
-        private readonly IWavePlayer _outputDevice;
+        private IWavePlayer _outputDevice;
         private readonly MixingSampleProvider _mixer;
+        private readonly BufferedWaveProvider _bufferedWaveProvider;
 
         public AudioPlaybackEngine(int sampleRate = 44100, int channelCount = 2)
         {
-            _outputDevice = new WaveOutEvent();
+            _outputDevice = new WasapiOut();
             _mixer = new MixingSampleProvider(WaveFormat.CreateIeeeFloatWaveFormat(sampleRate, channelCount))
             {
                 ReadFully = true
             };
 
+            _bufferedWaveProvider = new BufferedWaveProvider(WaveFormat.CreateCustomFormat(WaveFormatEncoding.Pcm, sampleRate, 2, sampleRate, 8, 8))
+            {
+                ReadFully = true,
+                DiscardOnBufferOverflow = true
+            };
+
+            AddMixerInput(_bufferedWaveProvider.ToSampleProvider());
             _outputDevice.Init(_mixer);
             _outputDevice.Play();
         }
 
-        public void PlaySound(string fileName)
+        public int GetQueuedAudioLength()
         {
-            var input = new AudioFileReader(fileName);
-            AddMixerInput(new AutoDisposeFileReader(input));
+            return _bufferedWaveProvider.BufferedBytes;
         }
 
-        public void PlaySound(CachedSound sound)
+        public void PlaySound(byte[] buffer, int offset, int count)
         {
-            AddMixerInput(new CachedSoundSampleProvider(sound));
+            _bufferedWaveProvider.AddSamples(buffer, offset, count);
         }
 
         private void AddMixerInput(ISampleProvider input)
@@ -91,77 +121,8 @@ namespace CoreBoy.gui
 
         public void Dispose()
         {
+            _outputDevice.Stop();
             _outputDevice.Dispose();
-        }
-    }
-
-    public class AutoDisposeFileReader : ISampleProvider
-    {
-        private readonly AudioFileReader _reader;
-        private bool _isDisposed;
-        public AutoDisposeFileReader(AudioFileReader reader)
-        {
-            this._reader = reader;
-            this.WaveFormat = reader.WaveFormat;
-        }
-
-        public int Read(float[] buffer, int offset, int count)
-        {
-            if (_isDisposed)
-                return 0;
-
-            var read = _reader.Read(buffer, offset, count);
-            if (read == 0)
-            {
-                _reader.Dispose();
-                _isDisposed = true;
-            }
-            return read;
-        }
-
-        public WaveFormat WaveFormat { get; private set; }
-    }
-    public class CachedSoundSampleProvider : ISampleProvider
-    {
-        private readonly CachedSound _cachedSound;
-        private long _position;
-
-        public CachedSoundSampleProvider(CachedSound cachedSound)
-        {
-            this._cachedSound = cachedSound;
-        }
-
-        public int Read(float[] buffer, int offset, int count)
-        {
-            var availableSamples = _cachedSound.AudioData.Length - _position;
-            var samplesToCopy = Math.Min(availableSamples, count);
-            Array.Copy(_cachedSound.AudioData, _position, buffer, offset, samplesToCopy);
-            _position += samplesToCopy;
-            return (int)samplesToCopy;
-        }
-
-        public WaveFormat WaveFormat { get { return _cachedSound.WaveFormat; } }
-    }
-
-    public class CachedSound
-    {
-        public float[] AudioData { get; private set; }
-        public WaveFormat WaveFormat { get; private set; }
-        public CachedSound(string audioFileName)
-        {
-            using (var audioFileReader = new AudioFileReader(audioFileName))
-            {
-                // TODO: could add resampling in here if required
-                WaveFormat = audioFileReader.WaveFormat;
-                var wholeFile = new List<float>((int)(audioFileReader.Length / 4));
-                var readBuffer = new float[audioFileReader.WaveFormat.SampleRate * audioFileReader.WaveFormat.Channels];
-                int samplesRead;
-                while ((samplesRead = audioFileReader.Read(readBuffer, 0, readBuffer.Length)) > 0)
-                {
-                    wholeFile.AddRange(readBuffer.Take(samplesRead));
-                }
-                AudioData = wholeFile.ToArray();
-            }
         }
     }
 }
