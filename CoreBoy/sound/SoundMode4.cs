@@ -48,7 +48,7 @@ namespace CoreBoy.sound
 
             if (_polynomialCounter.Tick())
             {
-                _lastResult = _lfsr.NextBit((Nr3 & (1 << 3)) != 0);
+                _lastResult = _lfsr.NextBit(((Nr3 >> 3) & 1) != 0);
             }
 
             return _lastResult * _volumeEnvelope.GetVolume();

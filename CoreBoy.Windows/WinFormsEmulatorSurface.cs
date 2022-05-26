@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Threading;
@@ -14,20 +13,26 @@ namespace CoreBoy.Windows
     {
         private IButtonListener _listener;
 
-        private byte[] _lastFrame;
         private readonly MenuStrip _menu;
-        private readonly PictureBox _pictureBox;
+        private readonly BitmapDisplayControl _display;
         private readonly Dictionary<Keys, Button> _controls;
 
         private readonly Emulator _emulator;
         private readonly GameboyOptions _gameboyOptions;
         private CancellationTokenSource _cancellation;
 
-        private readonly object _updateLock = new object();
-
         public WinFormsEmulatorSurface()
         {
             InitializeComponent();
+
+            Controls.Add(_display = new BitmapDisplayControl
+            {
+                BackColor = Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(230)))), ((int)(((byte)(248)))), ((int)(((byte)(218))))),
+                DisplayEnabled = false,
+                Dock = DockStyle.Fill,
+                Location = new Point(0, 44),
+                Size = new Size(800, 720)
+            });
 
             Controls.Add(_menu = new MenuStrip
             {
@@ -52,15 +57,6 @@ namespace CoreBoy.Windows
                 }
             });
 
-            Controls.Add(_pictureBox = new PictureBox
-            {
-                Top = _menu.Height,
-                Width = BitmapDisplay.DisplayWidth * 5,
-                Height = BitmapDisplay.DisplayHeight * 5,
-                BackColor = Color.Black,
-                SizeMode = PictureBoxSizeMode.Zoom
-            });
-
             _controls = new Dictionary<Keys, Button>
             {
                 {Keys.Left, Button.Left},
@@ -73,12 +69,16 @@ namespace CoreBoy.Windows
                 {Keys.Back, Button.Select}
             };
 
-            Height = _menu.Height + _pictureBox.Height + 50;
-            Width = _pictureBox.Width;
+            AutoScaleDimensions = new SizeF(192F, 192F);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            ClientSize = new Size(_display.Width, _display.Height + _menu.Height);
 
             _cancellation = new CancellationTokenSource();
             _gameboyOptions = new GameboyOptions();
-            _emulator = new Emulator(_gameboyOptions);
+            _emulator = new Emulator(_gameboyOptions)
+            {
+                Display = _display
+            };
 
             ConnectEmulatorToPanel();
         }
@@ -86,8 +86,7 @@ namespace CoreBoy.Windows
         private void ConnectEmulatorToPanel()
         {
             _emulator.Controller = this;
-            _emulator.Display.OnFrameProduced += UpdateDisplay;
-
+            
             KeyDown += WinFormsEmulatorSurface_KeyDown;
             KeyUp += WinFormsEmulatorSurface_KeyUp;
             Closed += (_, e) => { _cancellation.Cancel(); };
@@ -99,7 +98,7 @@ namespace CoreBoy.Windows
             {
                 _emulator.Stop(_cancellation);
                 _cancellation = new CancellationTokenSource();
-                _pictureBox.Image = null;
+                _display.DisplayEnabled = false;
                 Thread.Sleep(100);
             }
 
@@ -138,15 +137,7 @@ namespace CoreBoy.Windows
 
             if (success)
             {
-                try
-                {
-                    Monitor.Enter(_updateLock);
-                    File.WriteAllBytes(sfd.FileName, _lastFrame);
-                }
-                finally
-                {
-                    Monitor.Exit(_updateLock);
-                }
+                _display.SaveLastFrame(sfd.FileName);
             }
 
             _emulator.TogglePause();
@@ -172,39 +163,10 @@ namespace CoreBoy.Windows
 
         public void SetButtonListener(IButtonListener listener) => _listener = listener;
 
-        protected override void OnResize(EventArgs e)
-        {
-            base.OnResize(e);
-            if (_pictureBox == null) return;
-
-            _pictureBox.Width = Width;
-            _pictureBox.Height = Height - _menu.Height - 50;
-        }
-
-        public void UpdateDisplay(object _, byte[] frame)
-        {
-            if (!Monitor.TryEnter(_updateLock)) return;
-            
-            try
-            {
-                _lastFrame = frame;
-                using var memoryStream = new MemoryStream(frame);
-                _pictureBox.Image = Image.FromStream(memoryStream);
-            }
-            catch
-            {
-                // YOLO
-            }
-            finally
-            {
-                Monitor.Exit(_updateLock);
-            }
-        }
-
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             base.OnFormClosed(e);
-            _pictureBox.Dispose();
+            _display.Dispose();
         }
     }
 }

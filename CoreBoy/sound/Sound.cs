@@ -67,14 +67,11 @@ namespace CoreBoy.sound
                 }
             }
 
-            left /= 4;
-            right /= 4;
-
             var volumes = _ram.GetByte(0xff24);
             left *= ((volumes >> 4) & 0b111);
             right *= (volumes & 0b111);
 
-            _output.Play((byte) left, (byte) right);
+            _output.Play(left, right);
         }
 
         private IAddressSpace GetAddressSpace(int address)
